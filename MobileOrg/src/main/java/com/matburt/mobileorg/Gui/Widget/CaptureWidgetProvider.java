@@ -47,7 +47,7 @@ public class CaptureWidgetProvider extends AppWidgetProvider {
 		Intent intent = getWidgetIntent(appWidgetId, context);
 		
 		PendingIntent pendingIntent = PendingIntent.getActivity(
-				context, appWidgetId, intent, PendingIntent.FLAG_CANCEL_CURRENT);
+				context, appWidgetId, intent, PendingIntent.FLAG_CANCEL_CURRENT | PendingIntent.FLAG_IMMUTABLE);
 		views.setOnClickPendingIntent(R.id.capture_widget_root,
 				pendingIntent);
 		

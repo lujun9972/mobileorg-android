@@ -3,14 +3,20 @@ package com.matburt.mobileorg.Services;
 import java.util.ArrayList;
 
 import android.app.AlarmManager;
+import android.app.Notification;
+import android.app.NotificationChannel;
+import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.os.Build;
 import android.os.IBinder;
 import android.preference.PreferenceManager;
+import android.support.v4.app.NotificationCompat;
 
+import com.matburt.mobileorg.R;
 import com.matburt.mobileorg.Gui.SynchronizerNotification;
 import com.matburt.mobileorg.Gui.SynchronizerNotificationCompat;
 import com.matburt.mobileorg.OrgData.MobileOrgApplication;
@@ -30,6 +36,8 @@ public class SyncService extends Service implements
 	private static final String ACTION = "action";
 	private static final String START_ALARM = "START_ALARM";
 	private static final String STOP_ALARM = "STOP_ALARM";
+	private static final String CHANNEL_ID = SynchronizerNotificationCompat.CHANNEL_ID;
+	private static final int FOREGROUND_NOTIFY_ID = 1;
 
 	private SharedPreferences appSettings;
 	private MobileOrgApplication appInst;
@@ -56,38 +64,86 @@ public class SyncService extends Service implements
 		this.appSettings.unregisterOnSharedPreferenceChangeListener(this);
 		super.onDestroy();
 	}
-	
+
 	public static void stopAlarm(Context context) {
 		Intent intent = new Intent(context, SyncService.class);
 		intent.putExtra(ACTION, SyncService.STOP_ALARM);
-		context.startService(intent);
+		startServiceCompat(context, intent);
 	}
 
 	public static void startAlarm(Context context) {
 		Intent intent = new Intent(context, SyncService.class);
 		intent.putExtra(ACTION, SyncService.START_ALARM);
-		context.startService(intent);
+		startServiceCompat(context, intent);
+	}
+
+	private static void startServiceCompat(Context context, Intent intent) {
+		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+			context.startForegroundService(intent);
+		} else {
+			context.startService(intent);
+		}
 	}
 
 	@Override
 	public int onStartCommand(Intent intent, int flags, int startId) {
+		if (intent == null) {
+			stopSelf();
+			return START_NOT_STICKY;
+		}
+
 		String action = intent.getStringExtra(ACTION);
-		if (action != null && action.equals(START_ALARM))
+
+		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+			createNotificationChannel();
+			startForeground(FOREGROUND_NOTIFY_ID, createForegroundNotification());
+		}
+
+		if (action != null && action.equals(START_ALARM)) {
 			setAlarm();
-		else if (action != null && action.equals(STOP_ALARM))
+			stopForegroundAndSelf();
+		} else if (action != null && action.equals(STOP_ALARM)) {
 			unsetAlarm();
-		else if(!this.syncRunning) {
+			stopForegroundAndSelf();
+		} else if(!this.syncRunning) {
 			this.syncRunning = true;
 			runSynchronizer();
+		} else {
+			// sync already running, just return
 		}
-		return 0;
+		return START_NOT_STICKY;
+	}
+
+	private void createNotificationChannel() {
+		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+			NotificationManager nm = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
+			NotificationChannel channel = new NotificationChannel(
+					CHANNEL_ID, "MobileOrg Sync",
+					NotificationManager.IMPORTANCE_LOW);
+			nm.createNotificationChannel(channel);
+		}
+	}
+
+	private Notification createForegroundNotification() {
+		return new NotificationCompat.Builder(this, CHANNEL_ID)
+				.setSmallIcon(R.drawable.icon)
+				.setContentTitle(getString(R.string.sync_synchronizing_changes))
+				.setPriority(NotificationCompat.PRIORITY_LOW)
+				.build();
+	}
+
+	private void stopForegroundAndSelf() {
+		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+			stopForeground(true);
+		}
+		stopSelf();
 	}
 
     public Synchronizer getSynchronizer() {
         SynchronizerInterface synchronizer = null;
 		String syncSource = appSettings.getString("syncSource", "");
 		Context c = getApplicationContext();
-		
+
 		if (syncSource.equals("webdav"))
 			synchronizer =new WebDAVSynchronizer(c);
 		else if (syncSource.equals("sdcard"))
@@ -104,13 +160,13 @@ public class SyncService extends Service implements
             synchronizer = new NullSynchronizer();
 		else
 			synchronizer = null;
-		
+
 		SynchronizerNotificationCompat notification;
 		if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.HONEYCOMB)
 			notification = new SynchronizerNotification(this);
 		else
 			notification = new SynchronizerNotificationCompat(this);
-		
+
 		return new Synchronizer(c, synchronizer, notification);
     }
 
@@ -123,19 +179,28 @@ public class SyncService extends Service implements
 
 		Thread syncThread = new Thread() {
 			public void run() {
-				ArrayList<String> changedFiles = synchronizer.runSynchronizer(parser);				
-				String[] files = changedFiles.toArray(new String[changedFiles.size()]);
-				
-				if(calendarEnabled) {
-					Intent calIntent = new Intent(getBaseContext(), CalendarSyncService.class);
-					calIntent.putExtra(CalendarSyncService.PUSH, true);
-					calIntent.putExtra(CalendarSyncService.FILELIST, files);
-					getBaseContext().startService(calIntent);
+				try {
+					ArrayList<String> changedFiles = synchronizer.runSynchronizer(parser);
+					String[] files = changedFiles.toArray(new String[changedFiles.size()]);
+
+					if(calendarEnabled) {
+						Intent calIntent = new Intent(getBaseContext(), CalendarSyncService.class);
+						calIntent.putExtra(CalendarSyncService.PUSH, true);
+						calIntent.putExtra(CalendarSyncService.FILELIST, files);
+						// SyncService is foreground, so startService is allowed
+						getBaseContext().startService(calIntent);
+					}
+					synchronizer.close();
+					db.close();
+				} finally {
+					syncRunning = false;
+					setAlarm();
+
+					if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+						stopForeground(true);
+					}
+					stopSelf();
 				}
-				synchronizer.close();
-				db.close();
-				syncRunning = false;
-				setAlarm();
 			}
 		};
 
@@ -151,8 +216,14 @@ public class SyncService extends Service implements
 					this.appSettings.getString("autoSyncInterval", "1800000"),
 					10);
 
-			this.alarmIntent = PendingIntent.getService(appInst, 0, new Intent(
-					this, SyncService.class), 0);
+			Intent intent = new Intent(this, SyncService.class);
+			if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+				this.alarmIntent = PendingIntent.getForegroundService(appInst, 0,
+						intent, PendingIntent.FLAG_IMMUTABLE);
+			} else {
+				this.alarmIntent = PendingIntent.getService(appInst, 0,
+						intent, PendingIntent.FLAG_IMMUTABLE);
+			}
 			alarmManager.setRepeating(AlarmManager.RTC,
 					System.currentTimeMillis() + interval, interval,
 					alarmIntent);
@@ -187,7 +258,7 @@ public class SyncService extends Service implements
 		} else if (key.equals("autoSyncInterval"))
 			resetAlarm();
 	}
-	
+
 	@Override
 	public IBinder onBind(Intent intent) {
 		return null;

@@ -1,0 +1,64 @@
+# CLAUDE.md
+
+This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+
+## Project Overview
+
+MobileOrg Android — an Android client for Org-mode. Fork of the unmaintained [matburt/mobileorg-android](https://github.com/matburt/mobileorg-android). This is the `main` branch, started from the original codebase (commit 39ffb4e) with Android 8+ / 12+ compatibility fixes applied.
+
+## Build
+
+**Requirements**: JDK 8, Android SDK with platform 23 and build-tools 23.0.2.
+
+```bash
+./gradlew assembleDebug
+```
+
+APK output: `MobileOrg/build/outputs/apk/debug/`
+
+**Build toolchain**: Gradle 2.8 + AGP 1.5.0 — this is very old. The `master` branch has been upgraded to Gradle 4.1 + AGP 3.0.1 + compileSdk 26. If the build toolchain needs upgrading, copy from master's `build.gradle`, `MobileOrg/build.gradle`, `settings.gradle`, and `gradle-wrapper.properties`.
+
+No automated tests exist in this project.
+
+## Architecture
+
+### Build System
+
+- Single module `:MobileOrg` + library module `:libraries:locale`
+- 8 local JARs in `MobileOrg/libs/` (Dropbox SDK, OAuth, CWAC adapters, Apache HTTP) — not on Maven
+- Uses deprecated `org.apache.http.legacy` library
+- Signing: release keystore (`other.keystore`) with hardcoded passwords in `build.gradle`
+- Version name comes from `git describe --tags`
+
+### Key Packages (`com.matburt.mobileorg`)
+
+- **`OrgData/`** — Core data layer. `OrgDatabase` (SQLite), `OrgFileParser` (parses org files into DB), `OrgProvider`/`OrgProviderUtils` (ContentProvider), `MobileOrgApplication` (app init). Singletons via static `getInstance()` / `startXxx()`.
+- **`Synchronizers/`** — Abstract `Synchronizer` base with implementations: `WebDAVSynchronizer`, `SSHSynchronizer` (JSch), `JGitWrapper` (Git), `DropboxSynchronizer`, `SDCardSynchronizer`. Each implements `isConfigured()`, `isConnectable()`, `synchronize()`, `postSynchronize()`.
+- **`Gui/Outline/`** — Main UI. `OutlineAdapter` prepends 2 fixed header items (TODO, Agenda) before the file list (`numExtraItems = 2`), so all position-to-index conversions must subtract 2.
+- **`Services/`** — `SyncService` (sync via `AlarmManager` + background thread, foreground service on API 26+), `TimeclockService` (timer with foreground notification), `CalendarSyncService`.
+- **`Gui/`** — Notifications (`SynchronizerNotification`/`Compat` with NotificationChannel support), wizard activities, widgets, search.
+
+### Data Flow
+
+1. `MobileOrgApplication.onCreate()` → init DB, Synchronizer, OrgFileParser, SyncService alarm
+2. `SyncService` → `Synchronizer.runSynchronizer()` pulls remote files → `OrgFileParser.parseFile()` → SQLite
+3. UI reads via `OrgProvider` ContentProvider / `OrgProviderUtils`
+4. `OutlineAdapter.refresh()` reloads file list from ContentProvider
+
+## Android Compatibility (Applied Fixes)
+
+The original code targets API 17 and crashes on modern Android. The following fixes have been applied:
+
+- **PendingIntent FLAG_IMMUTABLE**: All PendingIntent calls use `FLAG_IMMUTABLE` (required on Android 12+ / API 31)
+- **NotificationChannel**: Channels created before any `notify()` call (required on Android 8+ / API 26). Channel ID: `mobileorg_sync`, `mobileorg_timeclock`
+- **Foreground Service**: `SyncService` and `TimeclockService` call `startForeground()` on API 26+. Alarm PendingIntent uses `getForegroundService()` on API 26+
+- **Service startup**: `SyncService.startAlarm()`/`stopAlarm()` and `OutlineActivity.runSynchronize()` use `startForegroundService()` on API 26+
+
+All guards use `Build.VERSION.SDK_INT >= Build.VERSION_CODES.O` pattern.
+
+## Known Pitfalls
+
+- **Singleton state**: DB, Parser, Synchronizer are singletons, not thread-safe. Sync thread accesses DB while UI reads it — potential race conditions.
+- **RecyclerView + extra items**: `OutlineAdapter` adds 2 header items. Position-to-index must subtract `numExtraItems`.
+- **`OrgNodeListActivity`**: No `onSaveInstanceState` — rotation can cause issues.
+- **Old build tools**: AGP 1.5.0 + Gradle 2.8 may not be downloadable from modern networks. See note about upgrading from master branch above.

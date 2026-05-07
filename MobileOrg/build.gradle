@@ -44,4 +44,5 @@ dependencies {
     implementation 'com.android.support:support-v4:25.4.0'
     implementation 'com.android.support:recyclerview-v7:25.4.0'
     implementation 'org.eclipse.jgit:org.eclipse.jgit:2.1.0.201209190230-r'
+    implementation project(':libraries:locale')
 }

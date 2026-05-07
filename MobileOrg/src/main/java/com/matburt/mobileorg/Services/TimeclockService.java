@@ -120,7 +120,7 @@ public class TimeclockService extends Service {
 		PendingIntent contentIntent = PendingIntent.getActivity(this, 1,
 				new Intent(this, TimeclockDialog.class), Compat.FLAG_IMMUTABLE);
 
-		Builder builder = new NotificationCompat.Builder(this, CHANNEL_ID);
+		Builder builder = new NotificationCompat.Builder(this);
 		builder.setSmallIcon(R.drawable.timeclock_icon);
 		builder.setContentTitle(node.name);
 		builder.setContentIntent(contentIntent);

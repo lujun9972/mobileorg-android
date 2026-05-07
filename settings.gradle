@@ -1,1 +1,1 @@
-include ':MobileOrg'
+include ':MobileOrg', ':libraries:locale'

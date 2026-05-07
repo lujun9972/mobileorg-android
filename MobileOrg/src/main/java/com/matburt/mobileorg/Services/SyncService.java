@@ -106,7 +106,7 @@ public class SyncService extends Service implements
 	}
 
 	private Notification createForegroundNotification() {
-		return new NotificationCompat.Builder(this, CHANNEL_ID)
+		return new NotificationCompat.Builder(this)
 				.setSmallIcon(R.drawable.icon)
 				.setContentTitle(getString(R.string.sync_synchronizing_changes))
 				.setPriority(NotificationCompat.PRIORITY_LOW)

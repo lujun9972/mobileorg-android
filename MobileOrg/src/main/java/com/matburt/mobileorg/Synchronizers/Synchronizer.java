@@ -78,7 +78,9 @@ public class Synchronizer {
 		
 		try {
 			announceStartSync();
+			Log.i("MobileOrg", "Sync: starting pull");
 			ArrayList<String> changedFiles = pull(parser);
+			Log.i("MobileOrg", "Sync: pull done, changedFiles=" + changedFiles.size());
 			pushCaptures();
 			announceSyncDone();
 			return changedFiles;
@@ -135,15 +137,24 @@ public class Synchronizer {
 	 */
 	public ArrayList<String> pull(OrgFileParser parser) throws SSLHandshakeException, CertificateException, IOException {
 		HashMap<String,String> remoteChecksums = getAndParseChecksumFile();
+		Log.i("MobileOrg", "Sync: remoteChecksums count=" + remoteChecksums.size()
+				+ ", entries=" + remoteChecksums.keySet());
+
 		ArrayList<String> changedFiles = getFilesThatChangedRemotely(remoteChecksums);
-		
-		if(changedFiles.size() == 0)
+		Log.i("MobileOrg", "Sync: changedFiles=" + changedFiles.size()
+				+ ", files=" + changedFiles);
+
+		if(changedFiles.size() == 0) {
+			Log.w("MobileOrg", "Sync: no changed files detected, skipping download");
 			return changedFiles;
-		
+		}
+
 		changedFiles.remove(INDEX_FILE);
 		announceProgressDownload(INDEX_FILE, 0, changedFiles.size() + 2);
 		HashMap<String,String> filenameMap = getAndParseIndexFile();
-		
+		Log.i("MobileOrg", "Sync: index parsed, filenameMap=" + filenameMap.size()
+				+ ", entries=" + filenameMap.keySet());
+
 		Collections.sort(changedFiles, new OrgUtils.SortIgnoreCase());
 		
 		pull(parser, changedFiles, filenameMap, remoteChecksums);
@@ -171,6 +182,8 @@ public class Synchronizer {
 
 	private HashMap<String, String> getAndParseIndexFile() throws SSLHandshakeException, CertificateException, IOException {
 		String remoteIndexContents = FileUtils.read(syncher.getRemoteFile(INDEX_FILE));
+		Log.i("MobileOrg", "Sync: index.org length=" + remoteIndexContents.length()
+				+ ", preview=" + remoteIndexContents.substring(0, Math.min(200, remoteIndexContents.length())));
 		OrgProviderUtils.setTodos(
 				OrgFileParser.getTodosFromIndex(remoteIndexContents), resolver);
 		OrgProviderUtils.setPriorities(
@@ -185,6 +198,8 @@ public class Synchronizer {
 	
 	private HashMap<String, String> getAndParseChecksumFile() throws SSLHandshakeException, CertificateException, IOException {
 		String remoteChecksumContents = FileUtils.read(syncher.getRemoteFile("checksums.dat"));
+		Log.i("MobileOrg", "Sync: checksums.dat length=" + remoteChecksumContents.length()
+				+ ", content=" + remoteChecksumContents.substring(0, Math.min(500, remoteChecksumContents.length())));
 
 		HashMap<String, String> remoteChecksums = OrgFileParser
 				.getChecksums(remoteChecksumContents);

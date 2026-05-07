@@ -52,10 +52,12 @@ public class SSHSynchronizer implements SynchronizerInterface {
         }
         pass = appSettings.getString("scpPass", "");
 
+        Log.i(LT, "SSH: path=" + path + " user=" + user + " host=" + host + " port=" + port);
         try {
             this.connect();
+            Log.i(LT, "SSH: connected successfully to " + user + "@" + host + ":" + port);
         } catch (Exception e) {
-            Log.e("MobileOrg", "SSH Connection failed");
+            Log.e("MobileOrg", "SSH Connection failed: " + e.toString());
         }
 	}
 
@@ -160,8 +162,9 @@ public class SSHSynchronizer implements SynchronizerInterface {
 
             sftpChannel.put(bas, this.getRootUrl() + filename);
             sftpChannel.exit();
+            Log.i("MobileOrg", "SFTP Put " + filename + ": " + contents.length() + " chars");
         } catch (Exception e) {
-            Log.e("MobileOrg", "Exception in putRemoteFile: " + e.toString());
+            Log.e("MobileOrg", "Exception in putRemoteFile(" + filename + "): " + e.toString());
             throw new IOException(e);
         }
 	}
@@ -169,11 +172,16 @@ public class SSHSynchronizer implements SynchronizerInterface {
 	public BufferedReader getRemoteFile(String filename) throws IOException {
         StringBuilder contents = null;
         try {
-            Channel channel = session.openChannel( "sftp" );
+            if (session == null || !session.isConnected()) {
+                Log.e("MobileOrg", "SSH: session is null or disconnected, attempting reconnect");
+                this.connect();
+            }
+            Channel channel = session.openChannel("sftp");
             channel.connect();
             ChannelSftp sftpChannel = (ChannelSftp) channel;
-            Log.i("MobileOrg", "SFTP Getting: " + this.getRootUrl() + filename);
-            InputStream in = sftpChannel.get(this.getRootUrl() + filename);
+            String remotePath = this.getRootUrl() + filename;
+            Log.i("MobileOrg", "SFTP Getting: " + remotePath);
+            InputStream in = sftpChannel.get(remotePath);
 
             BufferedReader r = new BufferedReader(new InputStreamReader(in));
             contents = new StringBuilder();
@@ -182,8 +190,9 @@ public class SSHSynchronizer implements SynchronizerInterface {
                 contents.append(line + "\n");
             }
             sftpChannel.exit();
+            Log.i("MobileOrg", "SFTP Got " + filename + ": " + contents.length() + " chars");
         } catch (Exception e) {
-            Log.e("MobileOrg", "Exception in getRemoteFile: " + e.toString());
+            Log.e("MobileOrg", "Exception in getRemoteFile(" + filename + "): " + e.toString());
             throw new IOException(e);
         }
         return new BufferedReader(new StringReader(contents.toString()));

@@ -3,8 +3,11 @@ package com.matburt.mobileorg.Synchronizers;
 import android.content.ContentResolver;
 import android.content.Context;
 import android.content.Intent;
+import android.os.Handler;
+import android.os.Looper;
 import android.text.TextUtils;
 import android.util.Log;
+import android.widget.Toast;
 
 import com.matburt.mobileorg.Gui.FileDecryptionActivity;
 import com.matburt.mobileorg.Gui.SynchronizerNotificationCompat;
@@ -31,7 +34,7 @@ import javax.net.ssl.SSLHandshakeException;
 /**
  * This class implements many of the operations that need to be done on
  * synching. Instead of using it directly, create a {@link SyncManager}.
- * 
+ *
  * When implementing a new synchronizer, the methods {@link #isConfigured()},
  * {@link #putRemoteFile(String, String)} and {@link #getRemoteFile(String)} are
  * needed.
@@ -42,7 +45,7 @@ public class Synchronizer {
 	public static final String SYNC_START = "sync_start";
 	public static final String SYNC_PROGRESS_UPDATE = "progress_update";
 	public static final String SYNC_SHOW_TOAST = "showToast";
-	
+
 	public static final String CAPTURE_FILE = "mobileorg.org";
 	public static final String INDEX_FILE = "index.org";
 
@@ -50,6 +53,7 @@ public class Synchronizer {
 	private ContentResolver resolver;
 	private SynchronizerInterface syncher;
 	private SynchronizerNotificationCompat notify;
+	private String syncDiag = "";
 
 	public Synchronizer(Context context, SynchronizerInterface syncher, SynchronizerNotificationCompat notify) {
 		this.context = context;
@@ -61,7 +65,7 @@ public class Synchronizer {
  	public boolean isEnabled() {
 		return true;
 	}
-	
+
  	/**
  	 * @return List of files that where changed.
  	 */
@@ -70,26 +74,37 @@ public class Synchronizer {
 			notify.errorNotification("Sync not configured");
 			return new ArrayList<String>();
 		}
-		
+
 		if (!syncher.isConnectable()) {
 			notify.errorNotification("No network connection available");
 			return new ArrayList<String>();
 		}
-		
+
+		syncDiag = "";
 		try {
 			announceStartSync();
-			Log.i("MobileOrg", "Sync: starting pull");
 			ArrayList<String> changedFiles = pull(parser);
-			Log.i("MobileOrg", "Sync: pull done, changedFiles=" + changedFiles.size());
 			pushCaptures();
 			announceSyncDone();
+			showToast("Sync OK: " + changedFiles.size() + " files updated\n" + syncDiag);
 			return changedFiles;
 		} catch (Exception e) {
+			syncDiag += "\nERROR: " + e.getClass().getSimpleName() + ": " + e.getMessage();
 			showErrorNotification(e);
-            Log.e("Synchronizer", "Error synchronizing", e);
-            OrgUtils.announceSyncDone(context);
+			Log.e("Synchronizer", "Error synchronizing", e);
+			OrgUtils.announceSyncDone(context);
+			showToast("Sync FAILED\n" + syncDiag);
 			return new ArrayList<String>();
 		}
+	}
+
+	private void showToast(final String msg) {
+		new Handler(Looper.getMainLooper()).post(new Runnable() {
+			@Override
+			public void run() {
+				Toast.makeText(context, msg, Toast.LENGTH_LONG).show();
+			}
+		});
 	}
 
 	/**
@@ -100,16 +115,16 @@ public class Synchronizer {
 	public void pushCaptures() throws IOException,
 			CertificateException, SSLHandshakeException {
 		final String filename = CAPTURE_FILE;
-		
+
 		notify.updateNotification("Uploading captures");
-		
+
 		String localContents = "";
-		
+
 		try {
 			OrgFile file = new OrgFile(filename, resolver);
 			localContents += file.toString(resolver);
 		} catch (OrgFileNotFoundException e) {}
-		
+
 		localContents += OrgEdit.editsToString(resolver);
 
 		if (localContents.equals(""))
@@ -120,7 +135,7 @@ public class Synchronizer {
 			localContents = remoteContent + "\n" + localContents;
 
 		syncher.putRemoteFile(filename, localContents);
-		
+
 		try {
 			new OrgFile(filename, resolver).removeFile(resolver);
 		} catch (OrgFileNotFoundException e) {}
@@ -133,14 +148,17 @@ public class Synchronizer {
 	 * This method will download index.org and checksums.dat from the remote
 	 * host. Using those files, it determines the other files that need updating
 	 * and downloads them.
-	 * @return 
+	 * @return
 	 */
 	public ArrayList<String> pull(OrgFileParser parser) throws SSLHandshakeException, CertificateException, IOException {
 		HashMap<String,String> remoteChecksums = getAndParseChecksumFile();
+		syncDiag += "checksums: " + remoteChecksums.size() + " entries\n";
 		Log.i("MobileOrg", "Sync: remoteChecksums count=" + remoteChecksums.size()
 				+ ", entries=" + remoteChecksums.keySet());
 
 		ArrayList<String> changedFiles = getFilesThatChangedRemotely(remoteChecksums);
+		syncDiag += "changed: " + changedFiles.size() + " files" +
+				(changedFiles.isEmpty() ? "" : " " + changedFiles) + "\n";
 		Log.i("MobileOrg", "Sync: changedFiles=" + changedFiles.size()
 				+ ", files=" + changedFiles);
 
@@ -152,17 +170,18 @@ public class Synchronizer {
 		changedFiles.remove(INDEX_FILE);
 		announceProgressDownload(INDEX_FILE, 0, changedFiles.size() + 2);
 		HashMap<String,String> filenameMap = getAndParseIndexFile();
+		syncDiag += "index.org: " + filenameMap.size() + " files listed\n";
 		Log.i("MobileOrg", "Sync: index parsed, filenameMap=" + filenameMap.size()
 				+ ", entries=" + filenameMap.keySet());
 
 		Collections.sort(changedFiles, new OrgUtils.SortIgnoreCase());
-		
+
 		pull(parser, changedFiles, filenameMap, remoteChecksums);
 		announceProgressDownload("", changedFiles.size() + 1, changedFiles.size() + 2);
-		
+
 		return changedFiles;
 	}
-	
+
 	private void pull(OrgFileParser parser, ArrayList<String> filesToGet,
 			HashMap<String, String> filenameMap,
 			HashMap<String, String> remoteChecksums)
@@ -182,6 +201,7 @@ public class Synchronizer {
 
 	private HashMap<String, String> getAndParseIndexFile() throws SSLHandshakeException, CertificateException, IOException {
 		String remoteIndexContents = FileUtils.read(syncher.getRemoteFile(INDEX_FILE));
+		syncDiag += "index.org: " + remoteIndexContents.length() + " chars\n";
 		Log.i("MobileOrg", "Sync: index.org length=" + remoteIndexContents.length()
 				+ ", preview=" + remoteIndexContents.substring(0, Math.min(200, remoteIndexContents.length())));
 		OrgProviderUtils.setTodos(
@@ -195,9 +215,10 @@ public class Synchronizer {
 				.getFilesFromIndex(remoteIndexContents);
 		return filenameMap;
 	}
-	
+
 	private HashMap<String, String> getAndParseChecksumFile() throws SSLHandshakeException, CertificateException, IOException {
 		String remoteChecksumContents = FileUtils.read(syncher.getRemoteFile("checksums.dat"));
+		syncDiag += "checksums.dat: " + remoteChecksumContents.length() + " chars\n";
 		Log.i("MobileOrg", "Sync: checksums.dat length=" + remoteChecksumContents.length()
 				+ ", content=" + remoteChecksumContents.substring(0, Math.min(500, remoteChecksumContents.length())));
 
@@ -205,10 +226,11 @@ public class Synchronizer {
 				.getChecksums(remoteChecksumContents);
 		return remoteChecksums;
 	}
-	
+
 	private ArrayList<String> getFilesThatChangedRemotely(HashMap<String, String> remoteChecksums) {
 		HashMap<String, String> localChecksums = OrgProviderUtils.getFileChecksums(resolver);
-		
+		syncDiag += "local: " + localChecksums.size() + " files in DB\n";
+
 		ArrayList<String> filesToGet = new ArrayList<String>();
 
 		for (String key : remoteChecksums.keySet()) {
@@ -217,30 +239,30 @@ public class Synchronizer {
 				continue;
 			filesToGet.add(key);
 		}
-		
+
 		filesToGet.remove(CAPTURE_FILE);
-		
+
 		return filesToGet;
 	}
-	
+
 	private void getAndParseFile(OrgFile orgFile, OrgFileParser parser)
 			throws CertificateException, IOException {
 		Log.v("getter","parsing : "+orgFile);
 		BufferedReader breader = syncher.getRemoteFile(orgFile.filename);
 
 		// TODO Generate checksum of file and compare to remoteChecksum
-		
+
 		try {
 			new OrgFile(orgFile.filename, resolver).removeFile(resolver);
 		} catch (OrgFileNotFoundException e) { /* file did not exist */ }
-		
+
 		if (orgFile.isEncrypted())
         	decryptAndParseFile(orgFile, breader);
         else {
         	parser.parse(orgFile, breader, this.context);
         }
 	}
-	
+
 	private void decryptAndParseFile(OrgFile orgFile, BufferedReader reader) {
 		try {
 			Intent intent = new Intent(context, FileDecryptionActivity.class);
@@ -249,16 +271,16 @@ public class Synchronizer {
 			intent.putExtra("filenameAlias", orgFile.name);
 			intent.putExtra("checksum", orgFile.checksum);
 			intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-			context.startActivity(intent);	
+			context.startActivity(intent);
 		} catch(IOException e) {}
 	}
-	
+
 
 	private void announceStartSync() {
 		notify.setupNotification();
 		OrgUtils.announceSyncStart(context);
 	}
-	
+
 	private void announceProgressUpdate(int progress, String message) {
 		if(message != null && TextUtils.isEmpty(message) == false)
 			notify.updateNotification(progress, message);
@@ -266,7 +288,7 @@ public class Synchronizer {
 			notify.updateNotification(progress);
 		OrgUtils.announceSyncUpdateProgress(progress, context);
 	}
-	
+
 	private void announceProgressDownload(String filename, int fileIndex, int totalFiles) {
 		int progress = 0;
 		if (totalFiles > 0)
@@ -274,10 +296,10 @@ public class Synchronizer {
 		String message = context.getString(R.string.downloading) + " " + filename;
 		announceProgressUpdate(progress, message);
 	}
-	
+
 	private void showErrorNotification(Exception exception) {
 		notify.finalizeNotification();
-		
+
 		String errorMessage = "";
         if (CertificateException.class.isInstance(exception)) {
 			errorMessage = "Certificate Error occured during sync: "
@@ -285,16 +307,16 @@ public class Synchronizer {
 		} else {
 			errorMessage = "Error: " + exception.getLocalizedMessage();
 		}
-		
+
 		notify.errorNotification(errorMessage);
 	}
-	
+
 	private void announceSyncDone() {
 		announceProgressUpdate(100, "Done synchronizing");
 		notify.finalizeNotification();
 		OrgUtils.announceSyncDone(context);
 	}
-	
+
 	public void close() {
 		syncher.postSynchronize();
 	}

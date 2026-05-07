@@ -50,7 +50,7 @@ public class MobileOrgWidget extends AppWidgetProvider {
             
             Intent intent = new Intent(context, EditActivity.class);
             intent.setAction(EditActivityController.ACTIONMODE_CREATE);
-            PendingIntent pendingIntent = PendingIntent.getActivity(context, 0, intent, PendingIntent.FLAG_IMMUTABLE);
+            PendingIntent pendingIntent = PendingIntent.getActivity(context, 0, intent, com.matburt.mobileorg.util.Compat.FLAG_IMMUTABLE);
             updateViews.setOnClickPendingIntent(R.id.widget, pendingIntent);
 
 			updateViews.setTextViewText(R.id.message, getAgenda());

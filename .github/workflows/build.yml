@@ -15,7 +15,7 @@ jobs:
       - name: Install Android SDK components
         run: |
           yes | ${ANDROID_HOME}/cmdline-tools/latest/bin/sdkmanager \
-            "platforms;android-26" \
+            "platforms;android-23" \
             "build-tools;26.0.2"
 
       - name: Set up JDK 8

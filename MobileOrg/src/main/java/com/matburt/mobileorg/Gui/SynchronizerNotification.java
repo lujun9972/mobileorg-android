@@ -10,6 +10,7 @@ import android.os.Build;
 
 import com.matburt.mobileorg.R;
 import com.matburt.mobileorg.Gui.Outline.OutlineActivity;
+import com.matburt.mobileorg.util.Compat;
 
 @TargetApi(Build.VERSION_CODES.ICE_CREAM_SANDWICH)
 public class SynchronizerNotification extends SynchronizerNotificationCompat {
@@ -33,14 +34,9 @@ public class SynchronizerNotification extends SynchronizerNotificationCompat {
         notifyIntent.putExtra("ERROR_MESSAGE", errorMsg);
         notifyIntent.setAction("com.matburt.mobileorg.SYNC_FAILED");
 
-		PendingIntent contentIntent = PendingIntent.getActivity(context, 0, notifyIntent, PendingIntent.FLAG_IMMUTABLE);
+		PendingIntent contentIntent = PendingIntent.getActivity(context, 0, notifyIntent, Compat.FLAG_IMMUTABLE);
 
-		Notification.Builder builder;
-		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-			builder = new Notification.Builder(context, CHANNEL_ID);
-		} else {
-			builder = new Notification.Builder(context);
-		}
+		Notification.Builder builder = new Notification.Builder(context);
 		builder.setContentIntent(contentIntent);
 		builder.setSmallIcon(R.drawable.icon);
 		builder.setContentTitle(context.getString(R.string.sync_failed));
@@ -63,14 +59,9 @@ public class SynchronizerNotification extends SynchronizerNotificationCompat {
 				| Intent.FLAG_ACTIVITY_SINGLE_TOP);
 
 		PendingIntent contentIntent = PendingIntent.getActivity(context, 0,
-				notifyIntent, PendingIntent.FLAG_IMMUTABLE);
+				notifyIntent, Compat.FLAG_IMMUTABLE);
 
-		Notification.Builder builder;
-		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-			builder = new Notification.Builder(context, CHANNEL_ID);
-		} else {
-			builder = new Notification.Builder(context);
-		}
+		Notification.Builder builder = new Notification.Builder(context);
 		builder.setContentIntent(contentIntent);
 		builder.setSmallIcon(R.drawable.icon);
 		builder.setOngoing(true);

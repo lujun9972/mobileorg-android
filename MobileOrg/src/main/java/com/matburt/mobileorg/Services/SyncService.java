@@ -4,8 +4,6 @@ import java.util.ArrayList;
 
 import android.app.AlarmManager;
 import android.app.Notification;
-import android.app.NotificationChannel;
-import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.app.Service;
 import android.content.Context;
@@ -30,6 +28,7 @@ import com.matburt.mobileorg.Synchronizers.Synchronizer;
 import com.matburt.mobileorg.Synchronizers.SynchronizerInterface;
 import com.matburt.mobileorg.Synchronizers.UbuntuOneSynchronizer;
 import com.matburt.mobileorg.Synchronizers.WebDAVSynchronizer;
+import com.matburt.mobileorg.util.Compat;
 
 public class SyncService extends Service implements
 		SharedPreferences.OnSharedPreferenceChangeListener {
@@ -68,21 +67,13 @@ public class SyncService extends Service implements
 	public static void stopAlarm(Context context) {
 		Intent intent = new Intent(context, SyncService.class);
 		intent.putExtra(ACTION, SyncService.STOP_ALARM);
-		startServiceCompat(context, intent);
+		Compat.startService(context, intent);
 	}
 
 	public static void startAlarm(Context context) {
 		Intent intent = new Intent(context, SyncService.class);
 		intent.putExtra(ACTION, SyncService.START_ALARM);
-		startServiceCompat(context, intent);
-	}
-
-	private static void startServiceCompat(Context context, Intent intent) {
-		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-			context.startForegroundService(intent);
-		} else {
-			context.startService(intent);
-		}
+		Compat.startService(context, intent);
 	}
 
 	@Override
@@ -94,8 +85,8 @@ public class SyncService extends Service implements
 
 		String action = intent.getStringExtra(ACTION);
 
-		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-			createNotificationChannel();
+		if (Compat.isAtLeastO()) {
+			Compat.createNotificationChannel(this, CHANNEL_ID, "MobileOrg Sync");
 			startForeground(FOREGROUND_NOTIFY_ID, createForegroundNotification());
 		}
 
@@ -114,16 +105,6 @@ public class SyncService extends Service implements
 		return START_NOT_STICKY;
 	}
 
-	private void createNotificationChannel() {
-		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-			NotificationManager nm = (NotificationManager) getSystemService(Context.NOTIFICATION_SERVICE);
-			NotificationChannel channel = new NotificationChannel(
-					CHANNEL_ID, "MobileOrg Sync",
-					NotificationManager.IMPORTANCE_LOW);
-			nm.createNotificationChannel(channel);
-		}
-	}
-
 	private Notification createForegroundNotification() {
 		return new NotificationCompat.Builder(this, CHANNEL_ID)
 				.setSmallIcon(R.drawable.icon)
@@ -133,7 +114,7 @@ public class SyncService extends Service implements
 	}
 
 	private void stopForegroundAndSelf() {
-		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+		if (Compat.isAtLeastO()) {
 			stopForeground(true);
 		}
 		stopSelf();
@@ -187,7 +168,6 @@ public class SyncService extends Service implements
 						Intent calIntent = new Intent(getBaseContext(), CalendarSyncService.class);
 						calIntent.putExtra(CalendarSyncService.PUSH, true);
 						calIntent.putExtra(CalendarSyncService.FILELIST, files);
-						// SyncService is foreground, so startService is allowed
 						getBaseContext().startService(calIntent);
 					}
 					synchronizer.close();
@@ -196,7 +176,7 @@ public class SyncService extends Service implements
 					syncRunning = false;
 					setAlarm();
 
-					if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+					if (Compat.isAtLeastO()) {
 						stopForeground(true);
 					}
 					stopSelf();
@@ -217,13 +197,8 @@ public class SyncService extends Service implements
 					10);
 
 			Intent intent = new Intent(this, SyncService.class);
-			if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-				this.alarmIntent = PendingIntent.getForegroundService(appInst, 0,
-						intent, PendingIntent.FLAG_IMMUTABLE);
-			} else {
-				this.alarmIntent = PendingIntent.getService(appInst, 0,
-						intent, PendingIntent.FLAG_IMMUTABLE);
-			}
+			this.alarmIntent = Compat.getServicePendingIntent(appInst, 0,
+					intent, Compat.FLAG_IMMUTABLE);
 			alarmManager.setRepeating(AlarmManager.RTC,
 					System.currentTimeMillis() + interval, interval,
 					alarmIntent);

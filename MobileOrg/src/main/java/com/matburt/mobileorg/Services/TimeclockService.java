@@ -2,7 +2,6 @@ package com.matburt.mobileorg.Services;
 
 import android.app.AlarmManager;
 import android.app.Notification;
-import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.app.Service;
@@ -23,6 +22,7 @@ import android.widget.RemoteViews;
 import com.matburt.mobileorg.R;
 import com.matburt.mobileorg.OrgData.MobileOrgApplication;
 import com.matburt.mobileorg.OrgData.OrgNode;
+import com.matburt.mobileorg.util.Compat;
 import com.matburt.mobileorg.util.OrgNodeNotFoundException;
 
 public class TimeclockService extends Service {
@@ -97,15 +97,6 @@ public class TimeclockService extends Service {
 		return START_NOT_STICKY;
 	}
 
-	private void createNotificationChannel() {
-		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-			NotificationChannel channel = new NotificationChannel(
-					CHANNEL_ID, "MobileOrg Timeclock",
-					NotificationManager.IMPORTANCE_LOW);
-			mNM.createNotificationChannel(channel);
-		}
-	}
-
 	private void getEstimated() {
 		String estimated = node.getOrgNodePayload().getProperty("Effort").trim();
 
@@ -124,10 +115,10 @@ public class TimeclockService extends Service {
 	}
 
 	private void showNotification(long node_id) {
-		createNotificationChannel();
+		Compat.createNotificationChannel(this, CHANNEL_ID, "MobileOrg Timeclock");
 
 		PendingIntent contentIntent = PendingIntent.getActivity(this, 1,
-				new Intent(this, TimeclockDialog.class), PendingIntent.FLAG_IMMUTABLE);
+				new Intent(this, TimeclockDialog.class), Compat.FLAG_IMMUTABLE);
 
 		Builder builder = new NotificationCompat.Builder(this, CHANNEL_ID);
 		builder.setSmallIcon(R.drawable.timeclock_icon);
@@ -147,7 +138,7 @@ public class TimeclockService extends Service {
 
 		updateTime();
 
-		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+		if (Compat.isAtLeastO()) {
 			startForeground(notificationID, notification);
 		} else {
 			mNM.notify(notificationID, notification);
@@ -158,7 +149,7 @@ public class TimeclockService extends Service {
 		Intent intent = new Intent(this, TimeclockService.class);
 		intent.putExtra("action", TIMECLOCK_UPDATE);
 		this.updateIntent = PendingIntent.getService(appInst, 1,
-				intent, PendingIntent.FLAG_IMMUTABLE);
+				intent, Compat.FLAG_IMMUTABLE);
 		alarmManager.setRepeating(AlarmManager.RTC, System.currentTimeMillis()
 				+ DateUtils.MINUTE_IN_MILLIS, DateUtils.MINUTE_IN_MILLIS, updateIntent);
 	}
@@ -173,7 +164,7 @@ public class TimeclockService extends Service {
 		Intent intent = new Intent(this, TimeclockService.class);
 		intent.putExtra("action", TIMECLOCK_TIMEOUT);
 		this.timeoutIntent = PendingIntent.getService(appInst, 2,
-				intent, PendingIntent.FLAG_IMMUTABLE);
+				intent, Compat.FLAG_IMMUTABLE);
 		alarmManager.set(AlarmManager.RTC_WAKEUP, System.currentTimeMillis()
 				+ time, timeoutIntent);
 	}
@@ -251,7 +242,7 @@ public class TimeclockService extends Service {
 	public void cancelNotification() {
 		unsetAlarms();
 		mNM.cancel(notificationID);
-		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+		if (Compat.isAtLeastO()) {
 			stopForeground(true);
 		}
 		this.stopSelf();

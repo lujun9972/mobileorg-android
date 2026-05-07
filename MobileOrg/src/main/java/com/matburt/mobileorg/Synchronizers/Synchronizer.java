@@ -23,7 +23,10 @@ import com.matburt.mobileorg.util.OrgFileNotFoundException;
 import com.matburt.mobileorg.util.OrgUtils;
 
 import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileWriter;
 import java.io.IOException;
+import java.io.PrintWriter;
 import java.security.cert.CertificateException;
 import java.util.ArrayList;
 import java.util.Collections;
@@ -86,7 +89,9 @@ public class Synchronizer {
 			ArrayList<String> changedFiles = pull(parser);
 			pushCaptures();
 			announceSyncDone();
-			showToast("Sync OK: " + changedFiles.size() + " files updated\n" + syncDiag);
+			String okMsg = "Sync OK: " + changedFiles.size() + " files updated\n" + syncDiag;
+			showToast(okMsg);
+			writeDebugLog(okMsg);
 			return changedFiles;
 		} catch (Exception e) {
 			syncDiag += "\nERROR: " + e.getClass().getSimpleName() + ": " + e.getMessage();
@@ -94,6 +99,7 @@ public class Synchronizer {
 			Log.e("Synchronizer", "Error synchronizing", e);
 			OrgUtils.announceSyncDone(context);
 			showToast("Sync FAILED\n" + syncDiag);
+				writeDebugLog("Sync FAILED\n" + syncDiag);
 			return new ArrayList<String>();
 		}
 	}
@@ -105,6 +111,20 @@ public class Synchronizer {
 				Toast.makeText(context, msg, Toast.LENGTH_LONG).show();
 			}
 		});
+	}
+
+	private void writeDebugLog(String msg) {
+		try {
+			File dir = android.os.Environment.getExternalStorageDirectory();
+			File logFile = new File(dir, "mobileorg_debug.log");
+			PrintWriter writer = new PrintWriter(new FileWriter(logFile, true));
+			writer.println("===== " + new java.text.SimpleDateFormat("yyyy-MM-dd HH:mm:ss", java.util.Locale.US).format(new java.util.Date()) + " =====");
+			writer.println(msg);
+			writer.println();
+			writer.close();
+		} catch (Exception e) {
+			Log.e("MobileOrg", "Failed to write debug log: " + e.toString());
+		}
 	}
 
 	/**

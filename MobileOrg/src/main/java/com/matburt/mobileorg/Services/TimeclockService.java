@@ -88,8 +88,14 @@ public class TimeclockService extends Service {
 			setUpdateAlarm();
 			setTimeoutAlarm(this.estimatedHour, this.estimatedMinute);
 		}
-		else if(action.equals(TIMECLOCK_UPDATE))
+		else if(action.equals(TIMECLOCK_UPDATE)) {
+			if (notification == null) {
+				unsetAlarms();
+				stopSelf();
+				return START_NOT_STICKY;
+			}
 			updateTime();
+		}
 		else if(action.equals(TIMECLOCK_TIMEOUT)){
 			doTimeout();
 		}

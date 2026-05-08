@@ -7,6 +7,7 @@ import android.app.PendingIntent;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Build;
+import android.support.v4.app.NotificationCompat;
 
 import com.matburt.mobileorg.R;
 import com.matburt.mobileorg.Gui.Outline.OutlineActivity;
@@ -16,22 +17,13 @@ import com.matburt.mobileorg.util.Compat;
 public class SynchronizerNotification extends SynchronizerNotificationCompat {
 	private NotificationManager notificationManager;
 	private Notification notification;
-	private Notification.Builder builder;
+	private NotificationCompat.Builder builder;
 	private int notifyRef = 1;
 	private Context context;
 
 	public SynchronizerNotification(Context context) {
 		super(context);
 		this.context = context;
-	}
-
-	@SuppressWarnings("deprecation")
-	private Notification.Builder createBuilder() {
-		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
-			return new Notification.Builder(context, CHANNEL_ID);
-		} else {
-			return new Notification.Builder(context);
-		}
 	}
 
 	@Override
@@ -46,7 +38,7 @@ public class SynchronizerNotification extends SynchronizerNotificationCompat {
 
 		PendingIntent contentIntent = PendingIntent.getActivity(context, 0, notifyIntent, Compat.FLAG_IMMUTABLE);
 
-		builder = createBuilder();
+		builder = new NotificationCompat.Builder(context, CHANNEL_ID);
 		builder.setContentIntent(contentIntent);
 		builder.setSmallIcon(R.drawable.icon);
 		builder.setContentTitle(context.getString(R.string.sync_failed));
@@ -70,7 +62,7 @@ public class SynchronizerNotification extends SynchronizerNotificationCompat {
 		PendingIntent contentIntent = PendingIntent.getActivity(context, 0,
 				notifyIntent, Compat.FLAG_IMMUTABLE);
 
-		builder = createBuilder();
+		builder = new NotificationCompat.Builder(context, CHANNEL_ID);
 		builder.setContentIntent(contentIntent);
 		builder.setSmallIcon(R.drawable.icon);
 		builder.setOngoing(true);

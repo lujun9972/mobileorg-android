@@ -12,6 +12,7 @@ import android.os.Bundle;
 import android.preference.ListPreference;
 import android.preference.Preference;
 import android.text.TextUtils;
+import android.widget.Toast;
 
 import com.actionbarsherlock.app.SherlockPreferenceActivity;
 import com.matburt.mobileorg.OrgData.OrgProviderUtils;
@@ -22,6 +23,7 @@ import com.matburt.mobileorg.Settings.Synchronizers.SDCardSettingsActivity;
 import com.matburt.mobileorg.Settings.Synchronizers.ScpSettingsActivity;
 import com.matburt.mobileorg.Settings.Synchronizers.WebDAVSettingsActivity;
 import com.matburt.mobileorg.util.OrgUtils;
+import com.matburt.mobileorg.util.SyncConfigHelper;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -30,7 +32,7 @@ import java.util.List;
 public class SettingsActivity extends SherlockPreferenceActivity implements
 		SharedPreferences.OnSharedPreferenceChangeListener {
 	public static final String KEY_SYNC_SOURCE = "syncSource";
-	
+
 	private String KEY_AUTO_SYNC_INTERVAL;
 	private String KEY_VIEW_RECURSION_MAX;
 	private String KEY_DEFAULT_TODO;
@@ -40,27 +42,29 @@ public class SettingsActivity extends SherlockPreferenceActivity implements
 	private String KEY_FONT_SIZE;
 	private String KEY_QUICK_TODOS;
 
-	
+
 	private SharedPreferences appSettings;
-	
+
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		OrgUtils.setTheme(this);
 		super.onCreate(savedInstanceState);
-		
+
 		addPreferencesFromResource(R.xml.preferences);
 
 		init();
 		populateSyncSources();
 		populateTodoKeywords();
 		populateCalendarNames();
-        populateVersionName();
+		populateVersionName();
 		findPreference("clearDB").setOnPreferenceClickListener(onClearDBClick);
+		findPreference("exportSyncConfig").setOnPreferenceClickListener(onExportSyncConfigClick);
+		findPreference("importSyncConfig").setOnPreferenceClickListener(onImportSyncConfigClick);
 	}
 
 	private void init() {
 		this.appSettings = getPreferenceScreen().getSharedPreferences();
-		
+
 		this.KEY_AUTO_SYNC_INTERVAL = getString(R.string.key_autoSyncInterval);
 		this.KEY_VIEW_RECURSION_MAX = getString(R.string.key_viewRecursionMax);
 		this.KEY_DEFAULT_TODO = getString(R.string.key_defaultTodo);
@@ -69,10 +73,10 @@ public class SettingsActivity extends SherlockPreferenceActivity implements
 		this.KEY_THEME = getString(R.string.key_theme);
 		this.KEY_FONT_SIZE = getString(R.string.key_fontSize);
 		this.KEY_QUICK_TODOS = getString(R.string.key_quick_todos);
-		
+
 		initSettings();
 	}
-	
+
 	private void initSettings() {
 		updatePreferenceSummary(KEY_SYNC_SOURCE);
 		updatePreferenceSummary(KEY_AUTO_SYNC_INTERVAL);
@@ -97,18 +101,18 @@ public class SettingsActivity extends SherlockPreferenceActivity implements
 		super.onResume();
 		this.appSettings.registerOnSharedPreferenceChangeListener(this);
 	}
-	
+
 	@Override
 	public void onPause() {
 		this.appSettings.unregisterOnSharedPreferenceChangeListener(this);
 		super.onPause();
 	}
-	
+
 
 	private void updatePreferenceSummary(String key) {
 		if (key == null)
 			return;
-		
+
 		Preference pref = findPreference(key);
 		if (pref == null)
 			return;
@@ -137,7 +141,7 @@ public class SettingsActivity extends SherlockPreferenceActivity implements
 		} else if (key.equals(KEY_THEME)) {
 			summary = appSettings.getString(key, "");
 		} else if (key.equals(KEY_FONT_SIZE)) {
-			summary = appSettings.getString(key, "");			
+			summary = appSettings.getString(key, "");
 		} else if (key.equals(KEY_QUICK_TODOS)) {
 			summary = appSettings.getString(key, "");
 		}
@@ -146,16 +150,16 @@ public class SettingsActivity extends SherlockPreferenceActivity implements
 			pref.setSummary(summary);
 	}
 
-    private void populateVersionName() {
-        Preference version = findPreference(getResources().getString(R.string.key_version));
-        try {
-            String versionName = getPackageManager().getPackageInfo(getPackageName(),0).versionName;
-            version.setSummary(versionName);
-        } catch (PackageManager.NameNotFoundException e) {
-        }
-    }
+	private void populateVersionName() {
+		Preference version = findPreference(getResources().getString(R.string.key_version));
+		try {
+			String versionName = getPackageManager().getPackageInfo(getPackageName(),0).versionName;
+			version.setSummary(versionName);
+		} catch (PackageManager.NameNotFoundException e) {
+		}
+	}
 
-    private void populateCalendarNames() {
+	private void populateCalendarNames() {
 		try {
 			ListPreference calendarName = (ListPreference) findPreference(KEY_CALENDAR_NAME);
 
@@ -235,7 +239,7 @@ public class SettingsActivity extends SherlockPreferenceActivity implements
 
 	private static final String SYNCHRONIZER_PLUGIN_ACTION = "com.matburt.mobileorg.SYNCHRONIZE";
 	public static final int SYNCHRONIZER_PREFERENCES = 10;
-	
+
 	private static List<PackageItemInfo> getSynchronizerPlugins(Context context) {
 		Intent discoverSynchro = new Intent(SYNCHRONIZER_PLUGIN_ACTION);
 		List<ResolveInfo> packages = context.getPackageManager()
@@ -248,8 +252,8 @@ public class SettingsActivity extends SherlockPreferenceActivity implements
 
 		return out;
 	}
-	
-	
+
+
 	private Preference.OnPreferenceClickListener onClearDBClick = new Preference.OnPreferenceClickListener() {
 		@Override
 		public boolean onPreferenceClick(Preference preference) {
@@ -266,13 +270,48 @@ public class SettingsActivity extends SherlockPreferenceActivity implements
 									OrgProviderUtils
 											.clearDB(getContentResolver());
 									OrgUtils.announceSyncDone(getApplicationContext());
-									
+
 									Intent clearCalDBIntent = new Intent(getBaseContext(), CalendarSyncService.class);
 									clearCalDBIntent.putExtra(CalendarSyncService.CLEARDB, true);
 									startService(clearCalDBIntent);
 								}
 
 							}).setNegativeButton(R.string.no, null).show();
+			return false;
+		}
+	};
+
+	private Preference.OnPreferenceClickListener onExportSyncConfigClick = new Preference.OnPreferenceClickListener() {
+		@Override
+		public boolean onPreferenceClick(Preference preference) {
+			String error = SyncConfigHelper.exportConfig(SettingsActivity.this);
+			if (error != null) {
+				Toast.makeText(SettingsActivity.this,
+						getString(R.string.sync_config_export_failed, error),
+						Toast.LENGTH_LONG).show();
+			} else {
+				Toast.makeText(SettingsActivity.this,
+						getString(R.string.sync_config_export_success,
+								SyncConfigHelper.getExportFile().getAbsolutePath()),
+						Toast.LENGTH_LONG).show();
+			}
+			return false;
+		}
+	};
+
+	private Preference.OnPreferenceClickListener onImportSyncConfigClick = new Preference.OnPreferenceClickListener() {
+		@Override
+		public boolean onPreferenceClick(Preference preference) {
+			String error = SyncConfigHelper.importConfig(SettingsActivity.this);
+			if (error != null) {
+				Toast.makeText(SettingsActivity.this,
+						getString(R.string.sync_config_import_failed, error),
+						Toast.LENGTH_LONG).show();
+			} else {
+				Toast.makeText(SettingsActivity.this,
+						R.string.sync_config_import_success,
+						Toast.LENGTH_LONG).show();
+			}
 			return false;
 		}
 	};

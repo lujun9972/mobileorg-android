@@ -16,6 +16,7 @@ import com.matburt.mobileorg.util.Compat;
 public class SynchronizerNotification extends SynchronizerNotificationCompat {
 	private NotificationManager notificationManager;
 	private Notification notification;
+	private Notification.Builder builder;
 	private int notifyRef = 1;
 	private Context context;
 
@@ -24,32 +25,40 @@ public class SynchronizerNotification extends SynchronizerNotificationCompat {
 		this.context = context;
 	}
 
+	@SuppressWarnings("deprecation")
+	private Notification.Builder createBuilder() {
+		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+			return new Notification.Builder(context, CHANNEL_ID);
+		} else {
+			return new Notification.Builder(context);
+		}
+	}
+
 	@Override
 	public void errorNotification(String errorMsg) {
 		createNotificationChannel();
 		this.notificationManager = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
 		Intent notifyIntent = new Intent(context, OutlineActivity.class);
 		notifyIntent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP
-	                          | Intent.FLAG_ACTIVITY_SINGLE_TOP);
-        notifyIntent.putExtra("ERROR_MESSAGE", errorMsg);
-        notifyIntent.setAction("com.matburt.mobileorg.SYNC_FAILED");
+		                      | Intent.FLAG_ACTIVITY_SINGLE_TOP);
+		notifyIntent.putExtra("ERROR_MESSAGE", errorMsg);
+		notifyIntent.setAction("com.matburt.mobileorg.SYNC_FAILED");
 
 		PendingIntent contentIntent = PendingIntent.getActivity(context, 0, notifyIntent, Compat.FLAG_IMMUTABLE);
 
-		Notification.Builder builder = new Notification.Builder(context);
+		builder = createBuilder();
 		builder.setContentIntent(contentIntent);
 		builder.setSmallIcon(R.drawable.icon);
 		builder.setContentTitle(context.getString(R.string.sync_failed));
 		builder.setContentText(errorMsg);
-        notification = builder.getNotification();
-        notification.flags = Notification.FLAG_AUTO_CANCEL;
+		notification = builder.build();
+		notification.flags = Notification.FLAG_AUTO_CANCEL;
 
 		notificationManager.notify(notifyRef, notification);
 	}
 
 
 	@Override
-	@SuppressWarnings("deprecation")
 	public void setupNotification() {
 		createNotificationChannel();
 		this.notificationManager = (NotificationManager) context
@@ -61,13 +70,13 @@ public class SynchronizerNotification extends SynchronizerNotificationCompat {
 		PendingIntent contentIntent = PendingIntent.getActivity(context, 0,
 				notifyIntent, Compat.FLAG_IMMUTABLE);
 
-		Notification.Builder builder = new Notification.Builder(context);
+		builder = createBuilder();
 		builder.setContentIntent(contentIntent);
 		builder.setSmallIcon(R.drawable.icon);
 		builder.setOngoing(true);
 		builder.setContentTitle(context.getString(R.string.sync_synchronizing_changes));
 		builder.setProgress(100, 0, true);
-		notification = builder.getNotification();
+		notification = builder.build();
 
 		notificationManager.notify(notifyRef, notification);
 	}
@@ -92,8 +101,10 @@ public class SynchronizerNotification extends SynchronizerNotificationCompat {
 		if(notification == null)
 			return;
 
-		notification.contentView.setProgressBar(android.R.id.progress, 100,
-				progress, false);
+		if(message != null)
+			builder.setContentText(message);
+		builder.setProgress(100, progress, false);
+		notification = builder.build();
 
 		notificationManager.notify(notifyRef, notification);
 	}

@@ -38,7 +38,7 @@ public class SynchronizerNotification extends SynchronizerNotificationCompat {
 
 		PendingIntent contentIntent = PendingIntent.getActivity(context, 0, notifyIntent, Compat.FLAG_IMMUTABLE);
 
-		builder = new NotificationCompat.Builder(context, CHANNEL_ID);
+		builder = new NotificationCompat.Builder(context);
 		builder.setContentIntent(contentIntent);
 		builder.setSmallIcon(R.drawable.icon);
 		builder.setContentTitle(context.getString(R.string.sync_failed));
@@ -62,7 +62,7 @@ public class SynchronizerNotification extends SynchronizerNotificationCompat {
 		PendingIntent contentIntent = PendingIntent.getActivity(context, 0,
 				notifyIntent, Compat.FLAG_IMMUTABLE);
 
-		builder = new NotificationCompat.Builder(context, CHANNEL_ID);
+		builder = new NotificationCompat.Builder(context);
 		builder.setContentIntent(contentIntent);
 		builder.setSmallIcon(R.drawable.icon);
 		builder.setOngoing(true);

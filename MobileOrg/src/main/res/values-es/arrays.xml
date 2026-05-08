@@ -11,14 +11,12 @@
     </string-array>
     <string-array name="fileSources">
         <item>WebDAV</item>
-        <item>Dropbox</item>
         <item>SDCard</item>
         <item>SSH/SCP</item>
         <item>Sólo capturar</item>
     </string-array>
     <string-array name="fileSourcesVals">
         <item>webdav</item>
-        <item>dropbox</item>
         <item>sdcard</item>
         <item>scp</item>
         <item>null</item>

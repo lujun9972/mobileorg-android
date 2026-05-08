@@ -16,7 +16,6 @@ import android.widget.TextView;
 import com.matburt.mobileorg.R;
 import com.matburt.mobileorg.Settings.Synchronizers.SDCardSettingsActivity;
 import com.matburt.mobileorg.Settings.Synchronizers.ScpSettingsActivity;
-import com.matburt.mobileorg.Settings.Synchronizers.UbuntuOneSettingsActivity;
 import com.matburt.mobileorg.Settings.Synchronizers.WebDAVSettingsActivity;
 
 public class SynchronizerPreferences extends Preference {
@@ -103,8 +102,6 @@ public class SynchronizerPreferences extends Preference {
 		} else if (syncSource.equals("sdcard")) {
 			String value = sharedPreferences.getString(SDCardSettingsActivity.KEY_INDEX_FILE_PATH, "");
 			return value;
-		} else if (syncSource.equals("ubuntu")) {
-			return sharedPreferences.getString(UbuntuOneSettingsActivity.KEY_UBUNTUONE_PATH, "");
 		} else if (syncSource.equals("webdav")) {
 			return sharedPreferences.getString(WebDAVSettingsActivity.KEY_WEB_URL, "");
 		}

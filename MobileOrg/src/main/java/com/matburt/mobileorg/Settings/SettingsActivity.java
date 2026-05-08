@@ -20,7 +20,6 @@ import com.matburt.mobileorg.Services.CalendarSyncService;
 import com.matburt.mobileorg.Services.CalendarWrapper;
 import com.matburt.mobileorg.Settings.Synchronizers.SDCardSettingsActivity;
 import com.matburt.mobileorg.Settings.Synchronizers.ScpSettingsActivity;
-import com.matburt.mobileorg.Settings.Synchronizers.UbuntuOneSettingsActivity;
 import com.matburt.mobileorg.Settings.Synchronizers.WebDAVSettingsActivity;
 import com.matburt.mobileorg.util.OrgUtils;
 
@@ -228,10 +227,6 @@ public class SettingsActivity extends SherlockPreferenceActivity implements
 		synchroIntent = new Intent(getApplicationContext(),
 				ScpSettingsActivity.class);
 		SynchronizerPreferences.syncIntents.put("scp", synchroIntent);
-
-		synchroIntent = new Intent(getApplicationContext(),
-				UbuntuOneSettingsActivity.class);
-		SynchronizerPreferences.syncIntents.put("ubuntu", synchroIntent);
 
 		// populate the sync source list with updated data
 		syncSource.setEntries(entries);

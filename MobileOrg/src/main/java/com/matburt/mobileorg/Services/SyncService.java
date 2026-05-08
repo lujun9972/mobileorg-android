@@ -20,13 +20,11 @@ import com.matburt.mobileorg.Gui.SynchronizerNotificationCompat;
 import com.matburt.mobileorg.OrgData.MobileOrgApplication;
 import com.matburt.mobileorg.OrgData.OrgDatabase;
 import com.matburt.mobileorg.OrgData.OrgFileParser;
-import com.matburt.mobileorg.Synchronizers.DropboxSynchronizer;
 import com.matburt.mobileorg.Synchronizers.NullSynchronizer;
 import com.matburt.mobileorg.Synchronizers.SDCardSynchronizer;
 import com.matburt.mobileorg.Synchronizers.SSHSynchronizer;
 import com.matburt.mobileorg.Synchronizers.Synchronizer;
 import com.matburt.mobileorg.Synchronizers.SynchronizerInterface;
-import com.matburt.mobileorg.Synchronizers.UbuntuOneSynchronizer;
 import com.matburt.mobileorg.Synchronizers.WebDAVSynchronizer;
 import com.matburt.mobileorg.util.Compat;
 
@@ -129,12 +127,6 @@ public class SyncService extends Service implements
 			synchronizer =new WebDAVSynchronizer(c);
 		else if (syncSource.equals("sdcard"))
 			synchronizer = new SDCardSynchronizer(c);
-		else if (syncSource.equals("dropbox"))
-			synchronizer = new DropboxSynchronizer(c);
-        else if (syncSource.equals("ubuntu")) {
-            synchronizer = new UbuntuOneSynchronizer(c);
-            ((UbuntuOneSynchronizer)synchronizer).getBaseUser();
-        }
 		else if (syncSource.equals("scp"))
 			synchronizer = new SSHSynchronizer(c);
         else if (syncSource.equals("null"))

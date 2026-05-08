@@ -81,7 +81,7 @@ public abstract class Wizard {
 	public abstract void saveSettings();
 
 	public enum TYPE {
-		WebDAV, Dropbox, Ubuntu, SDCard, SSH, Null
+		WebDAV, SDCard, SSH, Null
 	};
 
 	public static Wizard getWizard(TYPE type, WizardView wizardView,
@@ -91,14 +91,6 @@ public abstract class Wizard {
 		switch (type) {
 		case WebDAV:
 			wizard = new WebDAVWizard(wizardView, context);
-			break;
-
-		case Dropbox:
-			wizard = new DropboxWizard(wizardView, context);
-			break;
-
-		case Ubuntu:
-			wizard = new UbuntuOneWizard(wizardView, context);
 			break;
 
 		case SDCard:

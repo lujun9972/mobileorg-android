@@ -23,7 +23,7 @@ public class WizardActivity extends Activity implements RadioGroup.OnCheckedChan
 	
 	private RadioGroup syncGroup;
 
-	private int syncWebDav, syncDropBox, syncUbuntuOne, syncSdCard, syncNull, syncSSH;
+	private int syncWebDav, syncSdCard, syncNull, syncSSH;
 
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
@@ -40,9 +40,6 @@ public class WizardActivity extends Activity implements RadioGroup.OnCheckedChan
 		syncGroup.setOnCheckedChangeListener(this);
 
 		syncWebDav = ((RadioButton) findViewById(R.id.sync_webdav)).getId();
-		syncDropBox = ((RadioButton) findViewById(R.id.sync_dropbox)).getId();
-		syncUbuntuOne = ((RadioButton) findViewById(R.id.sync_ubuntuone))
-				.getId();
 		syncSdCard = ((RadioButton) findViewById(R.id.sync_sdcard)).getId();
 		syncNull = ((RadioButton) findViewById(R.id.sync_null)).getId();
 		syncSSH = ((RadioButton) findViewById(R.id.sync_ssh)).getId();
@@ -62,18 +59,14 @@ public class WizardActivity extends Activity implements RadioGroup.OnCheckedChan
 		if (syncSource == "")
 			return;
 		
-		if (syncSource.equals("webdav")) 
+		if (syncSource.equals("webdav"))
 			id = syncWebDav;
-		else if (syncSource.equals("sdcard")) 
+		else if (syncSource.equals("sdcard"))
 			id = syncSdCard;
-		else if (syncSource.equals("dropbox")) 
-			id = syncDropBox;
-		else if (syncSource.equals("ubuntu")) 
-			id = syncUbuntuOne;
-        else if (syncSource.equals("scp")) 
+        else if (syncSource.equals("scp"))
 			id = syncSSH;
-		else if (syncSource.equals("null")) 
-			id = syncNull;		
+		else if (syncSource.equals("null"))
+			id = syncNull;
 		else 
 			return;
 		
@@ -118,10 +111,6 @@ public class WizardActivity extends Activity implements RadioGroup.OnCheckedChan
 	public Wizard.TYPE getWizardType(int checkedId) {
 		if (checkedId == syncWebDav) {
 			return Wizard.TYPE.WebDAV;
-		} else if (checkedId == syncDropBox) {
-			return Wizard.TYPE.Dropbox;
-		} else if (checkedId == syncUbuntuOne) {
-			return Wizard.TYPE.Ubuntu;
 		} else if (checkedId == syncSdCard) {
 			return Wizard.TYPE.SDCard;
 		} else if (checkedId == syncSSH) {
@@ -129,7 +118,7 @@ public class WizardActivity extends Activity implements RadioGroup.OnCheckedChan
 		} else if (checkedId == syncNull) {
 			return Wizard.TYPE.Null;
 		}
-		
+
 		return Wizard.TYPE.Null;
 	}
 

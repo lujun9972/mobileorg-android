@@ -164,10 +164,6 @@
             android:name=".Settings.Synchronizers.ScpSettingsActivity"
             android:label="Scp Settings" >
         </activity>
-        <activity
-            android:name=".Settings.Synchronizers.UbuntuOneSettingsActivity"
-            android:label="Ubuntu One Settings" >
-        </activity>
 
         <service android:name=".Services.TimeclockService" >
         </service>
@@ -180,22 +176,6 @@
         </activity>
         <activity android:name=".Gui.Agenda.AgendaEntrySetting" >
         </activity>
-        <activity
-            android:name="com.dropbox.client2.android.AuthActivity"
-            android:configChanges="orientation|keyboard"
-            android:launchMode="singleTask" >
-            <intent-filter>
-
-                <!-- Change this to be db- followed by your app key -->
-                <data android:scheme="db-0g3bh9aq6morbax" />
-
-                <action android:name="android.intent.action.VIEW" />
-
-                <category android:name="android.intent.category.BROWSABLE" />
-                <category android:name="android.intent.category.DEFAULT" />
-            </intent-filter>
-        </activity>
-
         <service android:name=".Services.CalendarSyncService" >
         </service>
 

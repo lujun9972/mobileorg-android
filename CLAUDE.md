@@ -8,7 +8,7 @@ MobileOrg Android — an Android client for Org-mode. Fork of the unmaintained [
 
 ## Build
 
-**Requirements**: JDK 8, Android SDK with platform 23 and build-tools 23.0.2.
+**Requirements**: JDK 8, Android SDK with platform 26 and build-tools 26.0.2.
 
 ```bash
 ./gradlew assembleDebug
@@ -16,7 +16,7 @@ MobileOrg Android — an Android client for Org-mode. Fork of the unmaintained [
 
 APK output: `MobileOrg/build/outputs/apk/debug/`
 
-**Build toolchain**: Gradle 2.8 + AGP 1.5.0 — this is very old. The `master` branch has been upgraded to Gradle 4.1 + AGP 3.0.1 + compileSdk 26. If the build toolchain needs upgrading, copy from master's `build.gradle`, `MobileOrg/build.gradle`, `settings.gradle`, and `gradle-wrapper.properties`.
+**Build toolchain**: Gradle 4.1 + AGP 3.0.1 + compileSdk 26.
 
 No automated tests exist in this project.
 
@@ -25,15 +25,14 @@ No automated tests exist in this project.
 ### Build System
 
 - Single module `:MobileOrg` + library module `:libraries:locale`
-- 8 local JARs in `MobileOrg/libs/` (Dropbox SDK, OAuth, CWAC adapters, Apache HTTP) — not on Maven
-- Uses deprecated `org.apache.http.legacy` library
-- Signing: release keystore (`other.keystore`) with hardcoded passwords in `build.gradle`
+- 3 local JARs in `MobileOrg/libs/` (CWAC adapters, json_simple) — not on Maven
+- Signing: release keystore with hardcoded passwords in `build.gradle`
 - Version name comes from `git describe --tags`
 
 ### Key Packages (`com.matburt.mobileorg`)
 
 - **`OrgData/`** — Core data layer. `OrgDatabase` (SQLite), `OrgFileParser` (parses org files into DB), `OrgProvider`/`OrgProviderUtils` (ContentProvider), `MobileOrgApplication` (app init). Singletons via static `getInstance()` / `startXxx()`.
-- **`Synchronizers/`** — Abstract `Synchronizer` base with implementations: `WebDAVSynchronizer`, `SSHSynchronizer` (JSch), `JGitWrapper` (Git), `DropboxSynchronizer`, `SDCardSynchronizer`. Each implements `isConfigured()`, `isConnectable()`, `synchronize()`, `postSynchronize()`.
+- **`Synchronizers/`** — Abstract `Synchronizer` base with implementations: `WebDAVSynchronizer`, `SSHSynchronizer` (JSch), `SDCardSynchronizer`. Each implements `isConfigured()`, `isConnectable()`, `synchronize()`, `postSynchronize()`.
 - **`Gui/Outline/`** — Main UI. `OutlineAdapter` prepends 2 fixed header items (TODO, Agenda) before the file list (`numExtraItems = 2`), so all position-to-index conversions must subtract 2.
 - **`Services/`** — `SyncService` (sync via `AlarmManager` + background thread, foreground service on API 26+), `TimeclockService` (timer with foreground notification), `CalendarSyncService`.
 - **`Gui/`** — Notifications (`SynchronizerNotification`/`Compat` with NotificationChannel support), wizard activities, widgets, search.
@@ -61,4 +60,4 @@ All guards use `Build.VERSION.SDK_INT >= Build.VERSION_CODES.O` pattern.
 - **Singleton state**: DB, Parser, Synchronizer are singletons, not thread-safe. Sync thread accesses DB while UI reads it — potential race conditions.
 - **RecyclerView + extra items**: `OutlineAdapter` adds 2 header items. Position-to-index must subtract `numExtraItems`.
 - **`OrgNodeListActivity`**: No `onSaveInstanceState` — rotation can cause issues.
-- **Old build tools**: AGP 1.5.0 + Gradle 2.8 may not be downloadable from modern networks. See note about upgrading from master branch above.
+- **Old build tools**: AGP 3.0.1 + Gradle 4.1 — old but functional.

@@ -192,6 +192,8 @@ public class TimeclockService extends Service {
 	}
 
 	private void updateTime() {
+		if (notification == null)
+			return;
 		SpannableStringBuilder itemText = new SpannableStringBuilder(getElapsedTimeString());
 
 		if(this.hasTimedOut)

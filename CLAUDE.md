@@ -61,3 +61,5 @@ All guards use `Build.VERSION.SDK_INT >= Build.VERSION_CODES.O` pattern.
 - **RecyclerView + extra items**: `OutlineAdapter` adds 2 header items. Position-to-index must subtract `numExtraItems`.
 - **`OrgNodeListActivity`**: No `onSaveInstanceState` — rotation can cause issues.
 - **Old build tools**: AGP 3.0.1 + Gradle 4.1 — old but functional.
+- **AAPT2 must be disabled**: AGP 3.0 enables AAPT2 by default, but this project's resources are incompatible with it. `android.enableAapt2=false` must be set in `gradle.properties`.
+- **Support library 25.4.0 max**: `support-v4:25.4.0` is the latest compatible version due to ActionBarSherlock 4.4.0 constraints. Attempting 26.x causes ActionBarSherlock compilation issues.

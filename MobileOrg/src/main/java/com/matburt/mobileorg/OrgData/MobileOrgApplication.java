@@ -48,7 +48,8 @@ public class MobileOrgApplication extends Application {
 		String line = timestamp + " " + msg;
 		Log.i("MobileOrg", line);
 		try {
-			File dir = android.os.Environment.getExternalStorageDirectory();
+			File dir = instance.getExternalFilesDir(null);
+			if (dir == null) dir = instance.getFilesDir();
 			File logFile = new File(dir, "mobileorg_debug.log");
 			PrintWriter writer = new PrintWriter(new FileWriter(logFile, true));
 			writer.println(line);

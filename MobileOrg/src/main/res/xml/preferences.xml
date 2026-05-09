@@ -202,7 +202,9 @@
     </PreferenceCategory>
     <PreferenceCategory android:title="@string/preference_actions" >
         <Preference android:title="@string/preference_setup_wizard" >
-            <intent android:action="com.matburt.mobileorg.Settings.SETUP_WIZARD" />
+            <intent
+                android:targetPackage="com.matburt.mobileorg"
+                android:targetClass="com.matburt.mobileorg.Gui.Wizard.WizardActivity" />
         </Preference>
         <Preference
             android:key="clearDB"

@@ -1,7 +1,10 @@
 package com.matburt.mobileorg.Gui.Wizard.Wizards;
 
 import com.matburt.mobileorg.R;
+import com.matburt.mobileorg.Gui.Outline.OutlineActivity;
 import com.matburt.mobileorg.Gui.Wizard.WizardView;
+import com.matburt.mobileorg.Services.SyncService;
+import com.matburt.mobileorg.util.Compat;
 
 import android.app.Activity;
 import android.app.ProgressDialog;
@@ -9,6 +12,7 @@ import android.content.Context;
 import android.os.Handler;
 import android.os.Looper;
 import android.os.Message;
+import android.content.Intent;
 import android.view.View;
 import android.view.View.OnClickListener;
 import android.widget.Button;
@@ -36,10 +40,15 @@ public abstract class Wizard {
 	
 	public void setupDoneButton(View view) {
 		Button doneButton = (Button) view.findViewById(R.id.wizard_done_button);
-		doneButton.setOnClickListener(new OnClickListener() {			
+		doneButton.setOnClickListener(new OnClickListener() {
 			@Override
 			public void onClick(View v) {
 				saveSettings();
+				Intent syncIntent = new Intent(context, SyncService.class);
+				Compat.startService(context, syncIntent);
+				Intent outlineIntent = new Intent(context, OutlineActivity.class);
+				outlineIntent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_SINGLE_TOP);
+				context.startActivity(outlineIntent);
 				((Activity) context).finish();
 			}
 		});

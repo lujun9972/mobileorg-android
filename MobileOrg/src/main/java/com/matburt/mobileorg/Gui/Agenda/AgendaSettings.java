@@ -128,21 +128,16 @@ public class AgendaSettings extends AppCompatActivity {
 
 	@Override
 	public boolean onOptionsItemSelected(MenuItem item) {
-		
-		switch(item.getItemId()) {
-		case R.id.agenda_block_save:
+		int id = item.getItemId();
+		if (id == R.id.agenda_block_save) {
 			saveAgendaBlock();
 			finish();
-			break;
-			
-		case R.id.agenda_block_cancel:
+		} else if (id == R.id.agenda_block_cancel) {
 			finish();
-			break;
-			
-		default:
+		} else {
 			return super.onOptionsItemSelected(item);
 		}
-		
+
 		return true;
 	}
 	

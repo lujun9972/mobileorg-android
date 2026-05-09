@@ -214,22 +214,20 @@ public class DatesFragment extends Fragment {
 
 	@Override
 	public boolean onOptionsItemSelected(MenuItem item) {
-		switch (item.getItemId()) {
-		case R.id.menu_nodeedit_scheduled:
+		int id = item.getItemId();
+		if (id == R.id.menu_nodeedit_scheduled) {
 			addDateScheduled(null);
 			announceDateModified(OrgNodeTimeDate.TYPE.Scheduled);
 			return true;
-
-		case R.id.menu_nodeedit_deadline:
+		} else if (id == R.id.menu_nodeedit_deadline) {
 			addDateDeadline(null);
 			announceDateModified(OrgNodeTimeDate.TYPE.Deadline);
 			return true;
-			
-		case R.id.menu_nodeedit_timestamp:
+		} else if (id == R.id.menu_nodeedit_timestamp) {
 			addDateTimestamp(null);
 			announceDateModified(OrgNodeTimeDate.TYPE.Timestamp);
 			return true;
-		default:
+		} else {
 			return super.onOptionsItemSelected(item);
 		}
 	}

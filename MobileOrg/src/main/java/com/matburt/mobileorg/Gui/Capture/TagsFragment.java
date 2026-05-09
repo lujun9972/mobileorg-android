@@ -143,13 +143,11 @@ public class TagsFragment extends Fragment {
 
 	@Override
 	public boolean onOptionsItemSelected(MenuItem item) {
-		switch (item.getItemId()) {
-
-		case R.id.menu_edit_addtag:
+		int id = item.getItemId();
+		if (id == R.id.menu_edit_addtag) {
 			addTagEntry("");
 			return true;
-
-		default:
+		} else {
 			return super.onOptionsItemSelected(item);
 		}
 	}

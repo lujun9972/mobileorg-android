@@ -57,18 +57,16 @@ public class EditActivity extends AppCompatActivity implements EditHost,
     
 	@Override
 	public boolean onOptionsItemSelected(MenuItem item) {
-		switch (item.getItemId()) {
-		case android.R.id.home:
+		int id = item.getItemId();
+		if (id == android.R.id.home) {
 			doCancel();
 			return true;
-			
-		case R.id.nodeedit_save:
+		} else if (id == R.id.nodeedit_save) {
 			saveEdits();
 			setResult(RESULT_OK);
 			finish();
 			return true;
-			
-		case R.id.nodeedit_cancel:
+		} else if (id == R.id.nodeedit_cancel) {
 			doCancel();
 			return true;
 		}

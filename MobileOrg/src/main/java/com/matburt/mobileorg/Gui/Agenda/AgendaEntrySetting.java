@@ -193,20 +193,17 @@ public class AgendaEntrySetting extends AppCompatActivity {
 
 	@Override
 	public boolean onOptionsItemSelected(MenuItem item) {
-		switch(item.getItemId()) {
-		case R.id.agenda_entry_save:
+		int id = item.getItemId();
+		if (id == R.id.agenda_entry_save) {
 			OrgAgenda.writeAgendaEntry(getQueryFromSettings(), agendaPos,
 					entryPos, this);
 			finish();
-			break;
-		case R.id.agenda_entry_cancel:
+		} else if (id == R.id.agenda_entry_cancel) {
 			finish();
-			break;
-		
-		default:
+		} else {
 			return super.onOptionsItemSelected(item);
 		}
-		
+
 		return true;
 	}
 }

@@ -83,38 +83,27 @@ public class OutlineActionMode implements ActionMode.Callback {
 
 	@Override
 	public boolean onActionItemClicked(ActionMode mode, MenuItem item) {
-		switch (item.getItemId()) {
+		int id = item.getItemId();
 
-		case R.id.menu_edit:
+		if (id == R.id.menu_edit) {
 			runEditNodeActivity(node.id, context);
-			break;
-		case R.id.menu_delete:
+		} else if (id == R.id.menu_delete) {
 			runDeleteNode();
-			break;
-		case R.id.menu_delete_file:
+		} else if (id == R.id.menu_delete_file) {
 			runDeleteFileNode();
-			break;
-		case R.id.menu_clockin:
+		} else if (id == R.id.menu_clockin) {
 			runTimeClockingService();
-			break;
-		case R.id.menu_archive:
+		} else if (id == R.id.menu_archive) {
 			runArchiveNode(false);
-			break;
-		case R.id.menu_archive_tosibling:
+		} else if (id == R.id.menu_archive_tosibling) {
 			runArchiveNode(true);
-			break;
-		case R.id.menu_view:
+		} else if (id == R.id.menu_view) {
 			runViewNodeActivity();
-			break;
-		case R.id.menu_recover:
+		} else if (id == R.id.menu_recover) {
 			runRecover();
-			break;
-
-		case R.id.menu_capturechild:
+		} else if (id == R.id.menu_capturechild) {
 			runCaptureActivity(node.id, context);
-			break;
-			
-		default:
+		} else {
 			mode.finish();
 			return false;
 		}

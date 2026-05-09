@@ -150,35 +150,28 @@ public class OutlineActivity extends AppCompatActivity {
 
 	@Override
 	public boolean onOptionsItemSelected(MenuItem item) {
-		switch (item.getItemId()) {
-		case android.R.id.home:
+		int id = item.getItemId();
+		if (id == android.R.id.home) {
 			listView.collapseCurrent();
 			return true;
-			
-		case R.id.menu_sync:
+		} else if (id == R.id.menu_sync) {
 			runSynchronize(null);
 			return true;
-
-		case R.id.menu_settings:
+		} else if (id == R.id.menu_settings) {
 			runShowSettings(null);
 			return true;
-
-		case R.id.menu_outline:
+		} else if (id == R.id.menu_outline) {
 			runExpandableOutline(-1);
 			return true;
-
-		case R.id.menu_agenda:
+		} else if (id == R.id.menu_agenda) {
 			runAgenda();
 			return true;
-			
-		case R.id.menu_capturechild:
+		} else if (id == R.id.menu_capturechild) {
 			OutlineActionMode.runCaptureActivity(listView.getCheckedNodeId(), this);
 			return true;
-
-		case R.id.menu_search:
+		} else if (id == R.id.menu_search) {
 			return runSearch();
-
-		case R.id.menu_help:
+		} else if (id == R.id.menu_help) {
 			runHelp(null);
 			return true;
 		}

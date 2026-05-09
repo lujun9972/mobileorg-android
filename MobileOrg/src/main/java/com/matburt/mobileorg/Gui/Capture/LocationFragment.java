@@ -12,7 +12,7 @@ import android.view.ViewGroup;
 import android.widget.LinearLayout;
 import android.widget.Spinner;
 
-import android.support.v4.app.Fragment;
+import androidx.fragment.app.Fragment;
 import com.matburt.mobileorg.R;
 import com.matburt.mobileorg.OrgData.OrgFile;
 import com.matburt.mobileorg.OrgData.OrgNode;

@@ -7,7 +7,7 @@ import android.content.Intent;
 import android.database.Cursor;
 import android.os.Bundle;
 
-import android.support.v7.app.AppCompatActivity;
+import androidx.appcompat.app.AppCompatActivity;
 import com.matburt.mobileorg.R;
 import com.matburt.mobileorg.Gui.Outline.OutlineAdapter;
 import com.matburt.mobileorg.Gui.Outline.OutlineListView;

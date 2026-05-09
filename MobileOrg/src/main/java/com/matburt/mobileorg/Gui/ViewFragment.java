@@ -15,7 +15,7 @@ import android.view.ViewGroup;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
 
-import android.support.v4.app.Fragment;
+import androidx.fragment.app.Fragment;
 import com.matburt.mobileorg.R;
 import com.matburt.mobileorg.Gui.Theme.DefaultTheme;
 import com.matburt.mobileorg.OrgData.OrgNode;

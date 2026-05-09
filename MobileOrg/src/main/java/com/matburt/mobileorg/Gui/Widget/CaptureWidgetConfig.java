@@ -8,7 +8,7 @@ import android.view.View.OnClickListener;
 import android.widget.Button;
 import android.widget.EditText;
 
-import android.support.v7.app.AppCompatActivity;
+import androidx.appcompat.app.AppCompatActivity;
 import com.matburt.mobileorg.R;
 import com.matburt.mobileorg.Gui.Capture.EditActivityController;
 import com.matburt.mobileorg.Gui.Capture.EditHost;

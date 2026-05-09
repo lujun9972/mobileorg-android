@@ -12,7 +12,7 @@ import android.content.SharedPreferences;
 import android.os.Build;
 import android.os.IBinder;
 import android.preference.PreferenceManager;
-import android.support.v4.app.NotificationCompat;
+import androidx.core.app.NotificationCompat;
 
 import com.matburt.mobileorg.R;
 import com.matburt.mobileorg.Gui.SynchronizerNotification;

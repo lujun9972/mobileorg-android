@@ -11,7 +11,7 @@ import android.widget.AdapterView.OnItemClickListener;
 import android.widget.ListView;
 import android.widget.TextView;
 
-import android.support.v4.app.Fragment;
+import androidx.fragment.app.Fragment;
 import com.commonsware.cwac.merge.MergeAdapter;
 import com.matburt.mobileorg.R;
 import com.matburt.mobileorg.Gui.Outline.OutlineActionMode;

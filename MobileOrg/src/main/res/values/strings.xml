@@ -84,6 +84,7 @@
     <string name="menu_delete">Delete</string>
     <string name="menu_delete_file">Delete File</string>
     <string name="menu_advanced">Advanced</string>
+    <string name="contextmenu_view">View node</string>
     <string name="menu_recover">Recover</string>
     <string name="menu_clockin">Clock in</string>
     <string name="menu_archive">Archive</string>

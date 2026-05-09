@@ -8,14 +8,14 @@ import android.view.View.OnClickListener;
 import android.widget.Button;
 import android.widget.EditText;
 
-import com.actionbarsherlock.app.SherlockFragmentActivity;
+import android.support.v7.app.AppCompatActivity;
 import com.matburt.mobileorg.R;
 import com.matburt.mobileorg.Gui.Capture.EditActivityController;
 import com.matburt.mobileorg.Gui.Capture.EditHost;
 import com.matburt.mobileorg.Gui.Capture.LocationFragment;
 import com.matburt.mobileorg.OrgData.OrgNode;
 
-public class CaptureWidgetConfig extends SherlockFragmentActivity implements EditHost {
+public class CaptureWidgetConfig extends AppCompatActivity implements EditHost {
 
 	private int mAppWidgetId;
 	private LocationFragment locationFragment;

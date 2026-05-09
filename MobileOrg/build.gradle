@@ -43,7 +43,7 @@ android {
 dependencies {
     implementation fileTree(dir: 'libs', include: ['*.jar'])
     testImplementation 'junit:junit:4.12'
-    implementation files('libs/actionbarsherlock-4.4.0-patched.aar')
+    implementation 'com.android.support:appcompat-v7:25.4.0'
     implementation 'com.jcraft:jsch:0.1.50'
     implementation 'com.android.support:support-v4:25.4.0'
     implementation 'com.android.support:recyclerview-v7:25.4.0'

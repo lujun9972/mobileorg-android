@@ -9,9 +9,8 @@ import android.support.v4.app.FragmentPagerAdapter;
 import android.support.v4.app.FragmentTransaction;
 import android.support.v4.view.ViewPager;
 
-import com.actionbarsherlock.app.ActionBar;
-import com.actionbarsherlock.app.SherlockFragmentActivity;
-import com.actionbarsherlock.app.ActionBar.Tab;
+import android.support.v7.app.ActionBar;
+import android.support.v7.app.AppCompatActivity;
 
 public class TabsAdapter extends FragmentPagerAdapter implements
 		ActionBar.TabListener, ViewPager.OnPageChangeListener {
@@ -30,7 +29,7 @@ public class TabsAdapter extends FragmentPagerAdapter implements
 		}
 	}
 
-	public TabsAdapter(SherlockFragmentActivity activity, ViewPager pager) {
+	public TabsAdapter(AppCompatActivity activity, ViewPager pager) {
 		super(activity.getSupportFragmentManager());
 		mContext = activity;
 		mActionBar = activity.getSupportActionBar();
@@ -75,7 +74,7 @@ public class TabsAdapter extends FragmentPagerAdapter implements
 	}
 
 	@Override
-	public void onTabSelected(Tab tab, FragmentTransaction ft) {
+	public void onTabSelected(ActionBar.Tab tab, FragmentTransaction ft) {
 		Object tag = tab.getTag();
 		for (int i = 0; i < mTabs.size(); i++) {
 			if (mTabs.get(i) == tag) {
@@ -85,10 +84,10 @@ public class TabsAdapter extends FragmentPagerAdapter implements
 	}
 
 	@Override
-	public void onTabUnselected(Tab tab, FragmentTransaction ft) {
+	public void onTabUnselected(ActionBar.Tab tab, FragmentTransaction ft) {
 	}
 
 	@Override
-	public void onTabReselected(Tab tab, FragmentTransaction ft) {
+	public void onTabReselected(ActionBar.Tab tab, FragmentTransaction ft) {
 	}
 }

@@ -144,7 +144,7 @@ public class DateTableRow extends TableRow {
 		dateButton = (Button) findViewById(R.id.dateButton);
 		dateButton.setOnClickListener(new View.OnClickListener() {
 			public void onClick(View v) {
-				FragmentTransaction ft = parentFragment.getSherlockActivity().getSupportFragmentManager()
+				FragmentTransaction ft = parentFragment.getActivity().getSupportFragmentManager()
 						.beginTransaction();
 				DialogFragment newFragment = new DatePickerDialogFragment(
 						dateChangeListener);
@@ -155,7 +155,7 @@ public class DateTableRow extends TableRow {
 		startTimeButton = (Button) findViewById(R.id.dateTimeStartButton);
 		startTimeButton.setOnClickListener(new View.OnClickListener() {
 			public void onClick(View v) {
-				FragmentTransaction ft = parentFragment.getSherlockActivity().getSupportFragmentManager()
+				FragmentTransaction ft = parentFragment.getActivity().getSupportFragmentManager()
 						.beginTransaction();
 				DialogFragment newFragment = new StartTimePickerDialogFragment(
 						startTimeChangeListener);
@@ -166,7 +166,7 @@ public class DateTableRow extends TableRow {
 		endTimeButton = (Button) findViewById(R.id.dateTimeEndButton);
 		endTimeButton.setOnClickListener(new View.OnClickListener() {
 			public void onClick(View v) {
-				FragmentTransaction ft = parentFragment.getSherlockActivity().getSupportFragmentManager()
+				FragmentTransaction ft = parentFragment.getActivity().getSupportFragmentManager()
 						.beginTransaction();
 				DialogFragment newFragment = new EndTimePickerDialogFragment(
 						endTimeChangeListener);

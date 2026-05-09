@@ -11,11 +11,10 @@ import android.os.Bundle;
 import android.view.View;
 import android.widget.Toast;
 
-import com.actionbarsherlock.app.SherlockActivity;
-import com.actionbarsherlock.view.Menu;
-import com.actionbarsherlock.view.MenuInflater;
-import com.actionbarsherlock.view.MenuItem;
-import com.actionbarsherlock.view.Window;
+import android.support.v7.app.AppCompatActivity;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import com.matburt.mobileorg.R;
 import com.matburt.mobileorg.Gui.Agenda.AgendasActivity;
 import com.matburt.mobileorg.Gui.Wizard.WizardActivity;
@@ -26,7 +25,7 @@ import com.matburt.mobileorg.Synchronizers.Synchronizer;
 import com.matburt.mobileorg.util.OrgUtils;
 import com.matburt.mobileorg.util.PreferenceUtils;
 
-public class OutlineActivity extends SherlockActivity {
+public class OutlineActivity extends AppCompatActivity {
 
 	public final static String NODE_ID = "node_id";
 	private final static String OUTLINE_NODES = "nodes";
@@ -46,8 +45,6 @@ public class OutlineActivity extends SherlockActivity {
 	protected void onCreate(Bundle savedInstanceState) {
 		OrgUtils.setTheme(this);
 		super.onCreate(savedInstanceState);
-		requestWindowFeature(Window.FEATURE_PROGRESS);
-		requestWindowFeature(Window.FEATURE_INDETERMINATE_PROGRESS);
 		setContentView(R.layout.outline);
 				
 		Intent intent = getIntent();
@@ -143,7 +140,7 @@ public class OutlineActivity extends SherlockActivity {
 	
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu) {
-		MenuInflater inflater = getSupportMenuInflater();
+		MenuInflater inflater = getMenuInflater();
 	    inflater.inflate(R.menu.outline_menu, menu);
 	    
 	    synchronizerMenuItem = menu.findItem(R.id.menu_sync);
@@ -259,12 +256,7 @@ public class OutlineActivity extends SherlockActivity {
 			
 			if(syncStart) {
 				synchronizerMenuItem.setVisible(false);
-				setSupportProgress(Window.PROGRESS_START);
-				setSupportProgressBarIndeterminate(true);
-				setSupportProgressBarIndeterminateVisibility(true);
 			} else if (syncDone) {
-				setSupportProgressBarVisibility(false);
-				setSupportProgressBarIndeterminateVisibility(false);
 				refreshDisplay();
 				synchronizerMenuItem.setVisible(true);
 
@@ -273,12 +265,6 @@ public class OutlineActivity extends SherlockActivity {
 							R.string.sync_successful,
 							Toast.LENGTH_SHORT).show();
 			} else if (progress >= 0 && progress <= 100) {
-				if(progress == 100)
-					setSupportProgressBarIndeterminateVisibility(false);
-				
-				setSupportProgressBarIndeterminate(false);
-				int normalizedProgress = (Window.PROGRESS_END - Window.PROGRESS_START) / 100 * progress;
-				setSupportProgress(normalizedProgress);
 				refreshDisplay();
 			}
 		}

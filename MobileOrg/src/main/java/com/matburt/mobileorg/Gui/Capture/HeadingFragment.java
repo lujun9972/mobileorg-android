@@ -9,13 +9,13 @@ import android.view.WindowManager;
 import android.widget.EditText;
 import android.widget.Spinner;
 
-import com.actionbarsherlock.app.SherlockFragment;
+import android.support.v4.app.Fragment;
 import com.matburt.mobileorg.R;
 import com.matburt.mobileorg.OrgData.OrgNode;
 import com.matburt.mobileorg.OrgData.OrgProviderUtils;
 import com.matburt.mobileorg.util.OrgUtils;
 
-public class HeadingFragment extends SherlockFragment {
+public class HeadingFragment extends Fragment {
 	private final String HEADING_TITLE = "headingTitle";
 	private final String HEADING_TODO = "headingTodo";
 	private final String HEADING_PRIORITY = "headingPriority";

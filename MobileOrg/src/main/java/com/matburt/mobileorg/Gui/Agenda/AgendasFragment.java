@@ -13,13 +13,13 @@ import android.widget.AdapterView.OnItemClickListener;
 import android.widget.ArrayAdapter;
 import android.widget.ListView;
 
-import com.actionbarsherlock.app.SherlockFragment;
-import com.actionbarsherlock.view.Menu;
-import com.actionbarsherlock.view.MenuInflater;
-import com.actionbarsherlock.view.MenuItem;
+import android.support.v4.app.Fragment;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import com.matburt.mobileorg.R;
 
-public class AgendasFragment extends SherlockFragment {
+public class AgendasFragment extends Fragment {
 
 	private ListView agendaList;
 	

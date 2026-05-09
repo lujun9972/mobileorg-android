@@ -14,7 +14,7 @@ import android.preference.Preference;
 import android.text.TextUtils;
 import android.widget.Toast;
 
-import com.actionbarsherlock.app.SherlockPreferenceActivity;
+import android.preference.PreferenceActivity;
 import com.matburt.mobileorg.OrgData.OrgProviderUtils;
 import com.matburt.mobileorg.R;
 import com.matburt.mobileorg.Services.CalendarSyncService;
@@ -29,7 +29,7 @@ import java.util.ArrayList;
 import java.util.List;
 
 @SuppressWarnings("deprecation")
-public class SettingsActivity extends SherlockPreferenceActivity implements
+public class SettingsActivity extends PreferenceActivity implements
 		SharedPreferences.OnSharedPreferenceChangeListener {
 	public static final String KEY_SYNC_SOURCE = "syncSource";
 

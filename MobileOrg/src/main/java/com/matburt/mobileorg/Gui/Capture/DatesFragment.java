@@ -8,16 +8,16 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.TableLayout;
 
-import com.actionbarsherlock.app.SherlockFragment;
-import com.actionbarsherlock.view.Menu;
-import com.actionbarsherlock.view.MenuInflater;
-import com.actionbarsherlock.view.MenuItem;
+import android.support.v4.app.Fragment;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import com.matburt.mobileorg.R;
 import com.matburt.mobileorg.Gui.Capture.DateTableRow.DateTableRowListener;
 import com.matburt.mobileorg.OrgData.OrgNodePayload;
 import com.matburt.mobileorg.OrgData.OrgNodeTimeDate;
 
-public class DatesFragment extends SherlockFragment {
+public class DatesFragment extends Fragment {
 	private final String DATES_SCHEDULED = "scheduled";
 	private final String DATES_DEADLINE = "deadline";
 	private final String DATES_TIMESTAMP = "timestamp";

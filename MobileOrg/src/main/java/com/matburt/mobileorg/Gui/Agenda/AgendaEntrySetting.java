@@ -13,13 +13,13 @@ import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.Spinner;
 
-import com.actionbarsherlock.app.SherlockActivity;
-import com.actionbarsherlock.view.Menu;
-import com.actionbarsherlock.view.MenuItem;
+import android.support.v7.app.AppCompatActivity;
+import android.view.Menu;
+import android.view.MenuItem;
 import com.matburt.mobileorg.R;
 import com.matburt.mobileorg.OrgData.OrgProviderUtils;
 
-public class AgendaEntrySetting extends SherlockActivity {
+public class AgendaEntrySetting extends AppCompatActivity {
 	public static final String AGENDA_NUMBER = "agenda_number";
 	public static final String ENTRY_NUMBER = "entry_number";
 	
@@ -187,7 +187,7 @@ public class AgendaEntrySetting extends SherlockActivity {
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu) {
 		super.onCreateOptionsMenu(menu);
-		getSupportMenuInflater().inflate(R.menu.agenda_entry, menu);
+		getMenuInflater().inflate(R.menu.agenda_entry, menu);
 		return true;
 	}
 

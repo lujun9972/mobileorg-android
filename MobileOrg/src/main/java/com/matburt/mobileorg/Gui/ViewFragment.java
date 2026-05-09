@@ -15,7 +15,7 @@ import android.view.ViewGroup;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
 
-import com.actionbarsherlock.app.SherlockFragment;
+import android.support.v4.app.Fragment;
 import com.matburt.mobileorg.R;
 import com.matburt.mobileorg.Gui.Theme.DefaultTheme;
 import com.matburt.mobileorg.OrgData.OrgNode;
@@ -23,7 +23,7 @@ import com.matburt.mobileorg.util.OrgFileNotFoundException;
 import com.matburt.mobileorg.util.OrgNode2Html;
 import com.matburt.mobileorg.util.OrgUtils;
 
-public class ViewFragment extends SherlockFragment {
+public class ViewFragment extends Fragment {
 	
 	private ContentResolver resolver;
 	protected WebView webView;

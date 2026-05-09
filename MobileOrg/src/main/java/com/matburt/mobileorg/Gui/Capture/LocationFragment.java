@@ -12,14 +12,14 @@ import android.view.ViewGroup;
 import android.widget.LinearLayout;
 import android.widget.Spinner;
 
-import com.actionbarsherlock.app.SherlockFragment;
+import android.support.v4.app.Fragment;
 import com.matburt.mobileorg.R;
 import com.matburt.mobileorg.OrgData.OrgFile;
 import com.matburt.mobileorg.OrgData.OrgNode;
 import com.matburt.mobileorg.OrgData.OrgProviderUtils;
 import com.matburt.mobileorg.util.OrgNodeNotFoundException;
 
-public class LocationFragment extends SherlockFragment {
+public class LocationFragment extends Fragment {
 	private final String NODE_ID = "nodeId";
 	
 	private LinearLayout locationView;

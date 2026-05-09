@@ -15,12 +15,12 @@ import android.widget.Button;
 import android.widget.ListView;
 import android.widget.TextView;
 
-import com.actionbarsherlock.app.SherlockActivity;
-import com.actionbarsherlock.view.Menu;
-import com.actionbarsherlock.view.MenuItem;
+import android.support.v7.app.AppCompatActivity;
+import android.view.Menu;
+import android.view.MenuItem;
 import com.matburt.mobileorg.R;
 
-public class AgendaSettings extends SherlockActivity {
+public class AgendaSettings extends AppCompatActivity {
 	public static final String AGENDA_NUMBER = "agenda_number";
 	private static final String AGENDA_TITLE = "agenda_title";
 
@@ -121,7 +121,7 @@ public class AgendaSettings extends SherlockActivity {
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu) {
 		super.onCreateOptionsMenu(menu);
-		getSupportMenuInflater().inflate(R.menu.agenda_block, menu);
+		getMenuInflater().inflate(R.menu.agenda_block, menu);
 		
 		return true;
 	}

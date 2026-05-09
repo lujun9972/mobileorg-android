@@ -6,11 +6,11 @@ import android.content.Intent;
 import android.content.IntentFilter;
 import android.os.Bundle;
 
-import com.actionbarsherlock.app.SherlockFragmentActivity;
+import android.support.v7.app.AppCompatActivity;
 import com.matburt.mobileorg.R;
 import com.matburt.mobileorg.Synchronizers.Synchronizer;
 
-public class AgendaActivity extends SherlockFragmentActivity {
+public class AgendaActivity extends AppCompatActivity {
 	public static final String POSITION = "position";
 	private int position;
 	private SynchServiceReceiver syncReceiver;

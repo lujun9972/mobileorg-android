@@ -11,14 +11,14 @@ import android.widget.AdapterView.OnItemClickListener;
 import android.widget.ListView;
 import android.widget.TextView;
 
-import com.actionbarsherlock.app.SherlockFragment;
+import android.support.v4.app.Fragment;
 import com.commonsware.cwac.merge.MergeAdapter;
 import com.matburt.mobileorg.R;
 import com.matburt.mobileorg.Gui.Outline.OutlineActionMode;
 import com.matburt.mobileorg.Gui.Outline.OutlineAdapter;
 import com.matburt.mobileorg.OrgData.OrgDatabase;
 
-public class AgendaFragment extends SherlockFragment {
+public class AgendaFragment extends Fragment {
 
 	public int agendaPos = 0;
 	private ListView agendaList;

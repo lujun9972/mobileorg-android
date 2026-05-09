@@ -4,17 +4,17 @@ import android.content.ContentResolver;
 import android.content.Intent;
 import android.os.Bundle;
 
-import com.actionbarsherlock.app.SherlockFragmentActivity;
-import com.actionbarsherlock.view.Menu;
-import com.actionbarsherlock.view.MenuItem;
-import com.actionbarsherlock.view.SubMenu;
+import android.support.v7.app.AppCompatActivity;
+import android.view.Menu;
+import android.view.MenuItem;
+import android.view.SubMenu;
 import com.matburt.mobileorg.R;
 import com.matburt.mobileorg.OrgData.OrgNode;
 import com.matburt.mobileorg.util.OrgNodeNotFoundException;
 import com.matburt.mobileorg.util.OrgUtils;
 import com.matburt.mobileorg.util.PreferenceUtils;
 
-public class ViewActivity extends SherlockFragmentActivity {
+public class ViewActivity extends AppCompatActivity {
 	public static String NODE_ID = "node_id";
 
 	private ContentResolver resolver;

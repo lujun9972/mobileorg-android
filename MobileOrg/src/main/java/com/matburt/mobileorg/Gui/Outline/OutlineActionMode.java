@@ -8,10 +8,10 @@ import android.content.Intent;
 import android.util.Log;
 import android.widget.ListView;
 
-import com.actionbarsherlock.view.ActionMode;
-import com.actionbarsherlock.view.Menu;
-import com.actionbarsherlock.view.MenuInflater;
-import com.actionbarsherlock.view.MenuItem;
+import android.support.v7.view.ActionMode;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import com.matburt.mobileorg.R;
 import com.matburt.mobileorg.Gui.ViewActivity;
 import com.matburt.mobileorg.Gui.Capture.EditActivity;

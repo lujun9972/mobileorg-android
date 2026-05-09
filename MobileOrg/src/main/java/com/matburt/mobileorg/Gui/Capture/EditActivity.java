@@ -5,16 +5,16 @@ import android.content.DialogInterface;
 import android.os.Bundle;
 import android.support.v4.app.FragmentManager;
 
-import com.actionbarsherlock.app.SherlockFragmentActivity;
-import com.actionbarsherlock.view.Menu;
-import com.actionbarsherlock.view.MenuItem;
+import android.support.v7.app.AppCompatActivity;
+import android.view.Menu;
+import android.view.MenuItem;
 import com.matburt.mobileorg.R;
 import com.matburt.mobileorg.OrgData.OrgNode;
 import com.matburt.mobileorg.Services.SyncService;
 import com.matburt.mobileorg.util.OrgUtils;
 import com.matburt.mobileorg.util.PreferenceUtils;
 
-public class EditActivity extends SherlockFragmentActivity implements EditHost,
+public class EditActivity extends AppCompatActivity implements EditHost,
 		PayloadFragment.OnPayloadModifiedListener,
 		DatesFragment.OnDatesModifiedListener {
 
@@ -47,7 +47,7 @@ public class EditActivity extends SherlockFragmentActivity implements EditHost,
 	
     @Override
 	public boolean onCreateOptionsMenu(Menu menu) {
-		getSupportMenuInflater().inflate(R.menu.edit, menu);
+		getMenuInflater().inflate(R.menu.edit, menu);
 
 		if(controller != null && controller.isNodeEditable() == false)
 			menu.findItem(R.id.nodeedit_save).setVisible(false);

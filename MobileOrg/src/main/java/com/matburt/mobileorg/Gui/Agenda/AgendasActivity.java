@@ -2,10 +2,10 @@ package com.matburt.mobileorg.Gui.Agenda;
 
 import android.os.Bundle;
 
-import com.actionbarsherlock.app.SherlockFragmentActivity;
+import android.support.v7.app.AppCompatActivity;
 import com.matburt.mobileorg.R;
 
-public class AgendasActivity extends SherlockFragmentActivity {
+public class AgendasActivity extends AppCompatActivity {
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {

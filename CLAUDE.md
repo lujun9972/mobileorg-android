@@ -8,7 +8,7 @@ MobileOrg Android — an Android client for Org-mode. Fork of the unmaintained [
 
 ## Build
 
-**Requirements**: JDK 8, Android SDK with platform 26 and build-tools 26.0.2.
+**Requirements**: JDK 8, Android SDK with platform 28 and build-tools 28.0.3.
 
 ```bash
 ./gradlew assembleDebug
@@ -16,7 +16,7 @@ MobileOrg Android — an Android client for Org-mode. Fork of the unmaintained [
 
 APK output: `MobileOrg/build/outputs/apk/debug/`
 
-**Build toolchain**: Gradle 4.1 + AGP 3.0.1 + compileSdk 26.
+**Build toolchain**: Gradle 4.10.1 + AGP 3.2.1 + compileSdk 28.
 
 No automated tests exist in this project.
 
@@ -61,5 +61,5 @@ All guards use `Build.VERSION.SDK_INT >= Build.VERSION_CODES.O` pattern.
 - **RecyclerView + extra items**: `OutlineAdapter` adds 2 header items. Position-to-index must subtract `numExtraItems`.
 - **`OrgNodeListActivity`**: No `onSaveInstanceState` — rotation can cause issues.
 - **Old build tools**: AGP 3.0.1 + Gradle 4.1 — old but functional.
-- **AAPT2 must be disabled**: AGP 3.0 enables AAPT2 by default, but this project's resources are incompatible with it. `android.enableAapt2=false` must be set in `gradle.properties`.
-- **Support library 25.4.0**: Uses `appcompat-v7:25.4.0` + `support-v4:25.4.0`. ActionBarSherlock has been replaced with AppCompat.
+- **AAPT2 must be disabled**: AGP 3.2 enables AAPT2 by default, but this project's resources are incompatible with it. `android.enableAapt2=false` must be set in `gradle.properties`.
+- **AndroidX**: Project uses AndroidX (`androidx.*` imports). Jetifier enabled for local JARs.

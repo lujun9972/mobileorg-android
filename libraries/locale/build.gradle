@@ -1,11 +1,8 @@
 apply plugin: 'com.android.library'
 
-dependencies {
-}
-
 android {
-    compileSdkVersion 28
-    buildToolsVersion "28.0.3"
+    namespace 'com.twofortyfouram.locale.platform'
+    compileSdk 34
 
     defaultConfig {
         minSdkVersion 7

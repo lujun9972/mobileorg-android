@@ -39,7 +39,7 @@ public class OutlineItem extends RelativeLayout implements Checkable {
 	private Button todoButton;
 	private TextView levelView;
 	private boolean levelFormatting = true;
-	
+	private DefaultTheme theme;
 	public OutlineItem(Context context) {
 		super(context);
 		View.inflate(getContext(), R.layout.outline_item, this);
@@ -99,6 +99,7 @@ public class OutlineItem extends RelativeLayout implements Checkable {
 		newNode.todo = selectedTodo;
 		node.generateApplyWriteEdits(newNode, null, resolver);
 		node.write(resolver);
+		setupTodo(node.todo, theme, resolver);
 		OrgUtils.announceSyncDone(getContext());
 	}
 	
@@ -110,6 +111,7 @@ public class OutlineItem extends RelativeLayout implements Checkable {
 	
 	public void setup(OrgNode node, boolean expanded, DefaultTheme theme, ContentResolver resolver) {
 		this.node = node;
+		this.theme = theme;
 		setupTags(node.tags, node.tags_inherited, theme);
 		
 		SpannableStringBuilder titleSpan = new SpannableStringBuilder(node.name);

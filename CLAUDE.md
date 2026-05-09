@@ -58,6 +58,7 @@ The original code targets API 17 and crashes on modern Android. The following fi
 - **NotificationCompat.Builder**: All Builder constructors must pass CHANNEL_ID (e.g. `new NotificationCompat.Builder(context, CHANNEL_ID)`). Without it, notifications reference no channel and crash with `CannotPostForegroundServiceNotificationException` on API 26+.
 - **Runtime permissions**: Calendar permissions (`READ_CALENDAR`, `WRITE_CALENDAR`) are dangerous and must be checked before accessing CalendarProvider. `CalendarSyncService` checks in `onCreate()`/`onStartCommand()` and stops self if not granted. When adding any new dangerous permission usage, always add a runtime check — manifest declaration alone is insufficient on API 23+.
 - **Menu XML showAsAction**: Project uses AppCompat (`AppCompatActivity`), so all menu XML files must use `app:showAsAction` (from `xmlns:app="http://schemas.android.com/apk/res-auto"`) instead of `android:showAsAction`. The `android:` version is silently ignored by AppCompat Toolbar/ActionBar, causing menu icons to not appear.
+- **Service early return → onDestroy NPE**: When adding early returns in `onCreate()`/`onStartCommand()` (e.g. for permission checks), `onDestroy()` will still be called by Android. Any fields that would have been initialized in the skipped code must be null-checked in `onDestroy()` before use.
 
 All guards use `Build.VERSION.SDK_INT >= Build.VERSION_CODES.O` pattern.
 

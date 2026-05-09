@@ -53,12 +53,6 @@ public class SSHSynchronizer implements SynchronizerInterface {
         pass = appSettings.getString("scpPass", "");
 
         Log.i(LT, "SSH: path=" + path + " user=" + user + " host=" + host + " port=" + port);
-        try {
-            this.connect();
-            Log.i(LT, "SSH: connected successfully to " + user + "@" + host + ":" + port);
-        } catch (Exception e) {
-            Log.e("MobileOrg", "SSH Connection failed: " + e.toString());
-        }
 	}
 
     public String testConnection(String path, String user, String pass, String host, int port, String pubFile) {

@@ -218,6 +218,7 @@ public class CalendarWrapper {
 			}
 			cursor.close();
 		} catch (SQLException e) {
+		} catch (SecurityException e) {
 		}
 
 		return result;

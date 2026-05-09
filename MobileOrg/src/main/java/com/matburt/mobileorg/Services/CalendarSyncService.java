@@ -8,6 +8,7 @@ import android.content.ContentResolver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.os.IBinder;
 import android.preference.PreferenceManager;
@@ -58,6 +59,10 @@ public class CalendarSyncService extends Service implements
 	@Override
 	public void onCreate() {
 		super.onCreate();
+		if (!hasCalendarPermission()) {
+			stopSelf();
+			return;
+		}
 		this.resolver = getContentResolver();
 		this.context = getBaseContext();
 		this.sharedPreferences = PreferenceManager
@@ -77,6 +82,11 @@ public class CalendarSyncService extends Service implements
 	public int onStartCommand(Intent intent, int flags, int startId) {
 		if (intent == null)
 			return 0;
+
+		if (!hasCalendarPermission()) {
+			stopSelf();
+			return 0;
+		}
 		
 		refreshPreferences();
 		
@@ -278,5 +288,10 @@ public class CalendarSyncService extends Service implements
 		if (key.startsWith("calendar")) {
 			syncFiles();
 		}
+	}
+
+	private boolean hasCalendarPermission() {
+		return checkCallingOrSelfPermission("android.permission.READ_CALENDAR") == PackageManager.PERMISSION_GRANTED
+				|| checkCallingOrSelfPermission("android.permission.WRITE_CALENDAR") == PackageManager.PERMISSION_GRANTED;
 	}
 }

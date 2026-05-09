@@ -18,14 +18,14 @@ jobs:
             "platforms;android-34" \
             "build-tools;34.0.0"
 
-      - name: Set up JDK 17
+      - name: Set up JDK 11
         uses: actions/setup-java@v4
         with:
           distribution: 'zulu'
-          java-version: '17'
+          java-version: '11'
 
       - name: Build release APK
-        run: set -o pipefail && ./gradlew assembleRelease --stacktrace 2>&1 | tail -200
+        run: ./gradlew assembleRelease --stacktrace
 
       - name: Upload APK
         uses: actions/upload-artifact@v4

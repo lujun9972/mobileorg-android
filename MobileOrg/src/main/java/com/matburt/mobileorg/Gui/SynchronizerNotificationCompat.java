@@ -46,7 +46,7 @@ public class SynchronizerNotificationCompat {
 		PendingIntent contentIntent = PendingIntent.getActivity(context, 0,
 				notifyIntent, Compat.FLAG_IMMUTABLE);
 
-		Builder builder = new NotificationCompat.Builder(context);
+		Builder builder = new NotificationCompat.Builder(context, CHANNEL_ID);
 		builder.setContentIntent(contentIntent);
 		builder.setSmallIcon(R.drawable.icon);
 		builder.setContentTitle("Synchronization failed");
@@ -72,7 +72,7 @@ public class SynchronizerNotificationCompat {
 		PendingIntent contentIntent = PendingIntent.getActivity(context, 0,
 				notifyIntent, Compat.FLAG_IMMUTABLE);
 
-		Builder builder = new NotificationCompat.Builder(context);
+		Builder builder = new NotificationCompat.Builder(context, CHANNEL_ID);
 		builder.setContentIntent(contentIntent);
 		builder.setSmallIcon(R.drawable.icon);
 		builder.setOngoing(true);

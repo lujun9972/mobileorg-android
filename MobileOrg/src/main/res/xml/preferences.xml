@@ -115,6 +115,8 @@
 
                 <ListPreference
                     android:defaultValue=""
+                    android:entries="@array/emptyEntries"
+                    android:entryValues="@array/emptyEntries"
                     android:key="@string/key_defaultTodo"
                     android:summary="@string/preference_default_todo_summary"
                     android:title="@string/preference_default_todo" />
@@ -142,6 +144,8 @@
                 <ListPreference
                     android:defaultValue=""
                     android:dependency="calendarEnabled"
+                    android:entries="@array/emptyEntries"
+                    android:entryValues="@array/emptyEntries"
                     android:key="@string/key_calendarName"
                     android:summary="@string/preference_calendar_name_summary"
                     android:title="@string/preference_calendar_name" />

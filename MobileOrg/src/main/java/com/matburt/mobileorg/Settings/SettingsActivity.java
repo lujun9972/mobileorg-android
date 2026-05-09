@@ -162,6 +162,7 @@ public class SettingsActivity extends PreferenceActivity implements
 	private void populateCalendarNames() {
 		try {
 			ListPreference calendarName = (ListPreference) findPreference(KEY_CALENDAR_NAME);
+			if (calendarName == null) return;
 
 			CharSequence[] calendars = CalendarWrapper
 					.getCalendars(getApplicationContext());
@@ -175,6 +176,7 @@ public class SettingsActivity extends PreferenceActivity implements
 
 	private void populateTodoKeywords() {
 		ListPreference defaultTodo = (ListPreference) findPreference(KEY_DEFAULT_TODO);
+		if (defaultTodo == null) return;
 
 		ArrayList<String> todoList = OrgProviderUtils.getTodos(getContentResolver());;
 

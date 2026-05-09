@@ -73,5 +73,8 @@
         <item>Year</item>
         <item>Custom</item>
     </string-array>
+    <string-array name="emptyEntries">
+        <item></item>
+    </string-array>
 
 </resources>

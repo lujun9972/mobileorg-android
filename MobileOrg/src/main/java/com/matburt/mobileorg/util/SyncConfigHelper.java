@@ -24,6 +24,11 @@ public class SyncConfigHelper {
     private static final String EXPORT_FILE = "mobileorg_sync_config.json";
     private static final int FORMAT_VERSION = 1;
 
+    private static final Set<String> BOOLEAN_KEYS = new HashSet<String>(Arrays.asList(
+            "doAutoSync",
+            "syncWifiOnly"
+    ));
+
     private static final Set<String> SYNC_KEYS = new HashSet<String>(Arrays.asList(
             "syncSource",
             "doAutoSync",
@@ -42,13 +47,14 @@ public class SyncConfigHelper {
             "dropboxPath"
     ));
 
-    public static File getExportFile() {
-        File dir = android.os.Environment.getExternalStorageDirectory();
+    public static File getExportFile(Context context) {
+        File dir = context.getExternalFilesDir(null);
+        if (dir == null) dir = context.getFilesDir();
         return new File(dir, EXPORT_FILE);
     }
 
     /**
-     * Export sync config to JSON file on external storage.
+     * Export sync config to JSON file.
      * @return null on success, error message on failure.
      */
     public static String exportConfig(Context context) {
@@ -61,7 +67,7 @@ public class SyncConfigHelper {
 
             boolean hasData = false;
             for (String key : SYNC_KEYS) {
-                if ("doAutoSync".equals(key)) {
+                if (BOOLEAN_KEYS.contains(key)) {
                     boolean value = prefs.getBoolean(key, false);
                     if (value) {
                         json.put(key, value);
@@ -80,7 +86,7 @@ public class SyncConfigHelper {
                 return context.getString(R.string.sync_config_no_data);
             }
 
-            File file = getExportFile();
+            File file = getExportFile(context);
             FileWriter writer = new FileWriter(file);
             writer.write(json.toString(2));
             writer.flush();
@@ -98,11 +104,11 @@ public class SyncConfigHelper {
     }
 
     /**
-     * Import sync config from JSON file on external storage.
+     * Import sync config from JSON file.
      * @return null on success, error message on failure.
      */
     public static String importConfig(Context context) {
-        File file = getExportFile();
+        File file = getExportFile(context);
         if (!file.exists()) {
             return "文件不存在: " + file.getAbsolutePath();
         }
@@ -134,7 +140,7 @@ public class SyncConfigHelper {
             for (String key : SYNC_KEYS) {
                 if (!json.has(key)) continue;
 
-                if ("doAutoSync".equals(key)) {
+                if (BOOLEAN_KEYS.contains(key)) {
                     editor.putBoolean(key, json.getBoolean(key));
                 } else {
                     editor.putString(key, json.getString(key));

@@ -4,6 +4,7 @@ import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.os.Build;
 import android.os.Bundle;
 
 import androidx.appcompat.app.AppCompatActivity;
@@ -23,8 +24,12 @@ public class AgendaActivity extends AppCompatActivity {
 		position = getIntent().getIntExtra(POSITION, 0);
 		
 		syncReceiver = new SynchServiceReceiver();
-		registerReceiver(syncReceiver, new IntentFilter(
-				Synchronizer.SYNC_UPDATE));
+		IntentFilter syncFilter = new IntentFilter(Synchronizer.SYNC_UPDATE);
+		if (Build.VERSION.SDK_INT >= 33) {
+			registerReceiver(syncReceiver, syncFilter, Context.RECEIVER_NOT_EXPORTED);
+		} else {
+			registerReceiver(syncReceiver, syncFilter);
+		}
 	}
 
 	@Override

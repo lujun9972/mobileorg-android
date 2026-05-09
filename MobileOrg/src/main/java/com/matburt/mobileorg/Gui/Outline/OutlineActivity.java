@@ -59,8 +59,12 @@ public class OutlineActivity extends AppCompatActivity {
 		setupList();
 
 		this.syncReceiver = new SynchServiceReceiver();
-		registerReceiver(this.syncReceiver, new IntentFilter(
-				Synchronizer.SYNC_UPDATE));
+		IntentFilter syncFilter = new IntentFilter(Synchronizer.SYNC_UPDATE);
+		if (Build.VERSION.SDK_INT >= 33) {
+			registerReceiver(this.syncReceiver, syncFilter, Context.RECEIVER_NOT_EXPORTED);
+		} else {
+			registerReceiver(this.syncReceiver, syncFilter);
+		}
 		
 		refreshDisplay();
 	}

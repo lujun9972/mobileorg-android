@@ -9,6 +9,7 @@ import android.content.ComponentName;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.os.Build;
 import android.os.IBinder;
 import android.widget.RemoteViews;
 
@@ -41,7 +42,11 @@ public class MobileOrgWidget extends AppWidgetProvider {
             manager.updateAppWidget(thisWidget, updateViews);
             
             IntentFilter serviceFilter = new IntentFilter(Synchronizer.SYNC_UPDATE);
-            registerReceiver(new SynchServiceReceiver(), serviceFilter);
+            if (Build.VERSION.SDK_INT >= 33) {
+                registerReceiver(new SynchServiceReceiver(), serviceFilter, Context.RECEIVER_NOT_EXPORTED);
+            } else {
+                registerReceiver(new SynchServiceReceiver(), serviceFilter);
+            }
         }
 
         private RemoteViews genUpdateDisplay(Context context) {

@@ -114,17 +114,7 @@ public class Synchronizer {
 	}
 
 	private void writeDebugLog(String msg) {
-		try {
-			File dir = android.os.Environment.getExternalStorageDirectory();
-			File logFile = new File(dir, "mobileorg_debug.log");
-			PrintWriter writer = new PrintWriter(new FileWriter(logFile, true));
-			writer.println("===== " + new java.text.SimpleDateFormat("yyyy-MM-dd HH:mm:ss", java.util.Locale.US).format(new java.util.Date()) + " =====");
-			writer.println(msg);
-			writer.println();
-			writer.close();
-		} catch (Exception e) {
-			Log.e("MobileOrg", "Failed to write debug log: " + e.toString());
-		}
+		MobileOrgApplication.log("SYNC: " + msg);
 	}
 
 	/**

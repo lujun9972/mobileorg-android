@@ -253,6 +253,8 @@ public class OutlineActivity extends AppCompatActivity {
 			boolean showToast = intent.getBooleanExtra(Synchronizer.SYNC_SHOW_TOAST, false);
 			int progress = intent.getIntExtra(Synchronizer.SYNC_PROGRESS_UPDATE, -1);
 
+			MobileOrgApplication.log("SyncReceiver: start=" + syncStart + " done=" + syncDone + " progress=" + progress);
+
 			if(syncStart) {
 				synchronizerMenuItem.setVisible(false);
 			} else if (syncDone) {

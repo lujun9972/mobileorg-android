@@ -12,6 +12,7 @@ import android.widget.ArrayAdapter;
 
 import com.matburt.mobileorg.R;
 import com.matburt.mobileorg.Gui.Theme.DefaultTheme;
+import com.matburt.mobileorg.OrgData.MobileOrgApplication;
 import com.matburt.mobileorg.OrgData.OrgNode;
 import com.matburt.mobileorg.OrgData.OrgProviderUtils;
 import com.matburt.mobileorg.util.OrgNodeNotFoundException;
@@ -36,10 +37,11 @@ public class OutlineAdapter extends ArrayAdapter<OrgNode> {
 
 	public void init() {
 		clear();
-		
+
 		for (OrgNode node : OrgProviderUtils.getOrgNodeChildren(-1, resolver))
 			add(node);
-		
+
+		MobileOrgApplication.log("OutlineAdapter.init() count=" + getCount());
 		notifyDataSetInvalidated();
 	}
 	

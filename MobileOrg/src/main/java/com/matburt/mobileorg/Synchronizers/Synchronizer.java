@@ -13,6 +13,7 @@ import com.matburt.mobileorg.Gui.FileDecryptionActivity;
 import com.matburt.mobileorg.Gui.SynchronizerNotificationCompat;
 import com.matburt.mobileorg.OrgData.OrgContract.Edits;
 import com.matburt.mobileorg.OrgData.OrgContract.Files;
+import com.matburt.mobileorg.OrgData.MobileOrgApplication;
 import com.matburt.mobileorg.OrgData.OrgEdit;
 import com.matburt.mobileorg.OrgData.OrgFile;
 import com.matburt.mobileorg.OrgData.OrgFileParser;

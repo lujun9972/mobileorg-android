@@ -8,7 +8,7 @@ import android.content.Intent;
 import android.util.Log;
 import android.widget.ListView;
 
-import android.support.v7.view.ActionMode;
+import android.view.ActionMode;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;

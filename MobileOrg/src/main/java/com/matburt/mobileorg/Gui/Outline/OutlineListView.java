@@ -10,7 +10,7 @@ import android.widget.AdapterView;
 import android.widget.ListView;
 
 import android.support.v7.app.AppCompatActivity;
-import android.support.v7.view.ActionMode;
+import android.view.ActionMode;
 import com.matburt.mobileorg.OrgData.OrgNode;
 
 public class OutlineListView extends ListView {

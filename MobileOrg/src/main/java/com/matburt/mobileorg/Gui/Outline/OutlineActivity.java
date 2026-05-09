@@ -20,6 +20,7 @@ import android.view.MenuItem;
 import com.matburt.mobileorg.R;
 import com.matburt.mobileorg.Gui.Agenda.AgendasActivity;
 import com.matburt.mobileorg.Gui.Wizard.WizardActivity;
+import com.matburt.mobileorg.OrgData.MobileOrgApplication;
 import com.matburt.mobileorg.OrgData.OrgProviderUtils;
 import com.matburt.mobileorg.Services.SyncService;
 import com.matburt.mobileorg.Settings.SettingsActivity;
@@ -39,7 +40,7 @@ public class OutlineActivity extends AppCompatActivity {
     public final static String SYNC_FAILED = "com.matburt.mobileorg.SYNC_FAILED";
 
 	private Long node_id;
-		
+
 	private OutlineListView listView;
 
 	private SynchServiceReceiver syncReceiver;
@@ -47,50 +48,53 @@ public class OutlineActivity extends AppCompatActivity {
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
-		OrgUtils.setTheme(this);
-		super.onCreate(savedInstanceState);
-		setContentView(R.layout.outline);
-				
-		Intent intent = getIntent();
-		node_id = intent.getLongExtra(NODE_ID, -1);
+		MobileOrgApplication.log("OutlineActivity.onCreate() start");
+		try {
+			OrgUtils.setTheme(this);
+			MobileOrgApplication.log("OutlineActivity.onCreate() setTheme done");
+			super.onCreate(savedInstanceState);
+			MobileOrgApplication.log("OutlineActivity.onCreate() super.onCreate done");
+			setContentView(R.layout.outline);
+			MobileOrgApplication.log("OutlineActivity.onCreate() setContentView done");
 
-		if (this.node_id == -1)
-			displayNewUserDialogs();
-		setupList();
+			Intent intent = getIntent();
+			node_id = intent.getLongExtra(NODE_ID, -1);
+			MobileOrgApplication.log("OutlineActivity.onCreate() node_id=" + node_id);
 
-		this.syncReceiver = new SynchServiceReceiver();
-		IntentFilter syncFilter = new IntentFilter(Synchronizer.SYNC_UPDATE);
-		if (Build.VERSION.SDK_INT >= 33) {
-			registerReceiver(this.syncReceiver, syncFilter, Context.RECEIVER_NOT_EXPORTED);
-		} else {
-			registerReceiver(this.syncReceiver, syncFilter);
+			if (this.node_id == -1)
+				displayNewUserDialogs();
+			MobileOrgApplication.log("OutlineActivity.onCreate() displayNewUserDialogs done");
+			setupList();
+			MobileOrgApplication.log("OutlineActivity.onCreate() setupList done");
+
+			this.syncReceiver = new SynchServiceReceiver();
+			IntentFilter syncFilter = new IntentFilter(Synchronizer.SYNC_UPDATE);
+			if (Build.VERSION.SDK_INT >= 33) {
+				registerReceiver(this.syncReceiver, syncFilter, Context.RECEIVER_NOT_EXPORTED);
+			} else {
+				registerReceiver(this.syncReceiver, syncFilter);
+			}
+			MobileOrgApplication.log("OutlineActivity.onCreate() registerReceiver done");
+
+			refreshDisplay();
+			MobileOrgApplication.log("OutlineActivity.onCreate() complete");
+		} catch (Exception e) {
+			MobileOrgApplication.log("OutlineActivity.onCreate() FATAL: " + Log.getStackTraceString(e));
 		}
-		
-		refreshDisplay();
-	}
-	
-	@Override
-	protected void onSaveInstanceState(Bundle outState) {
-		super.onSaveInstanceState(outState);
-		outState.putLongArray(OUTLINE_NODES, listView.getState());
-		outState.putInt(OUTLINE_CHECKED_POS, listView.getCheckedItemPosition());
-		outState.putInt(OUTLINE_SCROLL_POS, listView.getFirstVisiblePosition());
 	}
 
 	@Override
-	protected void onRestoreInstanceState(Bundle savedInstanceState) {
-		super.onRestoreInstanceState(savedInstanceState);
-		
-		long[] state = savedInstanceState.getLongArray(OUTLINE_NODES);
-		if(state != null)
-			listView.setState(state);
-		
-		int checkedPos= savedInstanceState.getInt(OUTLINE_CHECKED_POS, 0);
-		listView.setItemChecked(checkedPos, true);
-		
-		int scrollPos = savedInstanceState.getInt(OUTLINE_SCROLL_POS, 0);
-		listView.setSelection(scrollPos);
+	protected void onResume() {
+		MobileOrgApplication.log("OutlineActivity.onResume()");
+		super.onResume();
+		refreshTitle();
+	}
 
+	@Override
+	protected void onDestroy() {
+		MobileOrgApplication.log("OutlineActivity.onDestroy()");
+		unregisterReceiver(this.syncReceiver);
+		super.onDestroy();
 	}
 
 	private void setupList() {
@@ -98,19 +102,13 @@ public class OutlineActivity extends AppCompatActivity {
 		listView.setActivity(this);
 		listView.setEmptyView(findViewById(R.id.outline_list_empty));
 	}
-	
+
 	private void displayNewUserDialogs() {
 		if (PreferenceUtils.isSyncConfigured() == false)
 			runShowWizard(null);
 
 		if (PreferenceUtils.isUpgradedVersion())
 			showUpgradePopup();
-	}
-	
-	@Override
-	protected void onResume() {
-		super.onResume();
-		refreshTitle();
 	}
 
     @Override
@@ -122,22 +120,16 @@ public class OutlineActivity extends AppCompatActivity {
         }
     }
 
-	@Override
-	protected void onDestroy() {
-		unregisterReceiver(this.syncReceiver);
-		super.onDestroy();
-	}
-		
 	public void refreshDisplay() {
 		this.listView.refresh();
 		refreshTitle();
 	}
-	
-	
+
+
 	private void refreshTitle() {
 		this.getSupportActionBar().setTitle("MobileOrg " + getChangesString());
 	}
-    
+
     private String getChangesString() {
     	int changes = OrgProviderUtils.getChangesCount(getContentResolver());
     	if(changes > 0)
@@ -145,14 +137,14 @@ public class OutlineActivity extends AppCompatActivity {
     	else
     		return "";
     }
-	
+
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu) {
 		MenuInflater inflater = getMenuInflater();
 	    inflater.inflate(R.menu.outline_menu, menu);
-	    
+
 	    synchronizerMenuItem = menu.findItem(R.id.menu_sync);
-	    
+
 		return true;
 	}
 
@@ -191,7 +183,7 @@ public class OutlineActivity extends AppCompatActivity {
 				Uri.parse("https://github.com/matburt/mobileorg-android/wiki"));
     	startActivity(intent);
     }
-    
+
     public void runSynchronize(View view) {
 		if (Build.VERSION.SDK_INT >= 33 && !Compat.hasNotificationPermission(this)) {
 			ActivityCompat.requestPermissions(this,
@@ -206,12 +198,12 @@ public class OutlineActivity extends AppCompatActivity {
 		Intent intent = new Intent(this, SettingsActivity.class);
 		startActivity(intent);
 	}
-	
+
     public void runShowWizard(View view) {
         startActivity(new Intent(this, WizardActivity.class));
     }
-    
-    
+
+
     private void runExpandableOutline(long id) {
 		Intent intent = new Intent(this, OutlineActivity.class);
 		intent.putExtra(OutlineActivity.NODE_ID, id);
@@ -259,7 +251,7 @@ public class OutlineActivity extends AppCompatActivity {
 			boolean syncDone = intent.getBooleanExtra(Synchronizer.SYNC_DONE, false);
 			boolean showToast = intent.getBooleanExtra(Synchronizer.SYNC_SHOW_TOAST, false);
 			int progress = intent.getIntExtra(Synchronizer.SYNC_PROGRESS_UPDATE, -1);
-			
+
 			if(syncStart) {
 				synchronizerMenuItem.setVisible(false);
 			} else if (syncDone) {

@@ -11,6 +11,8 @@ import android.os.Build;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
+import android.view.animation.Animation;
+import android.view.animation.AnimationUtils;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
@@ -256,10 +258,19 @@ public class OutlineActivity extends AppCompatActivity {
 			MobileOrgApplication.log("SyncReceiver: start=" + syncStart + " done=" + syncDone + " progress=" + progress);
 
 			if(syncStart) {
-				synchronizerMenuItem.setVisible(false);
+				synchronizerMenuItem.setActionView(R.layout.sync_refresh_action_view);
+				android.view.View actionView = synchronizerMenuItem.getActionView();
+				if (actionView != null) {
+					Animation rotate = AnimationUtils.loadAnimation(OutlineActivity.this, R.anim.rotate_refresh);
+					actionView.startAnimation(rotate);
+				}
 			} else if (syncDone) {
+				android.view.View actionView = synchronizerMenuItem.getActionView();
+				if (actionView != null) {
+					actionView.clearAnimation();
+				}
+				synchronizerMenuItem.setActionView(null);
 				refreshDisplay();
-				synchronizerMenuItem.setVisible(true);
 
 				if (showToast)
 					Toast.makeText(context,

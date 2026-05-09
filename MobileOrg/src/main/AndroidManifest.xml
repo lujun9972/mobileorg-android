@@ -20,6 +20,7 @@
 
         <receiver
             android:name=".Gui.Widget.MobileOrgWidget"
+            android:exported="true"
             android:label="MobileOrg Tasks" >
             <intent-filter>
                 <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
@@ -33,6 +34,7 @@
         <service android:name=".Gui.Widget.MobileOrgWidget$MobileOrgWidgetService" >
         </service>
         <service android:name=".Services.SyncService"
+            android:exported="false"
             android:foregroundServiceType="dataSync" >
             <intent-filter>
                 <category android:name="android.intent.category.DEFAULT" />
@@ -45,12 +47,14 @@
             android:name=".OrgData.OrgProvider"
             android:authorities="com.matburt.mobileorg.OrgData.OrgProvider" />
 
-        <receiver android:name=".Plugin.Synchronize" >
+        <receiver android:name=".Plugin.Synchronize"
+            android:exported="true" >
             <intent-filter>
                 <action android:name="com.twofortyfouram.locale.intent.action.FIRE_SETTING" />
             </intent-filter>
         </receiver>
-        <receiver android:name=".Services.MobileOrgStartupIntentReceiver" >
+        <receiver android:name=".Services.MobileOrgStartupIntentReceiver"
+            android:exported="true" >
             <intent-filter>
                 <action android:name="android.intent.action.BOOT_COMPLETED" />
 
@@ -60,6 +64,7 @@
 
         <activity
             android:name=".Gui.Outline.OutlineActivity"
+            android:exported="true"
             android:label="MobileOrg" >
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -72,6 +77,7 @@
         </activity>
         <activity
             android:name=".Gui.ViewActivity"
+            android:exported="false"
             android:label="Org View" >
             <intent-filter>
                 <category android:name="android.intent.category.DEFAULT" />
@@ -117,7 +123,8 @@
                 </data>
             </intent-filter>
         </activity>
-        <activity android:name=".Gui.SearchActivity" >
+        <activity android:name=".Gui.SearchActivity"
+            android:exported="false" >
             <intent-filter>
                 <action android:name="android.intent.action.SEARCH" />
             </intent-filter>
@@ -141,6 +148,7 @@
         </activity>
         <activity
             android:name=".Gui.Wizard.WizardActivity"
+            android:exported="false"
             android:label="MobileOrg Wizard" >
             <intent-filter>
                 <action android:name="com.matburt.mobileorg.Settings.SETUP_WIZARD" />
@@ -188,6 +196,7 @@
         </activity>
 
         <receiver android:name=".Gui.Widget.CaptureWidgetProvider"
+            android:exported="true"
             android:label="MobileOrg Capture" >
             <intent-filter>
                 <action android:name="android.appwidget.action.APPWIDGET_UPDATE" />
@@ -198,7 +207,8 @@
                 android:resource="@xml/capture_widget_provider" />
         </receiver>
 
-        <activity android:name=".Gui.Widget.CaptureWidgetConfig" >
+        <activity android:name=".Gui.Widget.CaptureWidgetConfig"
+            android:exported="true" >
             <intent-filter>
                 <action android:name="android.appwidget.action.APPWIDGET_CONFIGURE" />
             </intent-filter>

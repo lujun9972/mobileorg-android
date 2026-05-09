@@ -16,7 +16,7 @@ MobileOrg Android — an Android client for Org-mode. Fork of the unmaintained [
 
 APK output: `MobileOrg/build/outputs/apk/debug/`
 
-**Build toolchain**: Gradle 4.10.1 + AGP 3.2.1 + compileSdk 28.
+**Build toolchain**: Gradle 4.10.1 + AGP 3.2.1 + compileSdk 28. Max version due to AAPT2 blocker (see Known Pitfalls).
 
 No automated tests exist in this project.
 
@@ -61,5 +61,6 @@ All guards use `Build.VERSION.SDK_INT >= Build.VERSION_CODES.O` pattern.
 - **RecyclerView + extra items**: `OutlineAdapter` adds 2 header items. Position-to-index must subtract `numExtraItems`.
 - **`OrgNodeListActivity`**: No `onSaveInstanceState` — rotation can cause issues.
 - **Old build tools**: AGP 3.0.1 + Gradle 4.1 — old but functional.
-- **AAPT2 must be disabled**: AGP 3.2 enables AAPT2 by default, but this project's resources are incompatible with it. `android.enableAapt2=false` must be set in `gradle.properties`.
+- **AAPT2 is the upgrade blocker**: AGP 3.2.1 is the last version allowing `android.enableAapt2=false`. AGP 3.3+ forces AAPT2 which causes resource compilation errors. Must fix AAPT2 issues before further AGP upgrade.
 - **AndroidX**: Project uses AndroidX (`androidx.*` imports). Jetifier enabled for local JARs.
+- **Toolchain ceiling**: Gradle 4.10.1 + AGP 3.2.1 + JDK 8 + compileSdk 28 until AAPT2 issues are resolved.

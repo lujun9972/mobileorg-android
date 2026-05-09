@@ -9,6 +9,8 @@ import android.os.Build;
 import java.lang.reflect.Constructor;
 import java.lang.reflect.Method;
 
+import androidx.core.content.ContextCompat;
+
 /**
  * Compatibility helpers for building against compileSdk 23 while supporting API 26+ features.
  * All API 26+ classes and methods are accessed via reflection to avoid compile-time dependencies.
@@ -71,5 +73,17 @@ public class Compat {
         } else {
             return PendingIntent.getService(context, requestCode, intent, flags);
         }
+    }
+
+    public static final int SDK_TIRAMISU = 33;
+
+    /**
+     * Check if the app has POST_NOTIFICATIONS permission (required on API 33+).
+     * Returns true on API < 33 (permission not required).
+     */
+    public static boolean hasNotificationPermission(Context context) {
+        if (Build.VERSION.SDK_INT < SDK_TIRAMISU) return true;
+        return ContextCompat.checkSelfPermission(context, "android.permission.POST_NOTIFICATIONS")
+                == android.content.pm.PackageManager.PERMISSION_GRANTED;
     }
 }

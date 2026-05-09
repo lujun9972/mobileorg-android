@@ -145,7 +145,12 @@ public class TimeclockService extends Service {
 		updateTime();
 
 		if (Compat.isAtLeastO()) {
-			startForeground(notificationID, notification);
+			if (Build.VERSION.SDK_INT >= 34) {
+				startForeground(notificationID, notification,
+						android.content.pm.ServiceInfo.FOREGROUND_SERVICE_TYPE_SPECIAL_USE);
+			} else {
+				startForeground(notificationID, notification);
+			}
 		} else {
 			mNM.notify(notificationID, notification);
 		}

@@ -7,11 +7,13 @@ import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.view.View;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.core.app.ActivityCompat;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
@@ -22,6 +24,7 @@ import com.matburt.mobileorg.OrgData.OrgProviderUtils;
 import com.matburt.mobileorg.Services.SyncService;
 import com.matburt.mobileorg.Settings.SettingsActivity;
 import com.matburt.mobileorg.Synchronizers.Synchronizer;
+import com.matburt.mobileorg.util.Compat;
 import com.matburt.mobileorg.util.OrgUtils;
 import com.matburt.mobileorg.util.PreferenceUtils;
 
@@ -31,6 +34,7 @@ public class OutlineActivity extends AppCompatActivity {
 	private final static String OUTLINE_NODES = "nodes";
 	private final static String OUTLINE_CHECKED_POS = "selection";
 	private final static String OUTLINE_SCROLL_POS = "scrollPosition";
+	private static final int REQUEST_POST_NOTIFICATIONS = 1001;
 
     public final static String SYNC_FAILED = "com.matburt.mobileorg.SYNC_FAILED";
 
@@ -185,8 +189,13 @@ public class OutlineActivity extends AppCompatActivity {
     }
     
     public void runSynchronize(View view) {
+		if (Build.VERSION.SDK_INT >= 33 && !Compat.hasNotificationPermission(this)) {
+			ActivityCompat.requestPermissions(this,
+					new String[]{"android.permission.POST_NOTIFICATIONS"},
+					REQUEST_POST_NOTIFICATIONS);
+		}
 		Intent intent = new Intent(this, SyncService.class);
-		com.matburt.mobileorg.util.Compat.startService(this, intent);
+		Compat.startService(this, intent);
     }
 
 	public void runShowSettings(View view) {

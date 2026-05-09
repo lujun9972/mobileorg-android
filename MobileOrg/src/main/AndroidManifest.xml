@@ -2,15 +2,17 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android" >
 
     <uses-permission android:name="android.permission.INTERNET" />
-    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" />
+    <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE" android:maxSdkVersion="28" />
     <uses-permission android:name="android.permission.READ_CALENDAR" />
     <uses-permission android:name="android.permission.WRITE_CALENDAR" />
     <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE"/>
+    <uses-permission android:name="android.permission.POST_NOTIFICATIONS"/>
 
     <application
         android:name=".OrgData.MobileOrgApplication"
         android:icon="@drawable/icon"
         android:label="MobileOrg"
+        android:requestLegacyExternalStorage="true"
         android:theme="@style/Theme.MobileOrg.Dark" >
         <meta-data
             android:name="android.app.default_searchable"
@@ -30,7 +32,8 @@
 
         <service android:name=".Gui.Widget.MobileOrgWidget$MobileOrgWidgetService" >
         </service>
-        <service android:name=".Services.SyncService" >
+        <service android:name=".Services.SyncService"
+            android:foregroundServiceType="dataSync" >
             <intent-filter>
                 <category android:name="android.intent.category.DEFAULT" />
 
@@ -164,7 +167,8 @@
             android:label="Scp Settings" >
         </activity>
 
-        <service android:name=".Services.TimeclockService" >
+        <service android:name=".Services.TimeclockService"
+            android:foregroundServiceType="specialUse" >
         </service>
 
         <activity

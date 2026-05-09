@@ -8,7 +8,7 @@ MobileOrg Android — an Android client for Org-mode. Fork of the unmaintained [
 
 ## Build
 
-**Requirements**: JDK 8, Android SDK with platform 28 and build-tools 28.0.3.
+**Requirements**: JDK 17, Android SDK with platform 34 and build-tools 34.
 
 ```bash
 ./gradlew assembleDebug
@@ -16,7 +16,7 @@ MobileOrg Android — an Android client for Org-mode. Fork of the unmaintained [
 
 APK output: `MobileOrg/build/outputs/apk/debug/`
 
-**Build toolchain**: Gradle 4.10.1 + AGP 3.2.1 + compileSdk 28. Max version due to AAPT2 blocker (see Known Pitfalls).
+**Build toolchain**: Gradle 8.5 + AGP 8.2.2 + JDK 17 + compileSdk 34 + targetSdk 34.
 
 No automated tests exist in this project.
 
@@ -52,6 +52,9 @@ The original code targets API 17 and crashes on modern Android. The following fi
 - **NotificationChannel**: Channels created before any `notify()` call (required on Android 8+ / API 26). Channel ID: `mobileorg_sync`, `mobileorg_timeclock`
 - **Foreground Service**: `SyncService` and `TimeclockService` call `startForeground()` on API 26+. Alarm PendingIntent uses `getForegroundService()` on API 26+
 - **Service startup**: `SyncService.startAlarm()`/`stopAlarm()` and `OutlineActivity.runSynchronize()` use `startForegroundService()` on API 26+
+- **Foreground Service Type**: SyncService declares `dataSync`, TimeclockService declares `specialUse` (required on API 34+)
+- **POST_NOTIFICATIONS**: Requested at runtime on API 33+ before sync
+- **Scoped Storage**: `WRITE_EXTERNAL_STORAGE` limited to maxSdkVersion 28; `requestLegacyExternalStorage=true` for SDCard sync compat
 
 All guards use `Build.VERSION.SDK_INT >= Build.VERSION_CODES.O` pattern.
 
@@ -60,7 +63,4 @@ All guards use `Build.VERSION.SDK_INT >= Build.VERSION_CODES.O` pattern.
 - **Singleton state**: DB, Parser, Synchronizer are singletons, not thread-safe. Sync thread accesses DB while UI reads it — potential race conditions.
 - **RecyclerView + extra items**: `OutlineAdapter` adds 2 header items. Position-to-index must subtract `numExtraItems`.
 - **`OrgNodeListActivity`**: No `onSaveInstanceState` — rotation can cause issues.
-- **Old build tools**: AGP 3.0.1 + Gradle 4.1 — old but functional.
-- **AAPT2 is the upgrade blocker**: AGP 3.2.1 is the last version allowing `android.enableAapt2=false`. AGP 3.3+ forces AAPT2 which causes resource compilation errors. Must fix AAPT2 issues before further AGP upgrade.
 - **AndroidX**: Project uses AndroidX (`androidx.*` imports). Jetifier enabled for local JARs.
-- **Toolchain ceiling**: Gradle 4.10.1 + AGP 3.2.1 + JDK 8 + compileSdk 28 until AAPT2 issues are resolved.

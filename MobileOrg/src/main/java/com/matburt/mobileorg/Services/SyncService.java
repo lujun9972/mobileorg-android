@@ -85,7 +85,12 @@ public class SyncService extends Service implements
 
 		if (Compat.isAtLeastO()) {
 			Compat.createNotificationChannel(this, CHANNEL_ID, "MobileOrg Sync");
-			startForeground(FOREGROUND_NOTIFY_ID, createForegroundNotification());
+			if (Build.VERSION.SDK_INT >= 34) {
+				startForeground(FOREGROUND_NOTIFY_ID, createForegroundNotification(),
+						android.content.pm.ServiceInfo.FOREGROUND_SERVICE_TYPE_DATA_SYNC);
+			} else {
+				startForeground(FOREGROUND_NOTIFY_ID, createForegroundNotification());
+			}
 		}
 
 		if (action != null && action.equals(START_ALARM)) {

@@ -74,7 +74,8 @@ public class CalendarSyncService extends Service implements
 
 	@Override
 	public void onDestroy() {
-		this.sharedPreferences.unregisterOnSharedPreferenceChangeListener(this);
+		if (this.sharedPreferences != null)
+			this.sharedPreferences.unregisterOnSharedPreferenceChangeListener(this);
 		super.onDestroy();
 	}
 

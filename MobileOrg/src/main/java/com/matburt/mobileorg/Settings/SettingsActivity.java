@@ -294,7 +294,7 @@ public class SettingsActivity extends PreferenceActivity implements
 			} else {
 				Toast.makeText(SettingsActivity.this,
 						getString(R.string.sync_config_export_success,
-								SyncConfigHelper.getExportFile().getAbsolutePath()),
+								SyncConfigHelper.getExportFile(SettingsActivity.this).getAbsolutePath()),
 						Toast.LENGTH_LONG).show();
 			}
 			return false;

@@ -25,6 +25,7 @@ import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
 import com.matburt.mobileorg.R;
 import com.matburt.mobileorg.Gui.Agenda.AgendasActivity;
 import com.matburt.mobileorg.Gui.Wizard.WizardActivity;
@@ -331,7 +332,7 @@ public class OutlineActivity extends AppCompatActivity {
 		if (RecordingService.isRecording()) {
 			return;
 		}
-		if (android.content.ContextCompat.checkSelfPermission(this, Manifest.permission.RECORD_AUDIO)
+		if (ContextCompat.checkSelfPermission(this, Manifest.permission.RECORD_AUDIO)
 				== PackageManager.PERMISSION_GRANTED) {
 			startRecordingService(nodeId);
 		} else {

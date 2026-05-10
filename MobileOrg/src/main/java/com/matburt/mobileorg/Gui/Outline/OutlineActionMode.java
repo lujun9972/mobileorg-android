@@ -1,5 +1,6 @@
 package com.matburt.mobileorg.Gui.Outline;
 
+import android.Manifest;
 import android.app.AlertDialog;
 import android.content.ContentResolver;
 import android.content.Context;
@@ -232,6 +233,11 @@ public class OutlineActionMode implements ActionMode.Callback {
 	}
 
 	private void runRecordingService() {
+		if (android.content.pm.PackageManager.PERMISSION_GRANTED
+				!= context.checkCallingOrSelfPermission(Manifest.permission.RECORD_AUDIO)) {
+			Log.w("OutlineActionMode", "RECORD_AUDIO permission not granted");
+			return;
+		}
 		Intent intent = new Intent(context, RecordingService.class);
 		intent.putExtra(RecordingService.ACTION_NAME, RecordingService.ACTION_START);
 		intent.putExtra(RecordingService.NODE_ID, node.id);

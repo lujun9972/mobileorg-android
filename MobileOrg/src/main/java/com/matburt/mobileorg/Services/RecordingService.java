@@ -139,17 +139,16 @@ public class RecordingService extends Service {
         recordingFilePath = recordingFile.getAbsolutePath();
 
         mediaRecorder = new MediaRecorder();
-        mediaRecorder.setAudioSource(MediaRecorder.AudioSource.DEFAULT);
-        mediaRecorder.setOutputFormat(MediaRecorder.OutputFormat.AAC_ADTS);
-        mediaRecorder.setAudioEncoder(MediaRecorder.AudioEncoder.AAC);
-        mediaRecorder.setAudioSamplingRate(44100);
-        mediaRecorder.setOutputFile(recordingFilePath);
-
         try {
+            mediaRecorder.setAudioSource(MediaRecorder.AudioSource.DEFAULT);
+            mediaRecorder.setOutputFormat(MediaRecorder.OutputFormat.AAC_ADTS);
+            mediaRecorder.setAudioEncoder(MediaRecorder.AudioEncoder.AAC);
+            mediaRecorder.setAudioSamplingRate(44100);
+            mediaRecorder.setOutputFile(recordingFilePath);
             mediaRecorder.prepare();
             mediaRecorder.start();
-        } catch (IOException e) {
-            Log.e(TAG, "MediaRecorder prepare/start failed", e);
+        } catch (Exception e) {
+            Log.e(TAG, "MediaRecorder setup failed", e);
             releaseRecorder();
             stopSelf();
             return;

@@ -258,17 +258,21 @@ public class OutlineActivity extends AppCompatActivity {
 			MobileOrgApplication.log("SyncReceiver: start=" + syncStart + " done=" + syncDone + " progress=" + progress);
 
 			if(syncStart) {
-				ImageView refreshView = new ImageView(OutlineActivity.this);
+				final ImageView refreshView = new ImageView(OutlineActivity.this);
 				refreshView.setImageResource(R.drawable.ic_menu_refresh);
-				refreshView.setPadding(0, 0, 0, 0);
-				Animation rotate = new android.view.animation.RotateAnimation(0, 360,
+				synchronizerMenuItem.setActionView(refreshView);
+				final Animation rotate = new android.view.animation.RotateAnimation(0, 360,
 						android.view.animation.Animation.RELATIVE_TO_SELF, 0.5f,
 						android.view.animation.Animation.RELATIVE_TO_SELF, 0.5f);
 				rotate.setDuration(1000);
 				rotate.setRepeatCount(android.view.animation.Animation.INFINITE);
 				rotate.setInterpolator(new android.view.animation.LinearInterpolator());
-				refreshView.startAnimation(rotate);
-				synchronizerMenuItem.setActionView(refreshView);
+				refreshView.post(new Runnable() {
+					@Override
+					public void run() {
+						refreshView.startAnimation(rotate);
+					}
+				});
 			} else if (syncDone) {
 				android.view.View actionView = synchronizerMenuItem.getActionView();
 				if (actionView != null) {

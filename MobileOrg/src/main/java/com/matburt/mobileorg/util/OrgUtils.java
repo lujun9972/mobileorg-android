@@ -99,18 +99,21 @@ public class OrgUtils {
 	public static void announceSyncDone(Context context) {
 		Intent intent = new Intent(Synchronizer.SYNC_UPDATE);
 		intent.putExtra(Synchronizer.SYNC_DONE, true);
+		intent.setPackage(context.getPackageName());
 		context.sendBroadcast(intent);
 	}
 	
 	public static void announceSyncStart(Context context) {
 		Intent intent = new Intent(Synchronizer.SYNC_UPDATE);
 		intent.putExtra(Synchronizer.SYNC_START, true);
+		intent.setPackage(context.getPackageName());
 		context.sendBroadcast(intent);
 	}
 	
 	public static void announceSyncUpdateProgress(int progress, Context context) {
 		Intent intent = new Intent(Synchronizer.SYNC_UPDATE);
 		intent.putExtra(Synchronizer.SYNC_PROGRESS_UPDATE, progress);
+		intent.setPackage(context.getPackageName());
 		context.sendBroadcast(intent);
 	}
 

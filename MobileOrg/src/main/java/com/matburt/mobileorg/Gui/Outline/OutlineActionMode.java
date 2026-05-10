@@ -19,7 +19,9 @@ import com.matburt.mobileorg.Gui.Capture.EditActivityController;
 import com.matburt.mobileorg.OrgData.OrgFile;
 import com.matburt.mobileorg.OrgData.OrgNode;
 import com.matburt.mobileorg.Services.CalendarSyncService;
+import com.matburt.mobileorg.Services.RecordingService;
 import com.matburt.mobileorg.Services.TimeclockService;
+import android.os.Build;
 import com.matburt.mobileorg.util.OrgFileNotFoundException;
 import com.matburt.mobileorg.util.OrgUtils;
 import com.matburt.mobileorg.util.PreferenceUtils;
@@ -93,6 +95,8 @@ public class OutlineActionMode implements ActionMode.Callback {
 			runDeleteFileNode();
 		} else if (id == R.id.menu_clockin) {
 			runTimeClockingService();
+		} else if (id == R.id.menu_record) {
+			runRecordingService();
 		} else if (id == R.id.menu_archive) {
 			runArchiveNode(false);
 		} else if (id == R.id.menu_archive_tosibling) {
@@ -226,7 +230,18 @@ public class OutlineActionMode implements ActionMode.Callback {
 		intent.putExtra(TimeclockService.NODE_ID, node.id);
 		context.startService(intent);
 	}
-	
+
+	private void runRecordingService() {
+		Intent intent = new Intent(context, RecordingService.class);
+		intent.putExtra(RecordingService.ACTION_NAME, RecordingService.ACTION_START);
+		intent.putExtra(RecordingService.NODE_ID, node.id);
+		if (Build.VERSION.SDK_INT >= 26) {
+			context.startForegroundService(intent);
+		} else {
+			context.startService(intent);
+		}
+	}
+
 	private void runRecover() {
 		try {
 			OrgFile orgFile = this.node.getOrgFile(resolver);

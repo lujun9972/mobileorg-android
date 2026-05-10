@@ -7,7 +7,6 @@ import javax.net.ssl.SSLHandshakeException;
 
 import android.content.ContentResolver;
 import android.content.Context;
-import android.test.ProviderTestCase2;
 
 import com.matburt.mobileorg.OrgData.OrgDatabase;
 import com.matburt.mobileorg.OrgData.OrgEdit;
@@ -17,7 +16,24 @@ import com.matburt.mobileorg.OrgData.OrgProvider;
 import com.matburt.mobileorg.Synchronizers.Synchronizer;
 import com.matburt.mobileorg.test.util.OrgTestFiles.SimpleOrgFiles;
 
-public class SynchronizerTest extends ProviderTestCase2<OrgProvider> {
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Rule;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import androidx.test.ext.junit.runners.AndroidJUnit4;
+import androidx.test.rule.provider.ProviderTestRule;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
+
+@RunWith(AndroidJUnit4.class)
+public class SynchronizerTest {
+
+	@Rule
+	public ProviderTestRule providerRule = new ProviderTestRule.Builder(
+			OrgProvider.class, OrgProvider.class.getName()).build();
 
 	private Synchronizer synchronizer;
 	private OrgFileParserStub parserStub;
@@ -26,27 +42,23 @@ public class SynchronizerTest extends ProviderTestCase2<OrgProvider> {
 	private SynchronizerNotificationStub notifyStub;
 	private ContentResolver resolver;
 
-	public SynchronizerTest() {
-		super(OrgProvider.class, OrgProvider.class.getName());
-	}
-	
-	@Override
-	protected void setUp() throws Exception {
-		super.setUp();
-		Context context = getMockContext();
-		this.resolver = getMockContentResolver();
+	@Before
+	public void setUp() throws Exception {
+		Context context = providerRule.getContext();
+		this.resolver = providerRule.getResolver();
 		this.db = new OrgDatabase(context);
 		this.parserStub = new OrgFileParserStub(db, resolver);
 		this.synchronizerStub = new SynchronizerStub();
-		this.notifyStub = new SynchronizerNotificationStub(getMockContext());
+		this.notifyStub = new SynchronizerNotificationStub(providerRule.getContext());
 		this.synchronizer = new Synchronizer(context, synchronizerStub, notifyStub);
 	}
-	
-	@Override
-	protected void tearDown() throws Exception {
+
+	@After
+	public void tearDown() throws Exception {
 		db.close();
 	}
 
+	@Test
 	public void testSynchronizeSimple() throws SSLHandshakeException, CertificateException, IOException, Exception {
 		synchronizerStub.addFile("index.org", SimpleOrgFiles.indexFile);
 		synchronizerStub.addFile("checksums.dat", SimpleOrgFiles.checksumsFile);
@@ -55,7 +67,8 @@ public class SynchronizerTest extends ProviderTestCase2<OrgProvider> {
 		assertTrue(parserStub.filesParsed.contains("GTD.org"));
 		assertEquals(1, parserStub.filesParsed.size());
 	}
-	
+
+	@Test
 	public void testPullWithMissingIndex() throws CertificateException, Exception {
 		synchronizerStub.addFile("checksums.dat", SimpleOrgFiles.checksumsFile);
 		synchronizerStub.addFile("GTD.org", SimpleOrgFiles.orgFile);
@@ -65,7 +78,8 @@ public class SynchronizerTest extends ProviderTestCase2<OrgProvider> {
 		} catch (IOException e) {}
 		assertEquals(0, parserStub.filesParsed.size());
 	}
-	
+
+	@Test
 	public void testPullWithMissingChecksums() throws CertificateException, Exception {
 		synchronizerStub.addFile("index.org", SimpleOrgFiles.indexFile);
 		synchronizerStub.addFile("GTD.org", SimpleOrgFiles.orgFile);
@@ -76,6 +90,7 @@ public class SynchronizerTest extends ProviderTestCase2<OrgProvider> {
 		assertEquals(0, parserStub.filesParsed.size());
 	}
 
+	@Test
 	public void testPullWithMissingOrgfile() throws CertificateException, Exception {
 		synchronizerStub.addFile("index.org", SimpleOrgFiles.indexFile);
 		synchronizerStub.addFile("checksums.dat", SimpleOrgFiles.checksumsFile);
@@ -85,38 +100,41 @@ public class SynchronizerTest extends ProviderTestCase2<OrgProvider> {
 		} catch (IOException e) {}
 		assertEquals(0, parserStub.filesParsed.size());
 	}
-	
+
+	@Test
 	public void testPushWithoutCaptures() throws SSLHandshakeException, CertificateException, IOException, Exception {
 		synchronizer.pushCaptures();
 	}
-	
+
+	@Test
 	public void testPushWithCaptures() throws SSLHandshakeException, CertificateException, IOException, Exception {
 		synchronizerStub.addFile(Synchronizer.CAPTURE_FILE, "");
 		OrgFile file = new OrgFile(Synchronizer.CAPTURE_FILE, Synchronizer.CAPTURE_FILE, "");
 		file.write(resolver);
-		
+
 		OrgNode node = new OrgNode();
 		node.setFilename(Synchronizer.CAPTURE_FILE, resolver);
 		node.write(resolver);
 		synchronizer.pushCaptures();
-		
+
 		// TODO Make actual test out of this
 		//assertEquals(node.toString(), synchronizerStub.files.get(Synchronizer.CAPTURE_FILE));
 	}
-	
+
+	@Test
 	public void testPushWithCapturesAndEdits() throws SSLHandshakeException, CertificateException, IOException, Exception {
 		synchronizerStub.addFile(Synchronizer.CAPTURE_FILE, "");
 		OrgFile file = new OrgFile(Synchronizer.CAPTURE_FILE, Synchronizer.CAPTURE_FILE, "");
 		file.write(resolver);
-		
+
 		OrgNode node = new OrgNode();
 		node.setFilename(Synchronizer.CAPTURE_FILE, resolver);
 		node.write(resolver);
-		
+
 		OrgEdit edit = new OrgEdit(node, OrgEdit.TYPE.ADDHEADING, resolver);
 		edit.write(resolver);
 		synchronizer.pushCaptures();
-		
+
 		// TODO Make actual test out of this
 		//assertEquals(edit.toString(), synchronizerStub.files.get(Synchronizer.CAPTURE_FILE));
 	}

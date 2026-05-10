@@ -7,6 +7,8 @@ import javax.net.ssl.SSLHandshakeException;
 
 import android.content.ContentResolver;
 import android.content.Context;
+import android.test.mock.MockContentResolver;
+import android.test.ProviderTestCase2;
 
 import com.matburt.mobileorg.OrgData.OrgDatabase;
 import com.matburt.mobileorg.OrgData.OrgEdit;
@@ -18,45 +20,44 @@ import com.matburt.mobileorg.test.util.OrgTestFiles.SimpleOrgFiles;
 
 import org.junit.After;
 import org.junit.Before;
-import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import androidx.test.ext.junit.runners.AndroidJUnit4;
-import androidx.test.platform.app.InstrumentationRegistry;
-import androidx.test.rule.provider.ProviderTestRule;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 @RunWith(AndroidJUnit4.class)
-public class SynchronizerTest {
+public class SynchronizerTest extends ProviderTestCase2<OrgProvider> {
 
-	@Rule
-	public ProviderTestRule providerRule = new ProviderTestRule.Builder(
-			OrgProvider.class, OrgProvider.class.getName()).build();
-
+	private MockContentResolver resolver;
 	private Synchronizer synchronizer;
 	private OrgFileParserStub parserStub;
 	private OrgDatabase db;
 	private SynchronizerStub synchronizerStub;
 	private SynchronizerNotificationStub notifyStub;
-	private ContentResolver resolver;
+
+	public SynchronizerTest() {
+		super(OrgProvider.class, OrgProvider.class.getName());
+	}
 
 	@Before
 	public void setUp() throws Exception {
-		Context context = InstrumentationRegistry.getInstrumentation().getTargetContext();
-		this.resolver = providerRule.getResolver();
+		super.setUp();  // THIS IS CRITICAL - initializes ProviderTestCase2
+		Context context = getMockContext();
+		this.resolver = getMockContentResolver();
 		this.db = new OrgDatabase(context);
 		this.parserStub = new OrgFileParserStub(db, resolver);
 		this.synchronizerStub = new SynchronizerStub();
-		this.notifyStub = new SynchronizerNotificationStub(InstrumentationRegistry.getInstrumentation().getTargetContext());
+		this.notifyStub = new SynchronizerNotificationStub(getMockContext());
 		this.synchronizer = new Synchronizer(context, synchronizerStub, notifyStub);
 	}
 
 	@After
 	public void tearDown() throws Exception {
 		db.close();
+		super.tearDown();  // THIS IS CRITICAL
 	}
 
 	@Test

@@ -8,6 +8,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 
 import android.database.Cursor;
+import android.test.mock.MockContentResolver;
+import android.test.ProviderTestCase2;
 import android.util.Log;
 
 import com.matburt.mobileorg.OrgData.OrgContract.OrgData;
@@ -26,12 +28,9 @@ import com.matburt.mobileorg.util.OrgNodeNotFoundException;
 
 import org.junit.After;
 import org.junit.Before;
-import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import androidx.test.ext.junit.runners.AndroidJUnit4;
-import androidx.test.platform.app.InstrumentationRegistry;
-import androidx.test.rule.provider.ProviderTestRule;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
@@ -39,30 +38,33 @@ import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 @RunWith(AndroidJUnit4.class)
-public class OrgFileParserTest {
+public class OrgFileParserTest extends ProviderTestCase2<OrgProvider> {
 
-	@Rule
-	public ProviderTestRule providerRule = new ProviderTestRule.Builder(
-			OrgProvider.class, OrgProvider.class.getName()).build();
-
+	private MockContentResolver resolver;
 	private OrgDatabaseStub db;
 	private OrgFileParser parser;
 
+	public OrgFileParserTest() {
+		super(OrgProvider.class, OrgProvider.class.getName());
+	}
 
 	@Before
 	public void setUp() throws Exception {
-		this.db = new OrgDatabaseStub(InstrumentationRegistry.getInstrumentation().getTargetContext());
-		this.parser = new OrgFileParser(db, providerRule.getResolver());
+		super.setUp();  // THIS IS CRITICAL - initializes ProviderTestCase2
+		this.resolver = getMockContentResolver();
+		this.db = new OrgDatabaseStub(getMockContext());
+		this.parser = new OrgFileParser(db, resolver);
 	}
 
 	@After
 	public void tearDown() throws Exception {
 		this.db.close();
+		super.tearDown();  // THIS IS CRITICAL
 	}
 
 	@Test
 	public void testParseSimple() {
-		Cursor cursor = providerRule.getResolver().query(OrgData.CONTENT_URI, OrgData.DEFAULT_COLUMNS,
+		Cursor cursor = resolver.query(OrgData.CONTENT_URI, OrgData.DEFAULT_COLUMNS,
 				null, null, null);
 		assertNotNull(cursor);
 		cursor.close();
@@ -76,13 +78,13 @@ public class OrgFileParserTest {
 		assertEquals(2, db.fastInsertNodeCalls);
 		assertEquals(3, db.fastInsertNodePayloadCalls);
 
-		cursor = providerRule.getResolver().query(OrgData.CONTENT_URI, OrgData.DEFAULT_COLUMNS,
+		cursor = resolver.query(OrgData.CONTENT_URI, OrgData.DEFAULT_COLUMNS,
 				null, null, null);
 		assertEquals(3, cursor.getCount());
 		cursor.close();
 
 		assertTrue(orgFile.id > -1);
-		cursor = providerRule.getResolver().query(OrgData.CONTENT_URI, OrgData.DEFAULT_COLUMNS, OrgData.FILE_ID + "=?",
+		cursor = resolver.query(OrgData.CONTENT_URI, OrgData.DEFAULT_COLUMNS, OrgData.FILE_ID + "=?",
 				new String[] { Long.toString(orgFile.id) }, OrgData.ID + " DESC");
 		assertEquals(3, cursor.getCount());
 		cursor.close();
@@ -94,20 +96,20 @@ public class OrgFileParserTest {
 		BufferedReader breader = new BufferedReader(new InputStreamReader(is));
 		final String name = "file alias";
 		OrgFile orgFile = new OrgFile("GTD.org", name, "");
-		OrgProviderUtils.setTodos(OrgTestUtils.getTodos(), providerRule.getResolver());
+		OrgProviderUtils.setTodos(OrgTestUtils.getTodos(), resolver);
 		parser.parse(orgFile, breader);
 
-		Cursor cursor = providerRule.getResolver().query(OrgData.CONTENT_URI, OrgData.DEFAULT_COLUMNS, OrgData.NAME + "=?",
+		Cursor cursor = resolver.query(OrgData.CONTENT_URI, OrgData.DEFAULT_COLUMNS, OrgData.NAME + "=?",
 				new String[] { name }, null);
 		OrgNode fileNode = new OrgNode(cursor);
 		cursor.close();
 
-		cursor = providerRule.getResolver().query(OrgData.CONTENT_URI, OrgData.DEFAULT_COLUMNS, OrgData.NAME + "=?",
+		cursor = resolver.query(OrgData.CONTENT_URI, OrgData.DEFAULT_COLUMNS, OrgData.NAME + "=?",
 				new String[] { SimpleOrgFiles.orgFileTopHeading }, null);
 		OrgNode topNode = new OrgNode(cursor);
 		cursor.close();
 
-		cursor = providerRule.getResolver().query(OrgData.CONTENT_URI, OrgData.DEFAULT_COLUMNS, OrgData.NAME + "=?",
+		cursor = resolver.query(OrgData.CONTENT_URI, OrgData.DEFAULT_COLUMNS, OrgData.NAME + "=?",
 				new String[] { SimpleOrgFiles.orgFileChildHeading }, null);
 		OrgNode childNode = new OrgNode(cursor);
 		cursor.close();

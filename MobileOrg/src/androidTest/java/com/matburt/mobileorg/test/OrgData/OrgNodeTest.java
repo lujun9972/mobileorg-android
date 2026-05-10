@@ -3,6 +3,8 @@ package com.matburt.mobileorg.test.OrgData;
 import java.util.ArrayList;
 
 import android.database.Cursor;
+import android.test.mock.MockContentResolver;
+import android.test.ProviderTestCase2;
 
 import com.matburt.mobileorg.OrgData.OrgEdit;
 import com.matburt.mobileorg.OrgData.OrgFile;
@@ -17,11 +19,9 @@ import com.matburt.mobileorg.util.OrgNodeNotFoundException;
 
 import org.junit.After;
 import org.junit.Before;
-import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import androidx.test.ext.junit.runners.AndroidJUnit4;
-import androidx.test.rule.provider.ProviderTestRule;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
@@ -30,18 +30,23 @@ import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 @RunWith(AndroidJUnit4.class)
-public class OrgNodeTest {
+public class OrgNodeTest extends ProviderTestCase2<OrgProvider> {
 
-	@Rule
-	public ProviderTestRule providerRule = new ProviderTestRule.Builder(
-			OrgProvider.class, OrgProvider.class.getName()).build();
+	private MockContentResolver resolver;
+
+	public OrgNodeTest() {
+		super(OrgProvider.class, OrgProvider.class.getName());
+	}
 
 	@Before
 	public void setUp() throws Exception {
+		super.setUp();  // THIS IS CRITICAL - initializes ProviderTestCase2
+		this.resolver = getMockContentResolver();
 	}
 
 	@After
 	public void tearDown() throws Exception {
+		super.tearDown();  // THIS IS CRITICAL
 	}
 
 	@Test
@@ -57,9 +62,9 @@ public class OrgNodeTest {
 	@Test
 	public void testAddNodeSimple() throws OrgNodeNotFoundException {
 		OrgNode node = OrgTestUtils.getDefaultOrgNode();
-		node.write(providerRule.getResolver());
+		node.write(resolver);
 
-		Cursor cursor = providerRule.getResolver().query(OrgData.buildIdUri(node.id),
+		Cursor cursor = resolver.query(OrgData.buildIdUri(node.id),
 				OrgData.DEFAULT_COLUMNS, null, null, null);
 		assertNotNull(cursor);
 		assertEquals(1, cursor.getCount());
@@ -72,16 +77,16 @@ public class OrgNodeTest {
 	@Test
 	public void testAddAndUpdateNode() throws OrgNodeNotFoundException {
 		OrgNode node = OrgTestUtils.getDefaultOrgNode();
-		node.write(providerRule.getResolver());
+		node.write(resolver);
 
 		node.todo = "DONE";
-		node.write(providerRule.getResolver());
+		node.write(resolver);
 
-		Cursor orgDataCursor = providerRule.getResolver().query(OrgData.CONTENT_URI, null, null,
+		Cursor orgDataCursor = resolver.query(OrgData.CONTENT_URI, null, null,
 				null, null);
 		assertEquals(1, orgDataCursor.getCount());
 		orgDataCursor.close();
-		Cursor cursor = providerRule.getResolver().query(OrgData.buildIdUri(node.id),
+		Cursor cursor = resolver.query(OrgData.buildIdUri(node.id),
 				OrgData.DEFAULT_COLUMNS, null, null, null);
 		assertNotNull(cursor);
 		assertEquals(1, cursor.getCount());
@@ -94,37 +99,37 @@ public class OrgNodeTest {
 	@Test
 	public void testGetParentSimple() throws OrgNodeNotFoundException {
 		OrgNode node = OrgTestUtils.getDefaultOrgNode();
-		node.write(providerRule.getResolver());
+		node.write(resolver);
 
 		OrgNode childNode = OrgTestUtils.getDefaultOrgNode();
 		childNode.parentId = node.id;
-		childNode.write(providerRule.getResolver());
+		childNode.write(resolver);
 
-		OrgNode parent = childNode.getParent(providerRule.getResolver());
+		OrgNode parent = childNode.getParent(resolver);
 		assertEquals(node.id, parent.id);
 	}
 
 	@Test
 	public void testGetParentFileNode() throws OrgNodeNotFoundException {
 		OrgFile file = OrgTestUtils.getDefaultOrgFile();
-		file.write(providerRule.getResolver());
+		file.write(resolver);
 		OrgNode node = OrgTestUtils.getDefaultOrgNode();
 		node.parentId = file.nodeId;
-		node.write(providerRule.getResolver());
+		node.write(resolver);
 
-		OrgNode parent = node.getParent(providerRule.getResolver());
+		OrgNode parent = node.getParent(resolver);
 		assertEquals(file.nodeId, parent.id);
 	}
 
 	@Test
 	public void testGetParentWithTopLevel() throws OrgNodeNotFoundException {
 		OrgFile file = OrgTestUtils.getDefaultOrgFile();
-		file.write(providerRule.getResolver());
+		file.write(resolver);
 
-		OrgNode node = new OrgNode(file.nodeId, providerRule.getResolver());
+		OrgNode node = new OrgNode(file.nodeId, resolver);
 
 		try {
-			node.getParent(providerRule.getResolver());
+			node.getParent(resolver);
 			fail("File shouldn't exist");
 		} catch (OrgNodeNotFoundException e) {}
 	}
@@ -132,45 +137,45 @@ public class OrgNodeTest {
 	@Test
 	public void testGetChildrenSimple() {
 		OrgNode node = OrgTestUtils.getDefaultOrgNode();
-		node.write(providerRule.getResolver());
+		node.write(resolver);
 
 		OrgNode child1 = OrgTestUtils.getDefaultOrgNode();
 		child1.parentId = node.id;
-		child1.write(providerRule.getResolver());
+		child1.write(resolver);
 		OrgNode child2 = OrgTestUtils.getDefaultOrgNode();
 		child2.parentId = node.id;
-		child2.write(providerRule.getResolver());
+		child2.write(resolver);
 
-		ArrayList<OrgNode> children = node.getChildren(providerRule.getResolver());
+		ArrayList<OrgNode> children = node.getChildren(resolver);
 		assertEquals(2, children.size());
 	}
 
 	@Test
 	public void testArchiveNode() {
-		OrgNode childNode = OrgTestUtils.setupParentScenario(providerRule.getResolver());
-		childNode.archiveNode(providerRule.getResolver());
+		OrgNode childNode = OrgTestUtils.setupParentScenario(resolver);
+		childNode.archiveNode(resolver);
 
 		try {
-			new OrgNode(childNode.id, providerRule.getResolver());
+			new OrgNode(childNode.id, resolver);
 			fail("Node should not exist");
 		} catch (OrgNodeNotFoundException e) {}
 
-		OrgTestUtils.cleanupParentScenario(providerRule.getResolver());
+		OrgTestUtils.cleanupParentScenario(resolver);
 	}
 
 	@Test
 	public void testArchiveNodeGeneratesEdit() {
 		OrgNode node = OrgTestUtils.getDefaultOrgNode();
-		node.write(providerRule.getResolver());
+		node.write(resolver);
 
-		Cursor editCursor = providerRule.getResolver().query(Edits.CONTENT_URI, Edits.DEFAULT_COLUMNS, null, null, null);
+		Cursor editCursor = resolver.query(Edits.CONTENT_URI, Edits.DEFAULT_COLUMNS, null, null, null);
 		int baseOfEdits = editCursor.getCount();
 		editCursor.close();
 
-		OrgEdit edit = node.archiveNode(providerRule.getResolver());
+		OrgEdit edit = node.archiveNode(resolver);
 		edit.type.equals(OrgEdit.TYPE.ARCHIVE);
 
-		Cursor editCursor2 = providerRule.getResolver().query(Edits.CONTENT_URI, Edits.DEFAULT_COLUMNS, null, null, null);
+		Cursor editCursor2 = resolver.query(Edits.CONTENT_URI, Edits.DEFAULT_COLUMNS, null, null, null);
 		int numberOfEdits = editCursor2.getCount();
 		editCursor2.close();
 
@@ -179,12 +184,12 @@ public class OrgNodeTest {
 
 	@Test
 	public void testArchiveNodeToSibling() throws OrgNodeNotFoundException {
-		OrgNode childNode = OrgTestUtils.setupParentScenario(providerRule.getResolver());
-		OrgNode parent = childNode.getParent(providerRule.getResolver());
+		OrgNode childNode = OrgTestUtils.setupParentScenario(resolver);
+		OrgNode parent = childNode.getParent(resolver);
 
-		childNode.archiveNodeToSibling(providerRule.getResolver());
+		childNode.archiveNodeToSibling(resolver);
 
-		OrgNode archiveNode = parent.getChild(OrgNode.ARCHIVE_NODE, providerRule.getResolver());
+		OrgNode archiveNode = parent.getChild(OrgNode.ARCHIVE_NODE, resolver);
 		assertNotNull(archiveNode);
 
 		assertEquals(archiveNode.id, childNode.parentId);
@@ -193,17 +198,17 @@ public class OrgNodeTest {
 
 	@Test
 	public void testArchiveNodeToSiblingGeneratesEdit() {
-		OrgNode node = OrgTestUtils.setupParentScenario(providerRule.getResolver());
-		node.write(providerRule.getResolver());
+		OrgNode node = OrgTestUtils.setupParentScenario(resolver);
+		node.write(resolver);
 
-		Cursor editCursor = providerRule.getResolver().query(Edits.CONTENT_URI, Edits.DEFAULT_COLUMNS, null, null, null);
+		Cursor editCursor = resolver.query(Edits.CONTENT_URI, Edits.DEFAULT_COLUMNS, null, null, null);
 		int baseOfEdits = editCursor.getCount();
 		editCursor.close();
 
-		OrgEdit edit = node.archiveNodeToSibling(providerRule.getResolver());
+		OrgEdit edit = node.archiveNodeToSibling(resolver);
 		edit.type.equals(OrgEdit.TYPE.ARCHIVE_SIBLING);
 
-		Cursor editCursor2 = providerRule.getResolver().query(Edits.CONTENT_URI, Edits.DEFAULT_COLUMNS, null, null, null);
+		Cursor editCursor2 = resolver.query(Edits.CONTENT_URI, Edits.DEFAULT_COLUMNS, null, null, null);
 		int numberOfEdits = editCursor2.getCount();
 		editCursor2.close();
 
@@ -212,29 +217,29 @@ public class OrgNodeTest {
 
 	@Test
 	public void testGetOlpLink() {
-		OrgNode node = OrgTestUtils.setupParentScenario(providerRule.getResolver());
+		OrgNode node = OrgTestUtils.setupParentScenario(resolver);
 
-		String olp = node.getOlpId(providerRule.getResolver());
+		String olp = node.getOlpId(resolver);
 		assertEquals(OrgTestUtils.setupParentScenarioChild2ChildOlpId, olp);
 	}
 
 	@Test
 	public void testGetNodeFromOlpLink() throws OrgNodeNotFoundException, OrgFileNotFoundException {
-		OrgNode node = OrgTestUtils.setupParentScenario(providerRule.getResolver());
+		OrgNode node = OrgTestUtils.setupParentScenario(resolver);
 
-		String olp = node.getOlpId(providerRule.getResolver());
-		OrgNode nodeFromOlpPath = OrgProviderUtils.getOrgNodeFromOlpPath(olp, providerRule.getResolver());
+		String olp = node.getOlpId(resolver);
+		OrgNode nodeFromOlpPath = OrgProviderUtils.getOrgNodeFromOlpPath(olp, resolver);
 		assertEquals(node.id, nodeFromOlpPath.id);
 	}
 
 	@Test
 	public void testGetNodeFromOlpFileLink() throws OrgNodeNotFoundException, OrgFileNotFoundException {
-		OrgTestUtils.setupParentScenario(providerRule.getResolver());
+		OrgTestUtils.setupParentScenario(resolver);
 		final String filename = OrgTestUtils.defaultTestfilename;
-		OrgNode fileNode = OrgProviderUtils.getOrgNodeFromFilename(filename, providerRule.getResolver());
+		OrgNode fileNode = OrgProviderUtils.getOrgNodeFromFilename(filename, resolver);
 		final String olp = "olp:" + filename;
 
-		OrgNode nodeFromOlpPath = OrgProviderUtils.getOrgNodeFromOlpPath(olp, providerRule.getResolver());
+		OrgNode nodeFromOlpPath = OrgProviderUtils.getOrgNodeFromOlpPath(olp, resolver);
 
 		assertEquals(fileNode.id, nodeFromOlpPath.id);
 	}
@@ -244,10 +249,10 @@ public class OrgNodeTest {
 	 */
 	@Test
 	public void testGetOlpLinkWithCookie() {
-		OrgNode node = OrgTestUtils.setupParentScenario(providerRule.getResolver());
+		OrgNode node = OrgTestUtils.setupParentScenario(resolver);
 		node.name += " [1/3]";
 
-		String olp = node.getOlpId(providerRule.getResolver());
+		String olp = node.getOlpId(resolver);
 		assertEquals(OrgTestUtils.setupParentScenarioChild2ChildOlpId, olp.trim());
 	}
 

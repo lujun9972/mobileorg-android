@@ -1,6 +1,8 @@
 package com.matburt.mobileorg.test.OrgData;
 
 import android.database.Cursor;
+import android.test.mock.MockContentResolver;
+import android.test.ProviderTestCase2;
 
 import com.matburt.mobileorg.OrgData.OrgDatabase;
 import com.matburt.mobileorg.OrgData.OrgNode;
@@ -11,12 +13,9 @@ import com.matburt.mobileorg.util.OrgNodeNotFoundException;
 
 import org.junit.After;
 import org.junit.Before;
-import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import androidx.test.ext.junit.runners.AndroidJUnit4;
-import androidx.test.platform.app.InstrumentationRegistry;
-import androidx.test.rule.provider.ProviderTestRule;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
@@ -25,22 +24,26 @@ import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 @RunWith(AndroidJUnit4.class)
-public class OrgDatabaseTest {
+public class OrgDatabaseTest extends ProviderTestCase2<OrgProvider> {
 
-	@Rule
-	public ProviderTestRule providerRule = new ProviderTestRule.Builder(
-			OrgProvider.class, OrgProvider.class.getName()).build();
-
+	private MockContentResolver resolver;
 	private OrgDatabase db;
+
+	public OrgDatabaseTest() {
+		super(OrgProvider.class, OrgProvider.class.getName());
+	}
 
 	@Before
 	public void setUp() throws Exception {
-		this.db = new OrgDatabase(InstrumentationRegistry.getInstrumentation().getTargetContext());
+		super.setUp();  // THIS IS CRITICAL - initializes ProviderTestCase2
+		this.resolver = getMockContentResolver();
+		this.db = new OrgDatabase(getMockContext());
 	}
 
 	@After
 	public void tearDown() throws Exception {
 		this.db.close();
+		super.tearDown();  // THIS IS CRITICAL
 	}
 
 	@Test
@@ -63,7 +66,7 @@ public class OrgDatabaseTest {
 	public void testFastInsertNodeSimple() {
 		OrgNode node = OrgTestUtils.getDefaultOrgNode();
 		long id = db.fastInsertNode(node);
-		Cursor cursor = providerRule.getResolver().query(OrgData.buildIdUri(id),
+		Cursor cursor = resolver.query(OrgData.buildIdUri(id),
 				OrgData.DEFAULT_COLUMNS, null, null, null);
 		assertNotNull(cursor);
 		assertEquals(1, cursor.getCount());
@@ -88,7 +91,7 @@ public class OrgDatabaseTest {
 		final String testPayload = "this is a test payload";
 		db.fastInsertNodePayload(id, testPayload);
 
-		Cursor cursor = providerRule.getResolver().query(OrgData.buildIdUri(Long.toString(id)),
+		Cursor cursor = resolver.query(OrgData.buildIdUri(Long.toString(id)),
 				OrgData.DEFAULT_COLUMNS, null, null, null);
 		assertNotNull(cursor);
 		assertEquals(1, cursor.getCount());
@@ -112,7 +115,7 @@ public class OrgDatabaseTest {
 		db.fastInsertNodePayload(id, "first payload");
 		db.fastInsertNodePayload(id, testPayload);
 
-		Cursor cursor = providerRule.getResolver().query(OrgData.buildIdUri(Long.toString(id)),
+		Cursor cursor = resolver.query(OrgData.buildIdUri(Long.toString(id)),
 				OrgData.DEFAULT_COLUMNS, null, null, null);
 		OrgNode insertedNode = new OrgNode();
 		try {

@@ -3,6 +3,8 @@ package com.matburt.mobileorg.test.OrgData;
 import java.util.ArrayList;
 
 import android.database.Cursor;
+import android.test.mock.MockContentResolver;
+import android.test.ProviderTestCase2;
 
 import com.matburt.mobileorg.OrgData.OrgEdit;
 import com.matburt.mobileorg.OrgData.OrgFile;
@@ -15,11 +17,9 @@ import com.matburt.mobileorg.util.OrgNodeNotFoundException;
 
 import org.junit.After;
 import org.junit.Before;
-import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import androidx.test.ext.junit.runners.AndroidJUnit4;
-import androidx.test.rule.provider.ProviderTestRule;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNotNull;
@@ -27,18 +27,23 @@ import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
 @RunWith(AndroidJUnit4.class)
-public class OrgEditTest {
+public class OrgEditTest extends ProviderTestCase2<OrgProvider> {
 
-	@Rule
-	public ProviderTestRule providerRule = new ProviderTestRule.Builder(
-			OrgProvider.class, OrgProvider.class.getName()).build();
+	private MockContentResolver resolver;
+
+	public OrgEditTest() {
+		super(OrgProvider.class, OrgProvider.class.getName());
+	}
 
 	@Before
 	public void setUp() throws Exception {
+		super.setUp();  // THIS IS CRITICAL - initializes ProviderTestCase2
+		this.resolver = getMockContentResolver();
 	}
 
 	@After
 	public void tearDown() throws Exception {
+		super.tearDown();  // THIS IS CRITICAL
 	}
 
 	@Test
@@ -49,9 +54,9 @@ public class OrgEditTest {
 		edit.oldValue = "old value";
 		edit.type = OrgEdit.TYPE.HEADING;
 		edit.nodeId = "node id";
-		long editId = edit.write(providerRule.getResolver());
+		long editId = edit.write(resolver);
 
-		Cursor cursor = providerRule.getResolver().query(Edits.buildIdUri(editId),
+		Cursor cursor = resolver.query(Edits.buildIdUri(editId),
 				Edits.DEFAULT_COLUMNS, null, null, null);
 		assertNotNull(cursor);
 		assertEquals(1, cursor.getCount());
@@ -71,7 +76,7 @@ public class OrgEditTest {
 		final int numberOfEdits = 2;
 
 		ArrayList<OrgEdit> generatedEdits = node.generateApplyEditNodes(editedNode,
-				providerRule.getResolver());
+				resolver);
 		assertEquals(numberOfEdits, generatedEdits.size());
 	}
 
@@ -79,15 +84,15 @@ public class OrgEditTest {
 	@Test
 	public void testNewHeadingSimple() throws OrgNodeNotFoundException {
 		OrgFile file = OrgTestUtils.getDefaultOrgFile();
-		file.write(providerRule.getResolver());
+		file.write(resolver);
 
-		OrgNode fileNode = new OrgNode(file.nodeId, providerRule.getResolver());
+		OrgNode fileNode = new OrgNode(file.nodeId, resolver);
 
 		OrgNode node = OrgTestUtils.getDefaultOrgNode();
 		node.fileId = fileNode.fileId;
 		node.parentId = fileNode.id;
 
-		OrgEdit edit = node.createParentNewheading(providerRule.getResolver());
+		OrgEdit edit = node.createParentNewheading(resolver);
 		assertEquals(OrgEdit.TYPE.ADDHEADING, edit.type);
 	}
 
@@ -95,14 +100,14 @@ public class OrgEditTest {
 	@Test
 	public void testNewHeadingDefaultFile() {
 		OrgNode capturefileNode = OrgProviderUtils
-				.getOrCreateCaptureFile(providerRule.getResolver()).getOrgNode(providerRule.getResolver());
+				.getOrCreateCaptureFile(resolver).getOrgNode(resolver);
 		assertTrue(capturefileNode.fileId >= 0);
 
 		OrgNode node = OrgTestUtils.getDefaultOrgNode();
 		node.fileId = capturefileNode.fileId;
 		node.parentId = capturefileNode.id;
 
-		OrgEdit edit = node.createParentNewheading(providerRule.getResolver());
+		OrgEdit edit = node.createParentNewheading(resolver);
 		assertEquals(null, edit.type);
 	}
 
@@ -110,20 +115,20 @@ public class OrgEditTest {
 	@Test
 	public void testEditsToStringSimple() throws OrgNodeNotFoundException {
 		OrgFile file = OrgTestUtils.getDefaultOrgFile();
-		file.write(providerRule.getResolver());
-		OrgNode fileNode = new OrgNode(file.nodeId, providerRule.getResolver());
+		file.write(resolver);
+		OrgNode fileNode = new OrgNode(file.nodeId, resolver);
 
 		OrgNode node = OrgTestUtils.getDefaultOrgNode();
 		node.fileId = fileNode.fileId;
 		node.parentId = fileNode.id;
 
-		node.createParentNewheading(providerRule.getResolver()).write(providerRule.getResolver());
+		node.createParentNewheading(resolver).write(resolver);
 
 		node.level = 0;
 		String correctEditString = new OrgEdit(fileNode,
-				OrgEdit.TYPE.ADDHEADING, node.toString(), providerRule.getResolver()).toString();
+				OrgEdit.TYPE.ADDHEADING, node.toString(), resolver).toString();
 
-		String editsString = OrgEdit.editsToString(providerRule.getResolver());
+		String editsString = OrgEdit.editsToString(resolver);
 		assertEquals(correctEditString.trim(), editsString.trim());
 	}
 }

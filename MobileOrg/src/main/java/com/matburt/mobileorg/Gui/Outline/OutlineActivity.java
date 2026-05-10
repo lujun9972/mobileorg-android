@@ -1,36 +1,44 @@
 package com.matburt.mobileorg.Gui.Outline;
 
+import android.Manifest;
 import android.app.AlertDialog;
 import android.content.BroadcastReceiver;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.IntentFilter;
+import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.Menu;
+import android.view.MenuInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.animation.Animation;
+import android.widget.ImageButton;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
-import android.view.Menu;
-import android.view.MenuInflater;
-import android.view.MenuItem;
 import com.matburt.mobileorg.R;
 import com.matburt.mobileorg.Gui.Agenda.AgendasActivity;
 import com.matburt.mobileorg.Gui.Wizard.WizardActivity;
 import com.matburt.mobileorg.OrgData.MobileOrgApplication;
 import com.matburt.mobileorg.OrgData.OrgProviderUtils;
+import com.matburt.mobileorg.Services.RecordingService;
 import com.matburt.mobileorg.Services.SyncService;
 import com.matburt.mobileorg.Settings.SettingsActivity;
 import com.matburt.mobileorg.Synchronizers.Synchronizer;
 import com.matburt.mobileorg.util.Compat;
 import com.matburt.mobileorg.util.OrgUtils;
 import com.matburt.mobileorg.util.PreferenceUtils;
+
+import java.util.Locale;
 
 public class OutlineActivity extends AppCompatActivity {
 
@@ -48,6 +56,9 @@ public class OutlineActivity extends AppCompatActivity {
 
 	private SynchServiceReceiver syncReceiver;
 	private MenuItem synchronizerMenuItem;
+	private View recordingBar;
+	private BroadcastReceiver recordingReceiver;
+	private long pendingRecordNodeId = -1;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -79,6 +90,27 @@ public class OutlineActivity extends AppCompatActivity {
 			}
 			MobileOrgApplication.log("OutlineActivity.onCreate() registerReceiver done");
 
+			recordingReceiver = new BroadcastReceiver() {
+				@Override
+				public void onReceive(Context context, Intent intent) {
+					String action = intent.getAction();
+					if (RecordingService.BROADCAST_UPDATE.equals(action)) {
+						long elapsed = intent.getLongExtra(RecordingService.EXTRA_ELAPSED_SECONDS, 0);
+						showOrUpdateRecordingBar(elapsed);
+					} else if (RecordingService.BROADCAST_STOPPED.equals(action)) {
+						removeRecordingBar();
+					}
+				}
+			};
+
+			IntentFilter recordingFilter = new IntentFilter(RecordingService.BROADCAST_UPDATE);
+			recordingFilter.addAction(RecordingService.BROADCAST_STOPPED);
+			if (Build.VERSION.SDK_INT >= 33) {
+				registerReceiver(recordingReceiver, recordingFilter, Context.RECEIVER_NOT_EXPORTED);
+			} else {
+				registerReceiver(recordingReceiver, recordingFilter);
+			}
+
 			refreshDisplay();
 			MobileOrgApplication.log("OutlineActivity.onCreate() complete");
 		} catch (Exception e) {
@@ -97,6 +129,9 @@ public class OutlineActivity extends AppCompatActivity {
 	protected void onDestroy() {
 		MobileOrgApplication.log("OutlineActivity.onDestroy()");
 		unregisterReceiver(this.syncReceiver);
+		if (recordingReceiver != null) {
+			unregisterReceiver(recordingReceiver);
+		}
 		super.onDestroy();
 	}
 
@@ -177,6 +212,12 @@ public class OutlineActivity extends AppCompatActivity {
 		} else if (id == R.id.menu_help) {
 			runHelp(null);
 			return true;
+		} else if (id == R.id.menu_record) {
+			long checkedNodeId = listView.getCheckedNodeId();
+			if (checkedNodeId >= 0) {
+				tryStartRecording(checkedNodeId);
+			}
+			return true;
 		}
 		return false;
 	}
@@ -245,6 +286,81 @@ public class OutlineActivity extends AppCompatActivity {
 					}
 				});
 		builder.create().show();
+	}
+
+
+	private void showOrUpdateRecordingBar(long elapsedSeconds) {
+		if (recordingBar == null) {
+			recordingBar = getLayoutInflater().inflate(R.layout.recording_bar, null);
+			LinearLayout rootLayout = findViewById(R.id.outline_root);
+			rootLayout.addView(recordingBar, 0);
+
+			ImageButton pauseBtn = recordingBar.findViewById(R.id.recording_pause_btn);
+			pauseBtn.setOnClickListener(v -> {
+				RecordingService instance = RecordingService.getInstance();
+				if (instance != null) {
+					Intent intent = new Intent(this, RecordingService.class);
+					intent.putExtra(RecordingService.ACTION_NAME, RecordingService.ACTION_PAUSE);
+					startService(intent);
+				}
+			});
+
+			ImageButton stopBtn = recordingBar.findViewById(R.id.recording_stop_btn);
+			stopBtn.setOnClickListener(v -> {
+				Intent intent = new Intent(this, RecordingService.class);
+				intent.putExtra(RecordingService.ACTION_NAME, RecordingService.ACTION_STOP);
+				startService(intent);
+			});
+		}
+
+		TextView elapsedView = recordingBar.findViewById(R.id.recording_elapsed);
+		long minutes = elapsedSeconds / 60;
+		long seconds = elapsedSeconds % 60;
+		elapsedView.setText(String.format(Locale.getDefault(), "%d:%02d", minutes, seconds));
+	}
+
+	private void removeRecordingBar() {
+		if (recordingBar != null) {
+			LinearLayout rootLayout = findViewById(R.id.outline_root);
+			rootLayout.removeView(recordingBar);
+			recordingBar = null;
+		}
+	}
+
+	private void tryStartRecording(long nodeId) {
+		if (RecordingService.isRecording()) {
+			return;
+		}
+		if (android.content.ContextCompat.checkSelfPermission(this, Manifest.permission.RECORD_AUDIO)
+				== PackageManager.PERMISSION_GRANTED) {
+			startRecordingService(nodeId);
+		} else {
+			pendingRecordNodeId = nodeId;
+			ActivityCompat.requestPermissions(this,
+					new String[]{Manifest.permission.RECORD_AUDIO}, 0);
+		}
+	}
+
+	private void startRecordingService(long nodeId) {
+		Intent intent = new Intent(this, RecordingService.class);
+		intent.putExtra(RecordingService.ACTION_NAME, RecordingService.ACTION_START);
+		intent.putExtra(RecordingService.NODE_ID, nodeId);
+		if (Build.VERSION.SDK_INT >= 26) {
+			startForegroundService(intent);
+		} else {
+			startService(intent);
+		}
+	}
+
+	@Override
+	public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
+		super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+		if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+			if (pendingRecordNodeId != -1) {
+				startRecordingService(pendingRecordNodeId);
+				pendingRecordNodeId = -1;
+			}
+		}
 	}
 
 	private class SynchServiceReceiver extends BroadcastReceiver {

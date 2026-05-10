@@ -40,6 +40,9 @@ android {
         }
     }
 
+    useLibrary 'android.test.runner'
+    useLibrary 'android.test.mock'
+
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_1_8
         targetCompatibility JavaVersion.VERSION_1_8
@@ -53,8 +56,6 @@ dependencies {
     androidTestImplementation 'androidx.test:runner:1.5.2'
     androidTestImplementation 'androidx.test:rules:1.5.0'
     androidTestImplementation 'androidx.test.espresso:espresso-core:3.5.1'
-    androidTestImplementation 'com.android.support.test:runner:1.0.2'
-    androidTestImplementation 'com.android.support.test:rules:1.0.2'
     implementation 'androidx.appcompat:appcompat:1.6.1'
     implementation 'com.jcraft:jsch:0.1.50'
     implementation 'androidx.legacy:legacy-support-v4:1.0.0'

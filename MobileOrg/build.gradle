@@ -42,6 +42,7 @@ android {
 
     useLibrary 'android.test.runner'
     useLibrary 'android.test.mock'
+    useLibrary 'android.test.base'
 
     compileOptions {
         sourceCompatibility JavaVersion.VERSION_1_8

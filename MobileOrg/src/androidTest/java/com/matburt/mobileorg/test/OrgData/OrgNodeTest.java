@@ -270,9 +270,8 @@ public class OrgNodeTest extends ProviderTestCase2<OrgProvider> {
 		String filePath = "/storage/emulated/0/Music/MobileOrg/test_node-20260511.aac";
 		node.appendFileLink(filePath, resolver);
 
-		OrgNode updatedNode = new OrgNode(node.id, resolver);
 		assertTrue("Payload should contain file link",
-				updatedNode.getPayload().contains("[[file:" + filePath + "]]"));
+				node.getPayload().contains("[[file:" + filePath + "]]"));
 	}
 
 }

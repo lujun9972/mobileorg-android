@@ -10,6 +10,7 @@
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE"/>
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_DATA_SYNC"/>
     <uses-permission android:name="android.permission.FOREGROUND_SERVICE_SPECIAL_USE"/>
+    <uses-permission android:name="android.permission.RECORD_AUDIO"/>
 
     <application
         android:name=".OrgData.MobileOrgApplication"
@@ -179,6 +180,9 @@
         </activity>
 
         <service android:name=".Services.TimeclockService"
+            android:foregroundServiceType="specialUse" >
+        </service>
+        <service android:name=".Services.RecordingService"
             android:foregroundServiceType="specialUse" >
         </service>
 

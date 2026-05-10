@@ -2,14 +2,6 @@
 
 This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
 
-## Bug Fix Checklist
-
-每次修复一个 bug 后，必须完成以下三件事：
-
-1. **总结经验写入 CLAUDE.md** — 在 "Android Compatibility (Applied Fixes)" 或 "Known Pitfalls" 中记录
-2. **全局检查同类问题** — 用 grep 搜索代码中是否有相同模式的其他实例，一次性修完
-3. **更新博文** — 将新踩的坑追加到 `~/github/lujun9972.github.com/编程之旅/MobileOrg-Android-从API-17迁移到API-34的实战记录.org`
-
 ## Project Overview
 
 MobileOrg Android — an Android client for Org-mode. Fork of the unmaintained [matburt/mobileorg-android](https://github.com/matburt/mobileorg-android). This is the `main` branch, started from the original codebase (commit 39ffb4e) with Android 8+ / 12+ compatibility fixes applied.
@@ -74,6 +66,15 @@ The original code targets API 17 and crashes on modern Android. The following fi
 - **Intent.getAction() can be null**: When navigating with `FLAG_ACTIVITY_SINGLE_TOP` or `FLAG_ACTIVITY_CLEAR_TOP`, the existing Activity receives `onNewIntent()` callback. The incoming intent may have no action (`getAction()` returns null). Always use `CONSTANT.equals(intent.getAction())` (constant on left) instead of `intent.getAction().equals(CONSTANT)` to avoid NPE.
 
 All guards use `Build.VERSION.SDK_INT >= Build.VERSION_CODES.O` pattern.
+
+## Bug Fix Workflow
+
+每次修复一个 bug 后，必须完成以下步骤：
+
+1. **总结经验写入 CLAUDE.md** — 将根因和修复方法记录到 "Android Compatibility (Applied Fixes)" 部分
+2. **检查同类问题** — 全局搜索相同模式（如 `grep -r "android:showAsAction"`），避免只修一处遗漏其他
+3. **补充单元测试** — 为修复的场景编写测试，防止回归
+4. **更新博文** — 将新坑补充到 `~/github/lujun9972.github.com/编程之旅/MobileOrg-Android-从API-17迁移到API-34的实战记录.org`
 
 ## Known Pitfalls
 

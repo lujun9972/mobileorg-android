@@ -63,6 +63,7 @@ The original code targets API 17 and crashes on modern Android. The following fi
 - **sendBroadcast must use setPackage()**: With targetSdk 34, implicit broadcasts may not be delivered to `RECEIVER_NOT_EXPORTED` receivers. Always add `intent.setPackage(context.getPackageName())` before `sendBroadcast()` to make it explicit. This applies to all `OrgUtils.announceSync*()` methods.
 - **Preference intent must use targetPackage/targetClass**: In XML preferences, use `android:targetPackage` + `android:targetClass` instead of implicit `android:action`. Implicit action intents can resolve incorrectly or fail on modern Android.
 - **View.startAnimation() needs attached view**: When using `MenuItem.setActionView()` with animation, call `setActionView()` first, then use `View.post()` to start the animation. Starting animation on an unattached view is silently ignored.
+- **Intent.getAction() can be null**: When navigating with `FLAG_ACTIVITY_SINGLE_TOP` or `FLAG_ACTIVITY_CLEAR_TOP`, the existing Activity receives `onNewIntent()` callback. The incoming intent may have no action (`getAction()` returns null). Always use `CONSTANT.equals(intent.getAction())` (constant on left) instead of `intent.getAction().equals(CONSTANT)` to avoid NPE.
 
 All guards use `Build.VERSION.SDK_INT >= Build.VERSION_CODES.O` pattern.
 

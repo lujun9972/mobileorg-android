@@ -98,26 +98,35 @@ public class TimeclockDialog extends FragmentActivity {
 		public void onClick(View v) {
 			FragmentTransaction ft = getSupportFragmentManager()
 					.beginTransaction();
-			DialogFragment newFragment = new EditTimePickerFragment();
-			if(newFragment != null)
-				newFragment.show(ft, "TimeDialog");
+			DialogFragment newFragment = EditTimePickerFragment.newInstance(hour, minute);
+			newFragment.show(ft, "TimeDialog");
 		}
 	};
-	
-	private class EditTimePickerFragment extends DialogFragment {
-		public Dialog onCreateDialog(Bundle savedInstanceState) {
-			if(hour <= 23 && minute <= 59)
-				return new TimePickerDialog(getActivity(), timeEditListener, hour,
-						minute, true);
-			else
-				return null;
+
+	public static class EditTimePickerFragment extends DialogFragment {
+		public static EditTimePickerFragment newInstance(int hour, int minute) {
+			EditTimePickerFragment f = new EditTimePickerFragment();
+			Bundle args = new Bundle();
+			args.putInt("hour", hour);
+			args.putInt("minute", minute);
+			f.setArguments(args);
+			return f;
 		}
 
-		private TimePickerDialog.OnTimeSetListener timeEditListener = new TimePickerDialog.OnTimeSetListener() {
-			public void onTimeSet(TimePicker view, int hour, int minute) {
-				saveClock(hour, minute);
-				endTimeclock();
+		@Override
+		public Dialog onCreateDialog(Bundle savedInstanceState) {
+			int hour = getArguments().getInt("hour", 0);
+			int minute = getArguments().getInt("minute", 0);
+			if (hour <= 23 && minute <= 59) {
+				TimeclockDialog activity = (TimeclockDialog) getActivity();
+				return new TimePickerDialog(getActivity(),
+						(view, h, m) -> {
+							activity.saveClock(h, m);
+							activity.endTimeclock();
+						}, hour, minute, true);
+			} else {
+				return null;
 			}
-		};
+		}
 	}
 }

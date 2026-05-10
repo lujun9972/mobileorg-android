@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/recording_bar"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="horizontal"
+    android:gravity="center_vertical"
+    android:paddingStart="8dp"
+    android:paddingEnd="8dp"
+    android:paddingTop="4dp"
+    android:paddingBottom="4dp"
+    android:background="#44FF0000">
+
+    <View
+        android:layout_width="10dp"
+        android:layout_height="10dp"
+        android:background="#FF0000" />
+
+    <TextView
+        android:id="@+id/recording_node_name"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_weight="1"
+        android:layout_marginStart="8dp"
+        android:ellipsize="end"
+        android:maxLines="1"
+        android:textSize="14sp"
+        android:textColor="#FFFFFF" />
+
+    <TextView
+        android:id="@+id/recording_elapsed"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="8dp"
+        android:textSize="14sp"
+        android:textColor="#FFFFFF"
+        android:text="0:00" />
+
+    <ImageButton
+        android:id="@+id/recording_pause_btn"
+        android:layout_width="36dp"
+        android:layout_height="36dp"
+        android:layout_marginStart="4dp"
+        android:background="?android:attr/actionBarItemBackground"
+        android:src="@drawable/ic_menu_record"
+        android:contentDescription="@string/recording_pause"
+        android:scaleType="centerInside" />
+
+    <ImageButton
+        android:id="@+id/recording_stop_btn"
+        android:layout_width="36dp"
+        android:layout_height="36dp"
+        android:layout_marginStart="4dp"
+        android:background="?android:attr/actionBarItemBackground"
+        android:src="@drawable/ic_menu_record"
+        android:contentDescription="@string/recording_stop"
+        android:scaleType="centerInside" />
+
+</LinearLayout>

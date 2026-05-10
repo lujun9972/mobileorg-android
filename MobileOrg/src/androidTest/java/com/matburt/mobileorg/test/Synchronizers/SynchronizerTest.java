@@ -22,6 +22,7 @@ import org.junit.After;
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
+import androidx.test.core.app.ApplicationProvider;
 import androidx.test.ext.junit.runners.AndroidJUnit4;
 
 import static org.junit.Assert.assertEquals;
@@ -44,6 +45,7 @@ public class SynchronizerTest extends ProviderTestCase2<OrgProvider> {
 
 	@Before
 	public void setUp() throws Exception {
+		setContext(ApplicationProvider.getApplicationContext());
 		super.setUp();  // THIS IS CRITICAL - initializes ProviderTestCase2
 		Context context = getMockContext();
 		this.resolver = getMockContentResolver();

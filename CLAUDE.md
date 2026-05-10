@@ -18,7 +18,7 @@ APK output: `MobileOrg/build/outputs/apk/debug/`
 
 **Build toolchain**: Gradle 8.5 + AGP 8.2.2 + JDK 17 + compileSdk 34 + targetSdk 34.
 
-No automated tests exist in this project.
+**Tests**: 94 instrumentation tests in `MobileOrg/src/androidTest/` using `ProviderTestCase2` + `AndroidJUnit4`. Run via `./gradlew connectedDebugAndroidTest` (requires emulator). CI runs on API 30 emulator via GitHub Actions.
 
 ## Architecture
 
@@ -64,6 +64,8 @@ The original code targets API 17 and crashes on modern Android. The following fi
 - **Preference intent must use targetPackage/targetClass**: In XML preferences, use `android:targetPackage` + `android:targetClass` instead of implicit `android:action`. Implicit action intents can resolve incorrectly or fail on modern Android.
 - **View.startAnimation() needs attached view**: When using `MenuItem.setActionView()` with animation, call `setActionView()` first, then use `View.post()` to start the animation. Starting animation on an unattached view is silently ignored.
 - **Intent.getAction() can be null**: When navigating with `FLAG_ACTIVITY_SINGLE_TOP` or `FLAG_ACTIVITY_CLEAR_TOP`, the existing Activity receives `onNewIntent()` callback. The incoming intent may have no action (`getAction()` returns null). Always use `CONSTANT.equals(intent.getAction())` (constant on left) instead of `intent.getAction().equals(CONSTANT)` to avoid NPE.
+- **ProviderTestCase2 on API 30+**: `RenamingDelegatingContext` has a null delegate, causing NPE in `getDatabasePath()`. Fix: call `setContext(ApplicationProvider.getApplicationContext())` before `super.setUp()`. Also: (1) DB data persists between tests — must clean all tables (Edits, OrgData, Files) in setUp(); (2) `getMockContext()` may expose `MockContext` methods that throw `UnsupportedOperationException` (e.g. `getPackageName()`). When passing context to code that calls `getPackageName()`/`sendBroadcast()`, use `ContextWrapper` wrapping `ApplicationProvider.getApplicationContext()` with `getContentResolver()` overridden to return the test `MockContentResolver`.
+- **Instrumentation test `useLibrary`**: Tests using deprecated `android.test.*` classes (ProviderTestCase2, MockContentResolver) require `useLibrary 'android.test.base'`, `useLibrary 'android.test.runner'`, and `useLibrary 'android.test.mock'` in `android {}` block of build.gradle.
 
 All guards use `Build.VERSION.SDK_INT >= Build.VERSION_CODES.O` pattern.
 

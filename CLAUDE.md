@@ -60,6 +60,9 @@ The original code targets API 17 and crashes on modern Android. The following fi
 - **Menu XML showAsAction**: Project uses AppCompat (`AppCompatActivity`), so all menu XML files must use `app:showAsAction` (from `xmlns:app="http://schemas.android.com/apk/res-auto"`) instead of `android:showAsAction`. The `android:` version is silently ignored by AppCompat Toolbar/ActionBar, causing menu icons to not appear.
 - **Service early return → onDestroy NPE**: When adding early returns in `onCreate()`/`onStartCommand()` (e.g. for permission checks), `onDestroy()` will still be called by Android. Any fields that would have been initialized in the skipped code must be null-checked in `onDestroy()` before use.
 - **No network on main thread**: Synchronizer constructors are called from `SyncService.getSynchronizer()` on the main thread. Never do network I/O (SSH connect, HTTP requests) in constructors. All network operations must happen on the background sync thread.
+- **sendBroadcast must use setPackage()**: With targetSdk 34, implicit broadcasts may not be delivered to `RECEIVER_NOT_EXPORTED` receivers. Always add `intent.setPackage(context.getPackageName())` before `sendBroadcast()` to make it explicit. This applies to all `OrgUtils.announceSync*()` methods.
+- **Preference intent must use targetPackage/targetClass**: In XML preferences, use `android:targetPackage` + `android:targetClass` instead of implicit `android:action`. Implicit action intents can resolve incorrectly or fail on modern Android.
+- **View.startAnimation() needs attached view**: When using `MenuItem.setActionView()` with animation, call `setActionView()` first, then use `View.post()` to start the animation. Starting animation on an unattached view is silently ignored.
 
 All guards use `Build.VERSION.SDK_INT >= Build.VERSION_CODES.O` pattern.
 

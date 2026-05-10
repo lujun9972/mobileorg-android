@@ -116,7 +116,7 @@ public class OutlineActivity extends AppCompatActivity {
 
     @Override
     protected void onNewIntent(Intent intent) {
-        if (intent.getAction().equals(SYNC_FAILED)) {
+        if (SYNC_FAILED.equals(intent.getAction())) {
             Bundle extrasBundle = intent.getExtras();
             String errorMsg = extrasBundle.getString("ERROR_MESSAGE");
             showSyncFailPopup(errorMsg);

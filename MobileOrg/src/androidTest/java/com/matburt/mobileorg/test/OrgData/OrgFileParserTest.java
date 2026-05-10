@@ -12,6 +12,8 @@ import android.test.mock.MockContentResolver;
 import android.test.ProviderTestCase2;
 import android.util.Log;
 
+import com.matburt.mobileorg.OrgData.OrgContract.Edits;
+import com.matburt.mobileorg.OrgData.OrgContract.Files;
 import com.matburt.mobileorg.OrgData.OrgContract.OrgData;
 import com.matburt.mobileorg.OrgData.OrgFile;
 import com.matburt.mobileorg.OrgData.OrgFileParser;
@@ -56,6 +58,9 @@ public class OrgFileParserTest extends ProviderTestCase2<OrgProvider> {
 		this.resolver = getMockContentResolver();
 		this.db = new OrgDatabaseStub(getMockContext());
 		this.parser = new OrgFileParser(db, resolver);
+		resolver.delete(Edits.CONTENT_URI, null, null);
+		resolver.delete(OrgData.CONTENT_URI, null, null);
+		resolver.delete(Files.CONTENT_URI, null, null);
 	}
 
 	@After

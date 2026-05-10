@@ -7,6 +7,7 @@ import javax.net.ssl.SSLHandshakeException;
 
 import android.content.ContentResolver;
 import android.content.Context;
+import android.content.ContextWrapper;
 import android.test.mock.MockContentResolver;
 import android.test.ProviderTestCase2;
 
@@ -15,6 +16,9 @@ import com.matburt.mobileorg.OrgData.OrgEdit;
 import com.matburt.mobileorg.OrgData.OrgFile;
 import com.matburt.mobileorg.OrgData.OrgNode;
 import com.matburt.mobileorg.OrgData.OrgProvider;
+import com.matburt.mobileorg.OrgData.OrgContract.Edits;
+import com.matburt.mobileorg.OrgData.OrgContract.Files;
+import com.matburt.mobileorg.OrgData.OrgContract.OrgData;
 import com.matburt.mobileorg.Synchronizers.Synchronizer;
 import com.matburt.mobileorg.test.util.OrgTestFiles.SimpleOrgFiles;
 
@@ -47,13 +51,27 @@ public class SynchronizerTest extends ProviderTestCase2<OrgProvider> {
 	public void setUp() throws Exception {
 		setContext(ApplicationProvider.getApplicationContext());
 		super.setUp();  // THIS IS CRITICAL - initializes ProviderTestCase2
-		Context context = getMockContext();
 		this.resolver = getMockContentResolver();
-		this.db = new OrgDatabase(context);
+		this.db = new OrgDatabase(getMockContext());
 		this.parserStub = new OrgFileParserStub(db, resolver);
 		this.synchronizerStub = new SynchronizerStub();
 		this.notifyStub = new SynchronizerNotificationStub(getMockContext());
-		this.synchronizer = new Synchronizer(context, synchronizerStub, notifyStub);
+
+		// Wrap real context with test ContentResolver for Synchronizer
+		// (MockContext.getPackageName throws UnsupportedOperationException)
+		final ContentResolver testResolver = this.resolver;
+		Context syncContext = new ContextWrapper(ApplicationProvider.getApplicationContext()) {
+			@Override
+			public ContentResolver getContentResolver() {
+				return testResolver;
+			}
+		};
+		this.synchronizer = new Synchronizer(syncContext, synchronizerStub, notifyStub);
+
+		// Clean up data from previous tests
+		resolver.delete(Edits.CONTENT_URI, null, null);
+		resolver.delete(OrgData.CONTENT_URI, null, null);
+		resolver.delete(Files.CONTENT_URI, null, null);
 	}
 
 	@After

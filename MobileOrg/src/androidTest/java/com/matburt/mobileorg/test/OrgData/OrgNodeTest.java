@@ -12,6 +12,7 @@ import com.matburt.mobileorg.OrgData.OrgNode;
 import com.matburt.mobileorg.OrgData.OrgProvider;
 import com.matburt.mobileorg.OrgData.OrgProviderUtils;
 import com.matburt.mobileorg.OrgData.OrgContract.Edits;
+import com.matburt.mobileorg.OrgData.OrgContract.Files;
 import com.matburt.mobileorg.OrgData.OrgContract.OrgData;
 import com.matburt.mobileorg.test.util.OrgTestUtils;
 import com.matburt.mobileorg.util.OrgFileNotFoundException;
@@ -44,6 +45,9 @@ public class OrgNodeTest extends ProviderTestCase2<OrgProvider> {
 		setContext(ApplicationProvider.getApplicationContext());
 		super.setUp();  // THIS IS CRITICAL - initializes ProviderTestCase2
 		this.resolver = getMockContentResolver();
+		resolver.delete(Edits.CONTENT_URI, null, null);
+		resolver.delete(OrgData.CONTENT_URI, null, null);
+		resolver.delete(Files.CONTENT_URI, null, null);
 	}
 
 	@After

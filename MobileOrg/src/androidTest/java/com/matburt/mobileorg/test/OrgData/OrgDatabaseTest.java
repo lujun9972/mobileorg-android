@@ -7,6 +7,8 @@ import android.test.ProviderTestCase2;
 import com.matburt.mobileorg.OrgData.OrgDatabase;
 import com.matburt.mobileorg.OrgData.OrgNode;
 import com.matburt.mobileorg.OrgData.OrgProvider;
+import com.matburt.mobileorg.OrgData.OrgContract.Edits;
+import com.matburt.mobileorg.OrgData.OrgContract.Files;
 import com.matburt.mobileorg.OrgData.OrgContract.OrgData;
 import com.matburt.mobileorg.test.util.OrgTestUtils;
 import com.matburt.mobileorg.util.OrgNodeNotFoundException;
@@ -40,6 +42,9 @@ public class OrgDatabaseTest extends ProviderTestCase2<OrgProvider> {
 		super.setUp();  // THIS IS CRITICAL - initializes ProviderTestCase2
 		this.resolver = getMockContentResolver();
 		this.db = new OrgDatabase(getMockContext());
+		resolver.delete(Edits.CONTENT_URI, null, null);
+		resolver.delete(OrgData.CONTENT_URI, null, null);
+		resolver.delete(Files.CONTENT_URI, null, null);
 	}
 
 	@After

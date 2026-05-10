@@ -22,6 +22,10 @@
         android:title="@string/menu_capture"
         android:visible="true"/>
     <item
+        android:id="@+id/menu_record"
+        android:icon="@drawable/ic_menu_record"
+        android:title="@string/menu_record"/>
+    <item
         android:id="@+id/menu_search"
         android:icon="@drawable/ic_menu_search"
         android:title="@string/menu_search"/>

@@ -87,6 +87,12 @@
     <string name="contextmenu_view">View node</string>
     <string name="menu_recover">Recover</string>
     <string name="menu_clockin">Clock in</string>
+    <string name="menu_record">Record</string>
+    <string name="recording_notification_channel">MobileOrg Recording</string>
+    <string name="recording_notification_title">Recording: %s</string>
+    <string name="recording_stop">Stop</string>
+    <string name="recording_pause">Pause</string>
+    <string name="recording_resume">Resume</string>
     <string name="menu_archive">Archive</string>
     <string name="menu_archive_tosibling">Archive to sibling</string>
 

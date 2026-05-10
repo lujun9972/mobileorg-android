@@ -30,6 +30,7 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import androidx.test.ext.junit.runners.AndroidJUnit4;
+import androidx.test.platform.app.InstrumentationRegistry;
 import androidx.test.rule.provider.ProviderTestRule;
 
 import static org.junit.Assert.assertEquals;
@@ -50,7 +51,7 @@ public class OrgFileParserTest {
 
 	@Before
 	public void setUp() throws Exception {
-		this.db = new OrgDatabaseStub(providerRule.getContext());
+		this.db = new OrgDatabaseStub(InstrumentationRegistry.getInstrumentation().getTargetContext());
 		this.parser = new OrgFileParser(db, providerRule.getResolver());
 	}
 

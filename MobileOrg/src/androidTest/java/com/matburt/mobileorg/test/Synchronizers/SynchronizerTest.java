@@ -22,6 +22,7 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import androidx.test.ext.junit.runners.AndroidJUnit4;
+import androidx.test.platform.app.InstrumentationRegistry;
 import androidx.test.rule.provider.ProviderTestRule;
 
 import static org.junit.Assert.assertEquals;
@@ -44,12 +45,12 @@ public class SynchronizerTest {
 
 	@Before
 	public void setUp() throws Exception {
-		Context context = providerRule.getContext();
+		Context context = InstrumentationRegistry.getInstrumentation().getTargetContext();
 		this.resolver = providerRule.getResolver();
 		this.db = new OrgDatabase(context);
 		this.parserStub = new OrgFileParserStub(db, resolver);
 		this.synchronizerStub = new SynchronizerStub();
-		this.notifyStub = new SynchronizerNotificationStub(providerRule.getContext());
+		this.notifyStub = new SynchronizerNotificationStub(InstrumentationRegistry.getInstrumentation().getTargetContext());
 		this.synchronizer = new Synchronizer(context, synchronizerStub, notifyStub);
 	}
 

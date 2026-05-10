@@ -26,6 +26,7 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import androidx.test.ext.junit.runners.AndroidJUnit4;
+import androidx.test.platform.app.InstrumentationRegistry;
 import androidx.test.rule.provider.ProviderTestRule;
 
 import static org.junit.Assert.assertEquals;
@@ -118,7 +119,7 @@ public class OrgFileTest {
 		BufferedReader breader = new BufferedReader(new InputStreamReader(is));
 		OrgFile orgFile = new OrgFile(filename, "file alias", "");
 
-		OrgDatabase db = new OrgDatabaseStub(providerRule.getContext());
+		OrgDatabase db = new OrgDatabaseStub(InstrumentationRegistry.getInstrumentation().getTargetContext());
 		OrgFileParser parser = new OrgFileParser(db, providerRule.getResolver());
 		parser.parse(orgFile, breader);
 		db.close();

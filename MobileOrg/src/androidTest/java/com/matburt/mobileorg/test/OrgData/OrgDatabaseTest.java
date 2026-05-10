@@ -15,6 +15,7 @@ import org.junit.Rule;
 import org.junit.Test;
 import org.junit.runner.RunWith;
 import androidx.test.ext.junit.runners.AndroidJUnit4;
+import androidx.test.platform.app.InstrumentationRegistry;
 import androidx.test.rule.provider.ProviderTestRule;
 
 import static org.junit.Assert.assertEquals;
@@ -34,7 +35,7 @@ public class OrgDatabaseTest {
 
 	@Before
 	public void setUp() throws Exception {
-		this.db = new OrgDatabase(providerRule.getContext());
+		this.db = new OrgDatabase(InstrumentationRegistry.getInstrumentation().getTargetContext());
 	}
 
 	@After

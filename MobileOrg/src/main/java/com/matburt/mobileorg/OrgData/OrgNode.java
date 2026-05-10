@@ -612,7 +612,23 @@ public class OrgNode {
 		}
 		setPayload(rawPayload.toString());
 	}
-	
+
+	/**
+	 * Append a file link (e.g. [[file:xxx.aac]]) to the node body.
+	 */
+	public void appendFileLink(String filePath, ContentResolver resolver) {
+		String link = "[[file:" + filePath + "]]";
+		StringBuilder rawPayload = new StringBuilder(getPayload());
+		rawPayload.append("\n").append(link);
+
+		boolean generateEdits = !getFilename(resolver).equals(FileUtils.CAPTURE_FILE);
+		if (generateEdits) {
+			OrgEdit edit = new OrgEdit(this, OrgEdit.TYPE.BODY, rawPayload.toString(), resolver);
+			edit.write(resolver);
+		}
+		setPayload(rawPayload.toString());
+	}
+
 	public void addAutomaticTimestamp() {
 		Context context = MobileOrgApplication.getContext();
 		boolean addTimestamp = PreferenceManager.getDefaultSharedPreferences(

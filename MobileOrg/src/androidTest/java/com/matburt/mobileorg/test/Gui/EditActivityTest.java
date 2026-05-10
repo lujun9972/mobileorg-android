@@ -1,9 +1,7 @@
 package com.matburt.mobileorg.test.Gui;
 
-import android.app.Instrumentation;
 import android.content.ContentResolver;
 import android.content.Intent;
-import android.test.ActivityInstrumentationTestCase2;
 
 import com.matburt.mobileorg.Gui.Capture.EditActivity;
 import com.matburt.mobileorg.Gui.Capture.EditActivityController;
@@ -11,31 +9,40 @@ import com.matburt.mobileorg.OrgData.OrgNode;
 import com.matburt.mobileorg.OrgData.OrgContract.OrgData;
 import com.matburt.mobileorg.test.util.OrgTestUtils;
 
-public class EditActivityTest extends ActivityInstrumentationTestCase2<EditActivity> {
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Rule;
+import org.junit.Test;
+import org.junit.runner.RunWith;
+import androidx.test.ext.junit.runners.AndroidJUnit4;
+import androidx.test.rule.ActivityTestRule;
+import androidx.test.platform.app.InstrumentationRegistry;
 
-	private EditActivity activity;
+import static org.junit.Assert.assertFalse;
+import static org.junit.Assert.assertTrue;
+
+@RunWith(AndroidJUnit4.class)
+public class EditActivityTest {
+
+	@Rule
+	public ActivityTestRule<EditActivity> activityRule = new ActivityTestRule<>(EditActivity.class, true, false);
+
 	private ContentResolver resolver;
-	private Instrumentation instrumentation;
 	private long nodeId;
 
-	public EditActivityTest() {
-		super(EditActivity.class);
-	}
-
-	@Override
+	@Before
 	public void setUp() throws Exception {
-		super.setUp();
+		this.resolver = InstrumentationRegistry.getInstrumentation().getTargetContext().getContentResolver();
+	}
 
-		this.instrumentation = getInstrumentation();
-		this.resolver = instrumentation.getContext().getContentResolver();
-	}
-	
-	@Override
+	@After
 	public void tearDown() throws Exception {
+		if(activityRule.getActivity() != null) {
+			activityRule.getActivity().finish();
+		}
 		resolver.delete(OrgData.buildIdUri(nodeId), null, null);
-		super.tearDown();
 	}
-	
+
 	private void prepareActivityWithNode(OrgNode node) {
 		node.write(resolver);
 		this.nodeId = node.id;
@@ -43,26 +50,25 @@ public class EditActivityTest extends ActivityInstrumentationTestCase2<EditActiv
 		Intent intent = new Intent();
 		intent.putExtra(EditActivityController.ACTIONMODE, EditActivityController.ACTIONMODE_EDIT);
 		intent.putExtra(EditActivityController.NODE_ID, node.id);
-		setActivityIntent(intent);
-		
-		setActivityInitialTouchMode(false);
-		this.activity = getActivity();
+		activityRule.launchActivity(intent);
 	}
-	
+
+	@Test
 	public void testSimple() {
 		OrgNode node = new OrgNode();
 		prepareActivityWithNode(node);
-		
-		assertFalse(activity.hasEdits());
-		OrgNode newNode = activity.getEditedNode();
+
+		assertFalse(activityRule.getActivity().hasEdits());
+		OrgNode newNode = activityRule.getActivity().getEditedNode();
 		assertTrue(node.equals(newNode));
 	}
-	
+
+	@Test
 	public void testGetUneditedBasic() {
 		OrgNode node = OrgTestUtils.getComplexOrgNode();
 		prepareActivityWithNode(node);
-		
-		OrgNode newNode = activity.getEditedNode();
+
+		OrgNode newNode = activityRule.getActivity().getEditedNode();
 		assertTrue(node.equals(newNode));
 	}
 }

@@ -55,6 +55,10 @@ public class RecordingService extends Service {
         return sInstance != null && sInstance.mediaRecorder != null;
     }
 
+    public boolean isPaused() {
+        return paused;
+    }
+
     private MediaRecorder mediaRecorder;
     private OrgNode node;
     private long startTime;
@@ -228,7 +232,7 @@ public class RecordingService extends Service {
         PendingIntent stopPending = PendingIntent.getService(this, 1, stopIntent,
                 Compat.FLAG_IMMUTABLE);
         NotificationCompat.Action stopAction = new NotificationCompat.Action(
-                R.drawable.ic_menu_record, getString(R.string.recording_stop), stopPending);
+                R.drawable.ic_media_stop, getString(R.string.recording_stop), stopPending);
 
         String pauseLabel = paused
                 ? getString(R.string.recording_resume)
@@ -239,7 +243,7 @@ public class RecordingService extends Service {
         PendingIntent pausePending = PendingIntent.getService(this, 2, pauseIntent,
                 Compat.FLAG_IMMUTABLE);
         NotificationCompat.Action pauseAction = new NotificationCompat.Action(
-                R.drawable.ic_menu_record, pauseLabel, pausePending);
+                R.drawable.ic_media_pause, pauseLabel, pausePending);
 
         String title = String.format(Locale.getDefault(),
                 getString(R.string.recording_notification_title),

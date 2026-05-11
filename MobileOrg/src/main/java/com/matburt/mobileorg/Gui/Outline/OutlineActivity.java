@@ -301,7 +301,8 @@ public class OutlineActivity extends AppCompatActivity {
 				RecordingService instance = RecordingService.getInstance();
 				if (instance != null) {
 					Intent intent = new Intent(this, RecordingService.class);
-					intent.putExtra(RecordingService.ACTION_NAME, RecordingService.ACTION_PAUSE);
+					intent.putExtra(RecordingService.ACTION_NAME,
+							instance.isPaused() ? RecordingService.ACTION_RESUME : RecordingService.ACTION_PAUSE);
 					startService(intent);
 				}
 			});
@@ -318,6 +319,14 @@ public class OutlineActivity extends AppCompatActivity {
 		long minutes = elapsedSeconds / 60;
 		long seconds = elapsedSeconds % 60;
 		elapsedView.setText(String.format(Locale.getDefault(), "%d:%02d", minutes, seconds));
+
+		ImageButton pauseBtn = recordingBar.findViewById(R.id.recording_pause_btn);
+		RecordingService instance = RecordingService.getInstance();
+		if (instance != null && instance.isPaused()) {
+			pauseBtn.setImageResource(R.drawable.ic_media_play);
+		} else {
+			pauseBtn.setImageResource(R.drawable.ic_media_pause);
+		}
 	}
 
 	private void removeRecordingBar() {
@@ -328,7 +337,7 @@ public class OutlineActivity extends AppCompatActivity {
 		}
 	}
 
-	private void tryStartRecording(long nodeId) {
+	void tryStartRecording(long nodeId) {
 		if (RecordingService.isRecording()) {
 			return;
 		}

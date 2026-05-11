@@ -42,7 +42,7 @@
         android:layout_height="36dp"
         android:layout_marginStart="4dp"
         android:background="?android:attr/actionBarItemBackground"
-        android:src="@drawable/ic_menu_record"
+        android:src="@drawable/ic_media_pause"
         android:contentDescription="@string/recording_pause"
         android:scaleType="centerInside" />
 
@@ -52,7 +52,7 @@
         android:layout_height="36dp"
         android:layout_marginStart="4dp"
         android:background="?android:attr/actionBarItemBackground"
-        android:src="@drawable/ic_menu_record"
+        android:src="@drawable/ic_media_stop"
         android:contentDescription="@string/recording_stop"
         android:scaleType="centerInside" />
 

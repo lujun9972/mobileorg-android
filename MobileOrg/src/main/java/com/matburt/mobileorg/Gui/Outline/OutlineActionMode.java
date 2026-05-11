@@ -1,6 +1,5 @@
 package com.matburt.mobileorg.Gui.Outline;
 
-import android.Manifest;
 import android.app.AlertDialog;
 import android.content.ContentResolver;
 import android.content.Context;
@@ -22,7 +21,6 @@ import com.matburt.mobileorg.OrgData.OrgNode;
 import com.matburt.mobileorg.Services.CalendarSyncService;
 import com.matburt.mobileorg.Services.RecordingService;
 import com.matburt.mobileorg.Services.TimeclockService;
-import android.os.Build;
 import com.matburt.mobileorg.util.OrgFileNotFoundException;
 import com.matburt.mobileorg.util.OrgUtils;
 import com.matburt.mobileorg.util.PreferenceUtils;
@@ -233,18 +231,8 @@ public class OutlineActionMode implements ActionMode.Callback {
 	}
 
 	private void runRecordingService() {
-		if (android.content.pm.PackageManager.PERMISSION_GRANTED
-				!= context.checkCallingOrSelfPermission(Manifest.permission.RECORD_AUDIO)) {
-			Log.w("OutlineActionMode", "RECORD_AUDIO permission not granted");
-			return;
-		}
-		Intent intent = new Intent(context, RecordingService.class);
-		intent.putExtra(RecordingService.ACTION_NAME, RecordingService.ACTION_START);
-		intent.putExtra(RecordingService.NODE_ID, node.id);
-		if (Build.VERSION.SDK_INT >= 26) {
-			context.startForegroundService(intent);
-		} else {
-			context.startService(intent);
+		if (context instanceof OutlineActivity) {
+			((OutlineActivity) context).tryStartRecording(node.id);
 		}
 	}
 

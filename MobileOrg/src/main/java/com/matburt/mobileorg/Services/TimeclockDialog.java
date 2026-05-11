@@ -68,9 +68,10 @@ public class TimeclockDialog extends FragmentActivity {
 	}
 
 	private void saveClock(int hour, int minute) {
-		long startTime = TimeclockService.getInstance().getStartTime();
-		long endTime = TimeclockService.getInstance().getEndTime();
-		String elapsedTime = TimeclockService.getInstance().getElapsedTimeString();
+		long endTime = System.currentTimeMillis();
+		long durationMillis = (hour * 3600L + minute * 60L) * 1000L;
+		long startTime = endTime - durationMillis;
+		String elapsedTime = String.format("%d:%02d", hour, minute);
 		node.addLogbook(startTime, endTime, elapsedTime, getContentResolver());
 	}
 	

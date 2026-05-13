@@ -6,6 +6,8 @@
     android:gravity="center"
     android:orientation="vertical" >
 
+    <include layout="@layout/tag_filter_bar" />
+
     <com.matburt.mobileorg.Gui.Outline.OutlineListView
         android:id="@+id/outline_list"
         android:layout_width="fill_parent"
@@ -29,6 +31,7 @@
             android:src="@drawable/logo" />
 
         <LinearLayout
+            android:id="@+id/outline_list_empty_buttons"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_centerInParent="true"
@@ -150,6 +153,16 @@
                 </LinearLayout>
             </LinearLayout>
         </LinearLayout>
+
+        <TextView
+            android:id="@+id/outline_list_filter_empty"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_centerInParent="true"
+            android:text="No matching nodes"
+            android:textSize="18sp"
+            android:visibility="gone" />
+
     </RelativeLayout>
 
 </LinearLayout>

@@ -6,7 +6,7 @@
 
 **Tech Stack**: `HorizontalScrollView` + `ChipGroup` (Material), ContentProvider query for tags.
 
-**Prerequisite**: Add `com.google.android.material:material:1.11.0` dependency to `build.gradle`. Migrate theme parent from `Theme.AppCompat` to `Theme.MaterialComponents` in `themes.xml` (required for Chip/ChipGroup rendering). This is a low-risk change — MaterialComponents is a superset of AppCompat.
+**Prerequisite**: Add `com.google.android.material:material:1.11.0` dependency to `build.gradle`. Migrate theme parent from `Theme.AppCompat` to `Theme.MaterialComponents` in `themes.xml` (required for Chip/ChipGroup rendering). MaterialComponents is a superset of AppCompat, but verify all existing screens after migration — default widget styles may differ slightly.
 
 ---
 
@@ -73,7 +73,7 @@ public class OutlineTagFilter {
     /** Add/remove a single tag from selection. Caller must call rebuild() afterward. */
     public void setTagSelected(String tag, boolean selected);
 
-    /** Deselect all tags. isActive() becomes false. Does NOT call rebuild(). */
+    /** Deselect all tags, clear matchingNodeIds and containerIds caches. isActive() becomes false. */
     public void clearAll();
 
     /** True if any tag is selected. */
@@ -112,14 +112,14 @@ public class OutlineTagFilter {
 `OutlineActivity.onCreate()`:
 1. `setContentView(R.layout.outline)` — filter bar included via `<include>`, initially `View.GONE`
 2. Read `node_id` from Intent
-3. If Intent contains filter extras (selectedTags, andMode), restore `OutlineTagFilter` via `setSelectedTags()` + `setAndMode()`
-4. If `onSaveInstanceState` has saved filter state, restore it (taking precedence over Intent extras — the saved state is more recent)
+3. If `onSaveInstanceState` has saved filter state, restore it (most recent — takes precedence over Intent extras)
+4. Else if Intent contains filter extras (selectedTags, andMode), restore `OutlineTagFilter` via `setSelectedTags()` + `setAndMode()`
 5. If filter `isActive()`: call `filter.rebuild(resolver)` to populate `matchingNodeIds` / `containerIds`
 6. `setupList()` — create adapter, call `adapter.setFilter(filter)` **before** `adapter.init()`
 
 `OutlineActivity.onResume()`:
 1. Query `Tags` table via `OrgProviderUtils.getTags()`
-2. If tags exist: populate `ChipGroup`, apply existing `OutlineTagFilter` selections to chips, set bar visible
+2. If tags exist: set guard flag, populate `ChipGroup` (create "All" chip + tag chips), apply existing `OutlineTagFilter` selections to tag chips, then set "All" chip state (`checked` if `!filter.isActive()`, `unchecked` if `filter.isActive()`), clear guard flag, set bar visible
 3. If tags empty: hide bar
 
 ### 2. Chip interaction (Activity → Adapter)
@@ -128,9 +128,10 @@ public class OutlineTagFilter {
 User taps chip
   → ChipGroup.OnCheckedChangeListener
   → (guard against re-entrancy: skip if programmatic change in progress)
-    → if "All" chip checked:
-        → filter.clearAll()
-        → uncheck all tag chips programmatically
+    → if "All" chip changed:
+        → if checked: filter.clearAll(); uncheck all tag chips programmatically
+        → if unchecked: re-check "All" programmatically (never allow "All" to be unchecked —
+          exactly one option is always selected; tap "All" when already selected is a no-op)
     → else if tag chip checked:
         → filter.setTagSelected(tag, true)
         → uncheck "All" chip programmatically
@@ -190,9 +191,17 @@ Clearing the filter (clicking "All") triggers `refresh()` — previously expande
 
 ### 7. Empty filter result
 
-`outline_list_empty` is a `RelativeLayout` containing a logo and four action buttons (Setup Wizard, Settings, Synchronize, Website). For the filter-empty state, add a simple `TextView` inside this RelativeLayout:
+`outline_list_empty` is a `RelativeLayout` containing a logo and an inner `LinearLayout` with four action buttons (Setup Wizard, Settings, Synchronize, Website). The button container currently has no `android:id` — add one so it can be toggled:
 
 ```xml
+<!-- In outline.xml, add id to the button container LinearLayout -->
+<LinearLayout
+    android:id="@+id/outline_list_empty_buttons"
+    ... >
+    <!-- existing button groups -->
+</LinearLayout>
+
+<!-- Add the filter-empty text below the button container -->
 <TextView
     android:id="@+id/outline_list_filter_empty"
     android:layout_width="wrap_content"
@@ -203,7 +212,7 @@ Clearing the filter (clicking "All") triggers `refresh()` — previously expande
     android:visibility="gone" />
 ```
 
-When `filter.isActive()` and `adapter.getCount() == 0`: hide the button container, show the filter-empty TextView. When filter is cleared or inactive: show the button container, hide the filter-empty TextView. When the adapter has items: the empty view is not shown at all (ListView's standard empty-view behavior).
+When `filter.isActive()` and `adapter.getCount() == 0`: `outline_list_empty_buttons.setVisibility(View.GONE)`, `outline_list_filter_empty.setVisibility(View.VISIBLE)`. When filter is cleared or inactive: reverse. When the adapter has items: the empty view is not shown at all (ListView's standard empty-view behavior).
 
 ### 8. Sync Integration
 
@@ -249,7 +258,7 @@ When user presses back: previous Activity is still in memory with its filter sta
 ### Modified Files
 - `OutlineActivity.java` — Filter bar init in `onCreate`, tag loading in `onResume`, chip listeners, sync-reload, state save/restore, Intent extras for cross-level state
 - `OutlineAdapter.java` — `setFilter(OutlineTagFilter)`, filter in `init()` and `expand()`, alpha handling for container nodes
-- `outline.xml` — `<include layout="@layout/tag_filter_bar" />` above the OutlineListView; add filter-empty `TextView` inside `outline_list_empty`
+- `outline.xml` — `<include layout="@layout/tag_filter_bar" />` above the OutlineListView; add `android:id` to the button container; add filter-empty `TextView` inside `outline_list_empty`
 
 ## Error Handling
 
@@ -268,7 +277,8 @@ When user presses back: previous Activity is still in memory with its filter sta
 
 ```xml
 <!-- tag_filter_bar.xml -->
-<LinearLayout orientation="horizontal">
+<LinearLayout orientation="horizontal"
+             android:visibility="gone">
     <HorizontalScrollView android:layout_weight="1"
                           android:scrollbars="none">
         <ChipGroup android:id="@+id/tag_filter_chips"

@@ -257,6 +257,51 @@ if (node.tags_inherited != null) {
 
 Single query for all nodes: `SELECT _id, parent_id, tags, tags_inherited FROM orgdata`. Java-side matching (same logic as above) builds `matchingNodeIds`. Parent map (`_id → parent_id`) is built from the same cursor. Ancestor chains are walked in Java to build `containerIds`.
 
+## Implementation Details
+
+### Filter bar layout structure
+
+```xml
+<!-- tag_filter_bar.xml -->
+<LinearLayout orientation="horizontal">
+    <HorizontalScrollView android:layout_weight="1"
+                          android:scrollbars="none">
+        <ChipGroup android:id="@+id/tag_filter_chips"
+                   app:singleSelection="false" />
+    </HorizontalScrollView>
+    <ToggleButton android:id="@+id/tag_filter_mode"
+                  android:textOn="AND"
+                  android:textOff="OR"
+                  android:layout_width="wrap_content"
+                  android:layout_height="wrap_content" />
+</LinearLayout>
+```
+
+- AND/OR toggle is fixed on the right, does not scroll with chips.
+- Chip style: `@style/Widget.MaterialComponents.Chip.Filter` (checkmark animation, checked/unchecked states).
+
+### Layout ordering in outline.xml
+
+```
+ActionBar (provided by AppCompat)
+── recording bar (dynamic, inserted at position 0 via addView)  ← temporary
+── tag_filter_bar (static include)                               ← persistent
+── OutlineListView (fills remaining space)
+── empty view RelativeLayout (hidden)
+```
+
+Recording bar is always above filter bar. Both coexist when recording + filtering simultaneously.
+
+### Chip behavior
+
+- "All" chip: unchecked by default. When checked, unchecks all tag chips.
+- Tag chips: checking a tag chip unchecks "All". Unchecking the last tag chip auto-checks "All".
+- No tag count limit. Tags table typically has < 50 entries.
+
+### Interaction with search
+
+Tag filtering and search are independent. Search is handled by a separate `SearchActivity` (Android's built-in search). The filter bar state is preserved when the user returns from search.
+
 ## Performance Considerations
 
 - Descendant scan: one query, one pass through all rows. Typical org files <5000 nodes → <10ms on main thread.

@@ -61,12 +61,18 @@ public class OutlineTagFilter {
     private Set<Long> matchingNodeIds;  // nodes whose own tags match
     private Set<Long> containerIds;     // nodes with matching descendants (ancestors)
 
-    public OutlineTagFilter(ContentResolver resolver);
+    /** No-arg constructor. Filter is inactive until tags are selected and rebuild() is called. */
+    public OutlineTagFilter();
 
-    /** Add/remove a tag from selection. Caller must call rebuild() afterward. */
-    public void setTagSelected(String tag, boolean selected);
+    /** Replace entire selection with the given tags (used to restore from Intent extras). Call rebuild() afterward. */
+    public void setSelectedTags(String[] tags);
     public void setAndMode(boolean andMode);
-    public void clearAll();  // deselect all tags (selects "All")
+
+    /** Add/remove a single tag from selection. Caller must call rebuild() afterward. */
+    public void setTagSelected(String tag, boolean selected);
+
+    /** Deselect all tags. isActive() becomes false. Does NOT call rebuild(). */
+    public void clearAll();
 
     /** True if any tag is selected. */
     public boolean isActive();
@@ -80,7 +86,7 @@ public class OutlineTagFilter {
     /** Combined: show this node in filtered view? */
     public boolean shouldShow(long nodeId);
 
-    /** Rebuild internal sets. Called on filter change or sync. */
+    /** Rebuild internal matchingNodeIds and containerIds sets. Called on filter change or sync. */
     public void rebuild(ContentResolver resolver);
 
     /** Get selected tags as array (for Intent extras). */
@@ -91,8 +97,10 @@ public class OutlineTagFilter {
 }
 ```
 
-- `matches()` and `isContainer()` are pure `Set<Long>` lookups against cached results from `rebuild()`. No tag parsing at query time.
-- `rebuild()` executes `SELECT _id, parent_id, tags, tags_inherited FROM orgdata`, does tag matching in Java (colon-split + HashSet), builds parent map, walks ancestor chains. **Note**: parent chains may cross file boundaries — a matching node's ancestors in other files could appear as containers. Acceptable for simplicity; add `file_id` filtering if this becomes an issue.
+- No-arg constructor: `selectedTags` empty, `isActive()` = false. `rebuild()` is a no-op when `!isActive()`.
+- `setSelectedTags(String[])` + `setAndMode()` support restoring filter from Intent extras for cross-level navigation.
+- `matches()` and `isContainer()` are `Set<Long>` lookups against cached results from `rebuild()`. No tag parsing at query time.
+- `rebuild()` executes `SELECT _id, parent_id, tags, tags_inherited FROM orgdata`, applies `matchesTags()` (the pure function listed below) to each row to build `matchingNodeIds`, builds a parent map, then walks ancestor chains to compute `containerIds`.
 - All operations are on the main thread. Typical org files (<5000 nodes) complete in a few ms.
 
 ## Data Flow
@@ -102,8 +110,10 @@ public class OutlineTagFilter {
 `OutlineActivity.onCreate()`:
 1. `setContentView(R.layout.outline)` — filter bar included via `<include>`, initially `View.GONE`
 2. Read `node_id` from Intent
-3. If Intent contains filter extras (selectedTags, andMode), restore `OutlineTagFilter`
-4. `setupList()` — create adapter, call `adapter.setFilter(filter)` **before** `adapter.init()`
+3. If Intent contains filter extras (selectedTags, andMode), restore `OutlineTagFilter` via `setSelectedTags()` + `setAndMode()`
+4. If `onSaveInstanceState` has saved filter state, restore it (taking precedence over Intent extras — the saved state is more recent)
+5. If filter `isActive()`: call `filter.rebuild(resolver)` to populate `matchingNodeIds` / `containerIds`
+6. `setupList()` — create adapter, call `adapter.setFilter(filter)` **before** `adapter.init()`
 
 `OutlineActivity.onResume()`:
 1. Query `Tags` table via `OrgProviderUtils.getTags()`
@@ -115,17 +125,24 @@ public class OutlineTagFilter {
 ```
 User taps chip
   → ChipGroup.OnCheckedChangeListener
-    → if "All" chip: uncheck all tag chips, deselect all tags in OutlineTagFilter
-    → else if tag chip:
-        → add to OutlineTagFilter.selectedTags
-        → uncheck "All" chip
-        → if no tag chips remain checked: auto-check "All" chip, clear filter
+  → (guard against re-entrancy: skip if programmatic change in progress)
+    → if "All" chip checked:
+        → filter.clearAll()
+        → uncheck all tag chips programmatically
+    → else if tag chip checked:
+        → filter.setTagSelected(tag, true)
+        → uncheck "All" chip programmatically
+    → else if tag chip unchecked:
+        → filter.setTagSelected(tag, false)
+        → if no tag chips remain checked: check "All" chip programmatically
     → filter.rebuild(resolver)  // re-scan descendant matches
     → adapter.setFilter(filter) // update adapter reference
     → adapter.refresh()         // re-init with filter applied
 ```
 
-Toggle switch: same flow — update `filter.andMode`, `filter.rebuild()`, `adapter.refresh()`.
+The guard flag prevents infinite recursion: `OnCheckedChangeListener` fires for programmatic `setChecked()` calls too. Use a boolean `programmaticChange` — set it true before modifying chips, set it false after, and skip the listener body when true.
+
+Toggle switch: same flow — call `filter.setAndMode(checked)`, `filter.rebuild()`, `adapter.refresh()`.
 
 ### 3. Adapter filtering (init / expand)
 
@@ -146,9 +163,10 @@ for (OrgNode node : children) {
 
 ### 4. Visual distinction
 
-In `OutlineItem` (or the adapter's `getView()`):
+In `OutlineAdapter.getView()` (the adapter holds the filter reference):
 
 ```java
+// In getView(), after binding the item:
 if (filter != null && filter.isActive() && filter.isContainer(node.id) && !filter.matches(node.id)) {
     itemView.setAlpha(0.5f);  // container node — dimmed
 } else {
@@ -156,7 +174,7 @@ if (filter != null && filter.isActive() && filter.isContainer(node.id) && !filte
 }
 ```
 
-Entire row at 50% alpha gives a clear "this is a container, not a direct match" signal.
+Entire row at 50% alpha gives a clear "this is a container, not a direct match" signal. This logic lives in the adapter because the adapter owns the filter reference; `OutlineItem` does not.
 
 ### 5. Expand in filtered view
 
@@ -170,7 +188,20 @@ Clearing the filter (clicking "All") triggers `refresh()` — previously expande
 
 ### 7. Empty filter result
 
-When `filter.isActive()` and `adapter.getCount() == 0`: set the existing `outline_list_empty` TextView text to "No matching nodes". When filter is cleared or inactive, restore original empty view text. This avoids creating extra views — just swap the text on the existing empty view.
+`outline_list_empty` is a `RelativeLayout` containing a logo and four action buttons (Setup Wizard, Settings, Synchronize, Website). For the filter-empty state, add a simple `TextView` inside this RelativeLayout:
+
+```xml
+<TextView
+    android:id="@+id/outline_list_filter_empty"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:layout_centerInParent="true"
+    android:text="No matching nodes"
+    android:textSize="18sp"
+    android:visibility="gone" />
+```
+
+When `filter.isActive()` and `adapter.getCount() == 0`: hide the button container, show the filter-empty TextView. When filter is cleared or inactive: show the button container, hide the filter-empty TextView. When the adapter has items: the empty view is not shown at all (ListView's standard empty-view behavior).
 
 ### 8. Sync Integration
 
@@ -216,7 +247,7 @@ When user presses back: previous Activity is still in memory with its filter sta
 ### Modified Files
 - `OutlineActivity.java` — Filter bar init in `onCreate`, tag loading in `onResume`, chip listeners, sync-reload, state save/restore, Intent extras for cross-level state
 - `OutlineAdapter.java` — `setFilter(OutlineTagFilter)`, filter in `init()` and `expand()`, alpha handling for container nodes
-- `outline.xml` — `<include layout="@layout/tag_filter_bar" />` above the OutlineListView
+- `outline.xml` — `<include layout="@layout/tag_filter_bar" />` above the OutlineListView; add filter-empty `TextView` inside `outline_list_empty`
 
 ## Error Handling
 
@@ -225,37 +256,9 @@ When user presses back: previous Activity is still in memory with its filter sta
 | Tags table empty | Hide filter bar |
 | Query fails | Log error, hide filter bar, show all nodes |
 | Tags removed by sync while selected | Silently drop removed tags; if none remain, auto-select "All" |
-| No matching nodes with active filter | Show "No matching nodes" text |
+| No matching nodes with active filter | Hide button container, show "No matching nodes" TextView in empty view |
 | Saved expanded node ID not in filtered dataset | Silently skip during re-expand (normal) |
 | Tag string is null | Treat as empty set for matching |
-
-## Tag Matching Specification
-
-Tags in the database are colon-delimited strings (e.g. `"work:urgent:home"`). Leading/trailing colons are stripped by the parser.
-
-### Java-side matching (used in OutlineTagFilter.rebuild() only)
-
-```java
-// Merge node's own tags and inherited tags into one set
-Set<String> nodeTags = new HashSet<>();
-if (node.tags != null) {
-    for (String t : node.tags.split(":")) {
-        if (!t.isEmpty()) nodeTags.add(t);
-    }
-}
-if (node.tags_inherited != null) {
-    for (String t : node.tags_inherited.split(":")) {
-        if (!t.isEmpty()) nodeTags.add(t);
-    }
-}
-
-// OR mode: nodeTags ∩ selectedTags is non-empty
-// AND mode: nodeTags contains all selectedTags
-```
-
-### Descendant scan SQL
-
-Single query for all nodes: `SELECT _id, parent_id, tags, tags_inherited FROM orgdata`. Java-side matching (same logic as above) builds `matchingNodeIds`. Parent map (`_id → parent_id`) is built from the same cursor. Ancestor chains are walked in Java to build `containerIds`.
 
 ## Implementation Details
 
@@ -294,7 +297,7 @@ Recording bar is always above filter bar. Both coexist when recording + filterin
 
 ### Chip behavior
 
-- "All" chip: unchecked by default. When checked, unchecks all tag chips.
+- "All" chip: checked by default (no filter active). When checked, unchecks all tag chips.
 - Tag chips: checking a tag chip unchecks "All". Unchecking the last tag chip auto-checks "All".
 - No tag count limit. Tags table typically has < 50 entries.
 
@@ -310,15 +313,44 @@ Tag filtering and search are independent. Search is handled by a separate `Searc
 - Tag chip list: typically <50 tags. No pagination needed.
 - All operations synchronous on main thread. No AsyncTask complexity unless profiling shows a need.
 
+## Tag matching — pure function
+
+To make tag matching testable without Android dependencies, extract the matching logic as a static method:
+
+```java
+// In OutlineTagFilter.java
+/** Pure function: testable without ContentResolver. */
+static boolean matchesTags(String tags, String tagsInherited,
+                           Set<String> selectedTags, boolean andMode) {
+    Set<String> nodeTags = new HashSet<>();
+    if (tags != null) {
+        for (String t : tags.split(":"))
+            if (!t.isEmpty()) nodeTags.add(t);
+    }
+    if (tagsInherited != null) {
+        for (String t : tagsInherited.split(":"))
+            if (!t.isEmpty()) nodeTags.add(t);
+    }
+    if (andMode) {
+        return nodeTags.containsAll(selectedTags);
+    } else {
+        for (String t : selectedTags)
+            if (nodeTags.contains(t)) return true;
+        return false;
+    }
+}
+```
+
 ## Testing
 
-- **Unit**: `OutlineTagFilter.matches()` — OR, AND, inherited tags, empty tags, null tags, merged tags+tags_inherited
-- **Unit**: `OutlineTagFilter.rebuild()` — `matchingNodeIds` correct, `containerIds` includes ancestors, `isContainer()` vs `matches()` distinction
-- **Unit**: `OutlineTagFilter.isActive()` — false when no tags selected, true when tags selected
-- **Unit**: `OutlineTagFilter.clearAll()` — clears selections, `isActive()` returns false
-- **Integration**: Filter bar hidden when Tags table empty, visible when tags exist
-- **Integration**: State restoration after rotation
-- **Integration**: Cross-level filter preservation via Intent extras
-- **Integration**: Sync removes stale tag selections; all tags removed → "All" auto-selected
-- **Integration**: "All" chip clears all selections; last tag unchecked → "All" auto-selected
+- **Unit** (pure Java, no Android): `matchesTags()` — OR match, OR no match, AND match, AND no match, inherited tags, empty tags, null tags, mixed tags+tags_inherited
+- **Unit** (pure Java): `isActive()` — false when no tags selected, true when tags selected
+- **Unit** (pure Java): `clearAll()` — clears selections, `isActive()` returns false
+- **Unit** (pure Java): `setSelectedTags()` / `getSelectedTagsArray()` round-trip
+- **Instrumentation**: `rebuild()` — `matchingNodeIds` correct, `containerIds` includes ancestors, `isContainer()` vs `matches()` distinction, empty tags table
+- **Instrumentation**: Filter bar hidden when Tags table empty, visible when tags exist
+- **Instrumentation**: State restoration after rotation
+- **Instrumentation**: Cross-level filter preservation via Intent extras
+- **Instrumentation**: Sync removes stale tag selections; all tags removed → "All" auto-selected
+- **Instrumentation**: "All" chip clears all selections; last tag unchecked → "All" auto-selected
 - **UI**: Container nodes rendered at alpha=0.5; direct matches at alpha=1.0

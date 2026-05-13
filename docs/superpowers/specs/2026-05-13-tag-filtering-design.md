@@ -24,7 +24,7 @@
 | Tag source | Tags table (global list) | Consistent across navigation; discoverable even when current view has none |
 | Clear filter | "All" chip clears all selections; last chip unchecked auto-selects "All" | One-tap reset; chip bar always has one selected item |
 | Cross-level state | Preserve filter state across navigation (Intent extras) | Don't lose user's filter when entering/leaving subtrees |
-| Data load order | `setFilter()` before `init()` | Adapter loads filtered data from the start, no re-filter |
+| Data load order | `setFilter()` → `refresh()` (re-runs `init()` with filter) | Adapter is created during XML inflation which calls `init()` before `setFilter()` can run; `refresh()` after `setFilter()` corrects this |
 | Filter on sync | Reload tags, keep existing selections for still-existing tags, drop stale ones | Tags table may change after sync |
 | Return (back) | Filter preserved by parent Activity in memory | Natural Activity back-stack behavior |
 | Descendant scan scope | Full table scan (all files) | Simpler code; <5000 nodes completes in ms; negligible overhead for unused file_ids |
@@ -99,7 +99,8 @@ public class OutlineTagFilter {
 }
 ```
 
-- No-arg constructor: `selectedTags` empty, `isActive()` = false. `rebuild()` is a no-op when `!isActive()`.
+- No-arg constructor: `selectedTags` empty, `isActive()` = false, all caches empty.
+- `rebuild()`: if `!isActive()` → clear `matchingNodeIds` and `containerIds` (empty caches, consistent with inactive state). If `isActive()` → execute scan and populate caches.
 - `setSelectedTags(String[])` + `setAndMode()` support restoring filter from Intent extras for cross-level navigation.
 - `matches()` and `isContainer()` are `Set<Long>` lookups against cached results from `rebuild()`. No tag parsing at query time.
 - `rebuild()` executes `SELECT _id, parent_id, tags, tags_inherited FROM orgdata`, applies `matchesTags()` (the pure function listed below) to each row to build `matchingNodeIds`, builds a parent map, then walks ancestor chains to compute `containerIds`.
@@ -112,15 +113,16 @@ public class OutlineTagFilter {
 `OutlineActivity.onCreate()`:
 1. `setContentView(R.layout.outline)` — filter bar included via `<include>`, initially `View.GONE`
 2. Read `node_id` from Intent
-3. If `onSaveInstanceState` has saved filter state, restore it (most recent — takes precedence over Intent extras)
+3. If `onSaveInstanceState` has saved filter state, restore it via `setSelectedTags()` + `setAndMode()` (most recent — takes precedence over Intent extras)
 4. Else if Intent contains filter extras (selectedTags, andMode), restore `OutlineTagFilter` via `setSelectedTags()` + `setAndMode()`
 5. If filter `isActive()`: call `filter.rebuild(resolver)` to populate `matchingNodeIds` / `containerIds`
-6. `setupList()` — create adapter, call `adapter.setFilter(filter)` **before** `adapter.init()`
+6. `setupList()` — call `adapter.setFilter(filter)`, then `adapter.refresh()` (which re-runs `init()` with filter). Note: `adapter.setFilter()` before `adapter.init()` is the ideal order, but in practice the adapter is created during `setContentView()` XML inflation (inside `OutlineListView` constructor), which calls `init()` immediately. So `setFilter()` is called after the initial `init()`, and `refresh()` re-runs `init()` with the filter applied.
 
 `OutlineActivity.onResume()`:
 1. Query `Tags` table via `OrgProviderUtils.getTags()`
 2. If tags exist: set guard flag, populate `ChipGroup` (create "All" chip + tag chips), apply existing `OutlineTagFilter` selections to tag chips, then set "All" chip state (`checked` if `!filter.isActive()`, `unchecked` if `filter.isActive()`), clear guard flag, set bar visible
 3. If tags empty: hide bar
+4. If filter `isActive()`: call `filter.rebuild(resolver)` (data may have changed while in sub-activity), then `adapter.refresh()` to apply rebuilt filter. If filter is not active, skip this step — existing list data is still valid
 
 ### 2. Chip interaction (Activity → Adapter)
 
@@ -131,7 +133,8 @@ User taps chip
     → if "All" chip changed:
         → if checked: filter.clearAll(); uncheck all tag chips programmatically
         → if unchecked: re-check "All" programmatically (never allow "All" to be unchecked —
-          exactly one option is always selected; tap "All" when already selected is a no-op)
+          exactly one option is always selected; tap "All" when already selected is a no-op);
+          return early — no rebuild/refresh needed (filter state unchanged)
     → else if tag chip checked:
         → filter.setTagSelected(tag, true)
         → uncheck "All" chip programmatically
@@ -145,7 +148,7 @@ User taps chip
 
 The guard flag prevents infinite recursion: `OnCheckedChangeListener` fires for programmatic `setChecked()` calls too. Use a boolean `programmaticChange` — set it true before modifying chips, set it false after, and skip the listener body when true.
 
-Toggle switch: same flow — call `filter.setAndMode(checked)`, `filter.rebuild()`, `adapter.refresh()`.
+Toggle switch: same flow — call `filter.setAndMode(checked)`, `filter.rebuild()`, `adapter.setFilter(filter)`, `adapter.refresh()`.
 
 ### 3. Adapter filtering (init / expand)
 
@@ -155,8 +158,7 @@ Both `init()` and `expand(position)` follow the same pattern:
 ArrayList<OrgNode> children = OrgProviderUtils.getOrgNodeChildren(parentId, resolver);
 for (OrgNode node : children) {
     if (filter == null || !filter.isActive() || filter.shouldShow(node.id)) {
-        add(node);
-        expanded.add(false);
+        add(node); // add() is overridden to also maintain the expanded list
     }
 }
 ```
@@ -277,7 +279,9 @@ When user presses back: previous Activity is still in memory with its filter sta
 
 ```xml
 <!-- tag_filter_bar.xml -->
-<LinearLayout orientation="horizontal"
+<LinearLayout android:layout_width="match_parent"
+             android:layout_height="wrap_content"
+             android:orientation="horizontal"
              android:visibility="gone">
     <HorizontalScrollView android:layout_weight="1"
                           android:scrollbars="none">

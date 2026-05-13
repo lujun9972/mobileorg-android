@@ -238,7 +238,7 @@ intent.putExtra("filter_and_mode", filter.isAndMode());
 startActivity(intent);
 ```
 
-New Activity reads extras in `onCreate()`, builds `OutlineTagFilter`, calls `adapter.setFilter(filter)` before `adapter.init()`.
+New Activity reads extras in `onCreate()`, builds `OutlineTagFilter`, calls `adapter.setFilter(filter)`, then `adapter.refresh()` (same pattern as initialization — `setFilter()` + `refresh()` because `init()` already ran during XML inflation).
 
 Each `OutlineActivity` instance independently runs descendant scans — no sharing of `containerIds` between Activities (simpler, and scans are cheap).
 

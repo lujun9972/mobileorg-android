@@ -536,6 +536,7 @@ git commit -m "feat: add filter support to OutlineAdapter for init/expand/getVie
 ```java
 private OutlineTagFilter tagFilter = new OutlineTagFilter();
 private boolean programmaticChipChange = false;
+private Chip allFilterChip;  // reference to "All" chip, avoids android.R.id hack
 private static final String STATE_FILTER_TAGS = "filter_tags";
 private static final String STATE_FILTER_AND_MODE = "filter_and_mode";
 ```
@@ -549,6 +550,7 @@ import com.google.android.material.chip.Chip;
 import com.google.android.material.chip.ChipGroup;
 import android.widget.ToggleButton;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.Set;
 ```
 
@@ -591,10 +593,11 @@ private void setupList() {
     listView.setEmptyView(findViewById(R.id.outline_list_empty));
     OutlineAdapter adapter = (OutlineAdapter) listView.getAdapter();
     adapter.setFilter(tagFilter);
+    adapter.refresh();  // reload with filter applied (constructor's init() had no filter)
 }
 ```
 
-**注意：** `OutlineListView` 构造函数中已经 `setAdapter(new OutlineAdapter(context))`，所以这里可以通过 `getAdapter()` 获取。但 `getAdapter()` 返回 `ListAdapter`，需要强转为 `OutlineAdapter`。由于 `OutlineAdapter` 已经有 filter 字段默认为 null，这里的 `setFilter` 会在 adapter 已有数据之后调用。这没关系，因为 `refreshDisplay()` 会在 `onResume` 后重新加载数据。
+**注意：** `OutlineListView` 构造函数中 `new OutlineAdapter(context)` 会调用 `init()`（此时 filter 还未设置，加载了无过滤数据）。这里 `setFilter()` 后立即 `refresh()` 重新加载过滤后的数据，确保首次显示就是正确的。
 
 - [ ] **步骤 5：添加 onResume 中的过滤条初始化**
 
@@ -622,24 +625,40 @@ private void setupFilterBar() {
     programmaticChipChange = true;
     chipGroup.removeAllViews();
     
-    // Create "All" chip
-    Chip allChip = new Chip(this);
-    allChip.setId(android.R.id.text1);  // stable ID for "All"
-    allChip.setText("All");
-    allChip.setCheckable(true);
-    allChip.setChecked(!tagFilter.isActive());
-    allChip.setChipBackgroundColorResource(android.R.color.white);
-    chipGroup.addView(allChip);
+    // Create "All" chip (stored as field for reliable reference)
+    allFilterChip = new Chip(this);
+    allFilterChip.setText("All");
+    allFilterChip.setCheckable(true);
+    allFilterChip.setCheckedIconVisible(true);
+    allFilterChip.setChecked(!tagFilter.isActive());
+    chipGroup.addView(allFilterChip);
     
-    // Create tag chips
+    // Create tag chips with filter style
+    HashSet<String> validTags = new HashSet<>(tags);
     for (String tag : tags) {
         Chip chip = new Chip(this);
         chip.setText(tag);
         chip.setCheckable(true);
+        chip.setCheckedIconVisible(true);
         chip.setChecked(tagFilter.isActive() && containsTag(tagFilter.getSelectedTagsArray(), tag));
-        chip.setChipBackgroundColorResource(android.R.color.white);
         chip.setTag(tag);  // store tag name for listener lookup
         chipGroup.addView(chip);
+    }
+    
+    // Clean up stale tags: remove selected tags that no longer exist in Tags table
+    if (tagFilter.isActive()) {
+        String[] selected = tagFilter.getSelectedTagsArray();
+        boolean anyRemoved = false;
+        for (String sel : selected) {
+            if (!validTags.contains(sel)) {
+                tagFilter.setTagSelected(sel, false);
+                anyRemoved = true;
+            }
+        }
+        // If all tags were removed, clear filter entirely
+        if (!tagFilter.isActive()) {
+            allFilterChip.setChecked(true);
+        }
     }
     
     // Set AND/OR toggle state
@@ -671,16 +690,18 @@ private boolean containsTag(String[] tags, String tag) {
 }
 ```
 
-**注意：** `ChipGroup.setOnCheckedStateChangeListener` 是 Material 1.11.0 中可用的 API（替代了已废弃的 `setOnCheckedChangeListener`）。如果编译不通过，改用 `setOnCheckedChangeListener`（接受 `ChipGroup, int` checkedId 的单参数版本）。
+**关键设计点：**
+- `allFilterChip` 存为字段而非用 `android.R.id.text1` 查找，避免 ChipGroup ID 管理冲突
+- 每个芯片都调 `setCheckedIconVisible(true)` 显示勾选动画（默认 Action chip 不显示勾选图标）
+- `setupFilterBar()` 在重建芯片后清理过期选中标签（同步后 Tags 表可能变化）
 
 - [ ] **步骤 6：添加 handleChipChange() 方法**
 
 ```java
 private void handleChipChange(java.util.List<Integer> checkedIds) {
     ChipGroup chipGroup = findViewById(R.id.tag_filter_chips);
-    Chip allChip = findViewById(android.R.id.text1);
     
-    boolean allChecked = checkedIds.contains(android.R.id.text1);
+    boolean allChecked = allFilterChip.isChecked();
     
     programmaticChipChange = true;
     
@@ -692,10 +713,6 @@ private void handleChipChange(java.util.List<Integer> checkedIds) {
         }
     } else {
         // A tag chip changed
-        if (allChip.isChecked()) {
-            allChip.setChecked(false);
-        }
-        
         // Rebuild selected tags from checked chips
         tagFilter.clearAll();
         for (int i = 1; i < chipGroup.getChildCount(); i++) {
@@ -707,7 +724,7 @@ private void handleChipChange(java.util.List<Integer> checkedIds) {
         
         // If no tag chips are checked, auto-check "All"
         if (!tagFilter.isActive()) {
-            allChip.setChecked(true);
+            allFilterChip.setChecked(true);
         }
     }
     

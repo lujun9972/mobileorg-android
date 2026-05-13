@@ -680,6 +680,11 @@ private void setupFilterBar() {
     
     filterBar.setVisibility(View.VISIBLE);
     updateEmptyView();
+
+    // Rebuild filter if active (data may have changed while in sub-activity)
+    if (tagFilter.isActive()) {
+        applyFilter();  // rebuild + refresh
+    }
 }
 
 private boolean containsTag(String[] tags, String tag) {
@@ -700,34 +705,37 @@ private boolean containsTag(String[] tags, String tag) {
 ```java
 private void handleChipChange(java.util.List<Integer> checkedIds) {
     ChipGroup chipGroup = findViewById(R.id.tag_filter_chips);
-    
+
     boolean allChecked = allFilterChip.isChecked();
-    
-    programmaticChipChange = true;
-    
+
     if (allChecked) {
-        // "All" was checked — clear filter, uncheck all tag chips
+        // "All" is checked — clear filter, uncheck all tag chips
+        programmaticChipChange = true;
         tagFilter.clearAll();
         for (int i = 1; i < chipGroup.getChildCount(); i++) {
             ((Chip) chipGroup.getChildAt(i)).setChecked(false);
         }
-    } else {
-        // A tag chip changed
-        // Rebuild selected tags from checked chips
-        tagFilter.clearAll();
-        for (int i = 1; i < chipGroup.getChildCount(); i++) {
-            Chip chip = (Chip) chipGroup.getChildAt(i);
-            if (chip.isChecked()) {
-                tagFilter.setTagSelected((String) chip.getTag(), true);
-            }
-        }
-        
-        // If no tag chips are checked, auto-check "All"
-        if (!tagFilter.isActive()) {
-            allFilterChip.setChecked(true);
+        programmaticChipChange = false;
+        applyFilter();
+        return;
+    }
+
+    // "All" is NOT checked — check if any tag chips are checked
+    programmaticChipChange = true;
+    tagFilter.clearAll();
+    for (int i = 1; i < chipGroup.getChildCount(); i++) {
+        Chip chip = (Chip) chipGroup.getChildAt(i);
+        if (chip.isChecked()) {
+            tagFilter.setTagSelected((String) chip.getTag(), true);
         }
     }
-    
+
+    // If no tag chips are checked, auto-check "All" (no-op — no rebuild/refresh needed)
+    if (!tagFilter.isActive()) {
+        allFilterChip.setChecked(true);
+        programmaticChipChange = false;
+        return;  // filter state unchanged, skip rebuild
+    }
     programmaticChipChange = false;
     applyFilter();
 }

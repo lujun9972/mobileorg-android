@@ -122,4 +122,74 @@ public class OutlineTagFilterTest {
         filter.setAndMode(true);
         assertTrue(filter.isAndMode());
     }
+
+    // === Additional edge case tests ===
+
+    @Test
+    public void orMode_singleTagMatch() {
+        assertTrue(OutlineTagFilter.matchesTags("work", null, tags("work"), false));
+    }
+
+    @Test
+    public void orMode_singleTagNoMatch() {
+        assertFalse(OutlineTagFilter.matchesTags("home", null, tags("work"), false));
+    }
+
+    @Test
+    public void andMode_singleTagMatch() {
+        assertTrue(OutlineTagFilter.matchesTags("work", null, tags("work"), true));
+    }
+
+    @Test
+    public void andMode_singleTagNoMatch() {
+        assertFalse(OutlineTagFilter.matchesTags("home", null, tags("work"), true));
+    }
+
+    @Test
+    public void orMode_multipleSelectedOneMatches() {
+        // node has "work", selected has "home","work","urgent" → OR mode matches
+        assertTrue(OutlineTagFilter.matchesTags("work", null, tags("home", "work", "urgent"), false));
+    }
+
+    @Test
+    public void andMode_inheritedOnlyMatches() {
+        // own=null, inherited="work", selected={"work"} → AND single tag matches
+        assertTrue(OutlineTagFilter.matchesTags(null, "work", tags("work"), true));
+    }
+
+    @Test
+    public void orMode_colonSeparatedMultipleTags() {
+        // Tags stored as "work:urgent" (colon-separated)
+        assertTrue(OutlineTagFilter.matchesTags("work:urgent", null, tags("urgent"), false));
+    }
+
+    @Test
+    public void clearAll_resetsState() {
+        OutlineTagFilter filter = new OutlineTagFilter();
+        filter.setTagSelected("work", true);
+        filter.setTagSelected("home", true);
+        filter.setAndMode(true);
+        filter.clearAll();
+        assertFalse(filter.isActive());
+        assertFalse(filter.isAndMode());
+        assertEquals(0, filter.getSelectedTagsArray().length);
+    }
+
+    @Test
+    public void setSelectedTags_emptyArrayDeactivates() {
+        OutlineTagFilter filter = new OutlineTagFilter();
+        filter.setTagSelected("work", true);
+        filter.setSelectedTags(new String[]{});
+        assertFalse(filter.isActive());
+    }
+
+    @Test
+    public void setTagSelected_idempotent() {
+        OutlineTagFilter filter = new OutlineTagFilter();
+        filter.setTagSelected("work", true);
+        filter.setTagSelected("work", true);
+        String[] result = filter.getSelectedTagsArray();
+        assertEquals(1, result.length);
+        assertEquals("work", result[0]);
+    }
 }

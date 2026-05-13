@@ -22,6 +22,7 @@ import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
+import android.widget.ToggleButton;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.core.app.ActivityCompat;
@@ -39,7 +40,12 @@ import com.matburt.mobileorg.util.Compat;
 import com.matburt.mobileorg.util.OrgUtils;
 import com.matburt.mobileorg.util.PreferenceUtils;
 
+import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.Locale;
+
+import com.google.android.material.chip.Chip;
+import com.google.android.material.chip.ChipGroup;
 
 public class OutlineActivity extends AppCompatActivity {
 
@@ -61,6 +67,12 @@ public class OutlineActivity extends AppCompatActivity {
 	private BroadcastReceiver recordingReceiver;
 	private long pendingRecordNodeId = -1;
 
+	private OutlineTagFilter tagFilter = new OutlineTagFilter();
+	private boolean programmaticChipChange = false;
+	private Chip allFilterChip;
+	private static final String STATE_FILTER_TAGS = "filter_tags";
+	private static final String STATE_FILTER_AND_MODE = "filter_and_mode";
+
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		MobileOrgApplication.log("OutlineActivity.onCreate() start");
@@ -79,6 +91,26 @@ public class OutlineActivity extends AppCompatActivity {
 			if (this.node_id == -1)
 				displayNewUserDialogs();
 			MobileOrgApplication.log("OutlineActivity.onCreate() displayNewUserDialogs done");
+
+			// Restore filter state
+			if (savedInstanceState != null) {
+				String[] savedTags = savedInstanceState.getStringArray(STATE_FILTER_TAGS);
+				boolean savedAndMode = savedInstanceState.getBoolean(STATE_FILTER_AND_MODE, false);
+				if (savedTags != null && savedTags.length > 0) {
+					tagFilter.setSelectedTags(savedTags);
+					tagFilter.setAndMode(savedAndMode);
+					tagFilter.rebuild(getContentResolver());
+				}
+			} else {
+				String[] intentTags = intent.getStringArrayExtra("filter_tags");
+				boolean intentAndMode = intent.getBooleanExtra("filter_and_mode", false);
+				if (intentTags != null && intentTags.length > 0) {
+					tagFilter.setSelectedTags(intentTags);
+					tagFilter.setAndMode(intentAndMode);
+					tagFilter.rebuild(getContentResolver());
+				}
+			}
+
 			setupList();
 			MobileOrgApplication.log("OutlineActivity.onCreate() setupList done");
 
@@ -124,6 +156,16 @@ public class OutlineActivity extends AppCompatActivity {
 		MobileOrgApplication.log("OutlineActivity.onResume()");
 		super.onResume();
 		refreshTitle();
+		setupFilterBar();
+	}
+
+	@Override
+	protected void onSaveInstanceState(Bundle outState) {
+		super.onSaveInstanceState(outState);
+		if (tagFilter.isActive()) {
+			outState.putStringArray(STATE_FILTER_TAGS, tagFilter.getSelectedTagsArray());
+			outState.putBoolean(STATE_FILTER_AND_MODE, tagFilter.isAndMode());
+		}
 	}
 
 	@Override
@@ -140,6 +182,9 @@ public class OutlineActivity extends AppCompatActivity {
 		listView = (OutlineListView) findViewById(R.id.outline_list);
 		listView.setActivity(this);
 		listView.setEmptyView(findViewById(R.id.outline_list_empty));
+		OutlineAdapter adapter = (OutlineAdapter) listView.getAdapter();
+		adapter.setFilter(tagFilter);
+		adapter.refresh();
 	}
 
 	private void displayNewUserDialogs() {
@@ -162,6 +207,141 @@ public class OutlineActivity extends AppCompatActivity {
 	public void refreshDisplay() {
 		this.listView.refresh();
 		refreshTitle();
+	}
+
+	private void setupFilterBar() {
+		ArrayList<String> tags = OrgProviderUtils.getTags(getContentResolver());
+		View filterBar = findViewById(R.id.tag_filter_bar);
+
+		if (tags.isEmpty()) {
+			filterBar.setVisibility(View.GONE);
+			return;
+		}
+
+		ChipGroup chipGroup = findViewById(R.id.tag_filter_chips);
+		ToggleButton modeToggle = findViewById(R.id.tag_filter_mode);
+
+		programmaticChipChange = true;
+		chipGroup.removeAllViews();
+
+		// Create "All" chip (stored as field for reliable reference)
+		allFilterChip = new Chip(this);
+		allFilterChip.setText("All");
+		allFilterChip.setCheckable(true);
+		allFilterChip.setCheckedIconVisible(true);
+		allFilterChip.setChecked(!tagFilter.isActive());
+		chipGroup.addView(allFilterChip);
+
+		// Create tag chips with filter style
+		HashSet<String> validTags = new HashSet<>(tags);
+		for (String tag : tags) {
+			Chip chip = new Chip(this);
+			chip.setText(tag);
+			chip.setCheckable(true);
+			chip.setCheckedIconVisible(true);
+			chip.setChecked(tagFilter.isActive() && containsTag(tagFilter.getSelectedTagsArray(), tag));
+			chip.setTag(tag);
+			chipGroup.addView(chip);
+		}
+
+		// Clean up stale tags: remove selected tags that no longer exist in Tags table
+		if (tagFilter.isActive()) {
+			String[] selected = tagFilter.getSelectedTagsArray();
+			boolean anyRemoved = false;
+			for (String sel : selected) {
+				if (!validTags.contains(sel)) {
+					tagFilter.setTagSelected(sel, false);
+					anyRemoved = true;
+				}
+			}
+			if (!tagFilter.isActive()) {
+				allFilterChip.setChecked(true);
+			}
+		}
+
+		modeToggle.setChecked(tagFilter.isAndMode());
+
+		programmaticChipChange = false;
+
+		chipGroup.setOnCheckedStateChangeListener((group, checkedIds) -> {
+			if (programmaticChipChange) return;
+			handleChipChange();
+		});
+
+		modeToggle.setOnCheckedChangeListener((buttonView, isChecked) -> {
+			if (programmaticChipChange) return;
+			tagFilter.setAndMode(isChecked);
+			applyFilter();
+		});
+
+		filterBar.setVisibility(View.VISIBLE);
+		updateEmptyView();
+
+		if (tagFilter.isActive()) {
+			applyFilter();
+		}
+	}
+
+	private boolean containsTag(String[] tags, String tag) {
+		for (String t : tags) {
+			if (t.equals(tag)) return true;
+		}
+		return false;
+	}
+
+	private void handleChipChange() {
+		ChipGroup chipGroup = findViewById(R.id.tag_filter_chips);
+
+		boolean allChecked = allFilterChip.isChecked();
+
+		if (allChecked) {
+			programmaticChipChange = true;
+			tagFilter.clearAll();
+			for (int i = 1; i < chipGroup.getChildCount(); i++) {
+				((Chip) chipGroup.getChildAt(i)).setChecked(false);
+			}
+			programmaticChipChange = false;
+			applyFilter();
+			return;
+		}
+
+		programmaticChipChange = true;
+		tagFilter.clearAll();
+		for (int i = 1; i < chipGroup.getChildCount(); i++) {
+			Chip chip = (Chip) chipGroup.getChildAt(i);
+			if (chip.isChecked()) {
+				tagFilter.setTagSelected((String) chip.getTag(), true);
+			}
+		}
+
+		if (!tagFilter.isActive()) {
+			allFilterChip.setChecked(true);
+			programmaticChipChange = false;
+			return;
+		}
+		programmaticChipChange = false;
+		applyFilter();
+	}
+
+	private void applyFilter() {
+		tagFilter.rebuild(getContentResolver());
+		OutlineAdapter adapter = (OutlineAdapter) listView.getAdapter();
+		adapter.setFilter(tagFilter);
+		adapter.refresh();
+		updateEmptyView();
+	}
+
+	private void updateEmptyView() {
+		View emptyButtons = findViewById(R.id.outline_list_empty_buttons);
+		TextView filterEmpty = findViewById(R.id.outline_list_filter_empty);
+
+		if (tagFilter.isActive() && listView.getAdapter().getCount() == 0) {
+			if (emptyButtons != null) emptyButtons.setVisibility(View.GONE);
+			if (filterEmpty != null) filterEmpty.setVisibility(View.VISIBLE);
+		} else {
+			if (emptyButtons != null) emptyButtons.setVisibility(View.VISIBLE);
+			if (filterEmpty != null) filterEmpty.setVisibility(View.GONE);
+		}
 	}
 
 
@@ -252,6 +432,10 @@ public class OutlineActivity extends AppCompatActivity {
     private void runExpandableOutline(long id) {
 		Intent intent = new Intent(this, OutlineActivity.class);
 		intent.putExtra(OutlineActivity.NODE_ID, id);
+		if (tagFilter.isActive()) {
+			intent.putExtra("filter_tags", tagFilter.getSelectedTagsArray());
+			intent.putExtra("filter_and_mode", tagFilter.isAndMode());
+		}
 		startActivity(intent);
     }
 
@@ -406,6 +590,7 @@ public class OutlineActivity extends AppCompatActivity {
 				}
 				synchronizerMenuItem.setActionView(null);
 				refreshDisplay();
+				setupFilterBar();
 
 				if (showToast)
 					Toast.makeText(context,

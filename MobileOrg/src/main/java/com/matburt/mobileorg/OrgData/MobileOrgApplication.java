@@ -4,6 +4,7 @@ import android.app.Application;
 import android.content.Context;
 import android.util.Log;
 
+import androidx.multidex.MultiDex;
 import com.matburt.mobileorg.Services.SyncService;
 
 import java.io.File;
@@ -16,6 +17,12 @@ import java.util.Locale;
 public class MobileOrgApplication extends Application {
 
 	private static MobileOrgApplication instance;
+
+	@Override
+	protected void attachBaseContext(Context base) {
+		super.attachBaseContext(base);
+		MultiDex.install(this);
+	}
 
 	@Override
 	public void onCreate() {

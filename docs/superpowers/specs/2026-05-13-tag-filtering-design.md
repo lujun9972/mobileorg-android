@@ -6,6 +6,8 @@
 
 **Tech Stack**: `HorizontalScrollView` + `ChipGroup` (Material), ContentProvider query for tags.
 
+**Prerequisite**: Add `com.google.android.material:material:1.11.0` dependency to `build.gradle`. Migrate theme parent from `Theme.AppCompat` to `Theme.MaterialComponents` in `themes.xml` (required for Chip/ChipGroup rendering). This is a low-risk change — MaterialComponents is a superset of AppCompat.
+
 ---
 
 ## Design Decisions

@@ -26,6 +26,12 @@ public class OutlineAdapter extends ArrayAdapter<OrgNode> {
 	private DefaultTheme theme;
 	
 	private boolean levelIndentation = true;
+
+	private OutlineTagFilter filter = null;
+
+	public void setFilter(OutlineTagFilter filter) {
+		this.filter = filter;
+	}
 	
 	public OutlineAdapter(Context context) {
 		super(context, R.layout.outline_item);
@@ -38,8 +44,11 @@ public class OutlineAdapter extends ArrayAdapter<OrgNode> {
 	public void init() {
 		clear();
 
-		for (OrgNode node : OrgProviderUtils.getOrgNodeChildren(-1, resolver))
-			add(node);
+		for (OrgNode node : OrgProviderUtils.getOrgNodeChildren(-1, resolver)) {
+			if (filter == null || !filter.isActive() || filter.shouldShow(node.id)) {
+				add(node);
+			}
+		}
 
 		MobileOrgApplication.log("OutlineAdapter.init() count=" + getCount());
 		notifyDataSetInvalidated();
@@ -94,13 +103,21 @@ public class OutlineAdapter extends ArrayAdapter<OrgNode> {
 	}
 	
 	@Override
-	public View getView(int position, View convertView, ViewGroup parent) {				
+	public View getView(int position, View convertView, ViewGroup parent) {
 		OutlineItem outlineItem = (OutlineItem) convertView;
 		if (convertView == null)
 			outlineItem = new OutlineItem(getContext());
 
+		OrgNode node = getItem(position);
 		outlineItem.setLevelFormating(levelIndentation);
-		outlineItem.setup(getItem(position), this.expanded.get(position), theme, resolver);
+		outlineItem.setup(node, this.expanded.get(position), theme, resolver);
+
+		if (filter != null && filter.isActive() && filter.isContainer(node.id) && !filter.matches(node.id)) {
+			outlineItem.setAlpha(0.5f);
+		} else {
+			outlineItem.setAlpha(1.0f);
+		}
+
 		return outlineItem;
 	}
 
@@ -170,7 +187,14 @@ public class OutlineAdapter extends ArrayAdapter<OrgNode> {
 	
 	public void expand(int position) {
 		OrgNode node = getItem(position);
-		insertAll(node.getChildren(resolver), position + 1);
+		ArrayList<OrgNode> children = node.getChildren(resolver);
+		ArrayList<OrgNode> filteredChildren = new ArrayList<OrgNode>();
+		for (OrgNode child : children) {
+			if (filter == null || !filter.isActive() || filter.shouldShow(child.id)) {
+				filteredChildren.add(child);
+			}
+		}
+		insertAll(filteredChildren, position + 1);
 		this.expanded.set(position, true);
 	}
 	

@@ -42,20 +42,25 @@ public class TimeclockDialog extends FragmentActivity {
 	@Override
 	protected void onStart() {
 		super.onStart();
-		
+
 		String elapsedTime = TimeclockService.getInstance().getElapsedTimeString();
 		parseElapsedTime(elapsedTime);
-		
+
 		setTitle("MobileOrg Timeclock");
 		TextView textView = (TextView) findViewById(R.id.timeclock_text);
-		
+
 		long node_id = TimeclockService.getInstance().getNodeID();
 
 		try {
 			this.node = new OrgNode(node_id, getContentResolver());
-		} catch (OrgNodeNotFoundException e) {}
-		textView.setText(node.name + "@" + elapsedTime);
+		} catch (OrgNodeNotFoundException e) {
+			this.node = null;
+		}
 
+		if (textView != null) {
+			String name = (node != null) ? node.name : "(unknown)";
+			textView.setText(name + "@" + elapsedTime);
+		}
 	}
 	
 	private void parseElapsedTime(String elapsedTime) {
@@ -68,6 +73,7 @@ public class TimeclockDialog extends FragmentActivity {
 	}
 
 	private void saveClock(int hour, int minute) {
+		if (node == null) return;
 		long endTime = System.currentTimeMillis();
 		long durationMillis = (hour * 3600L + minute * 60L) * 1000L;
 		long startTime = endTime - durationMillis;

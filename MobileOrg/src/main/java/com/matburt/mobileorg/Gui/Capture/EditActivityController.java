@@ -1,5 +1,7 @@
 package com.matburt.mobileorg.Gui.Capture;
 
+import android.util.Log;
+
 import android.content.ContentResolver;
 import android.content.Intent;
 import android.text.TextUtils;
@@ -33,7 +35,9 @@ public abstract class EditActivityController {
 				OrgNode parentNode = OrgProviderUtils.getOrgNodeFromOlpPath(
 						olpLocation, resolver);
 				node_id = parentNode.id;
-			} catch (Exception e) {}
+			} catch (Exception e) {
+				Log.w("MobileOrg", "Failed to resolve OLP location: " + olpLocation, e);
+			}
 		}
 
 		EditActivityController controller = EditActivityController

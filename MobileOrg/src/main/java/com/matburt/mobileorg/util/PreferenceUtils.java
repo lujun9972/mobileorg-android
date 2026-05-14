@@ -5,6 +5,8 @@ import java.util.HashSet;
 
 import com.matburt.mobileorg.OrgData.MobileOrgApplication;
 
+import android.util.Log;
+
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.content.pm.PackageInfo;
@@ -105,7 +107,9 @@ public class PreferenceUtils {
 	            editor.commit();
 	            return true;
 	        }
-	    } catch (Exception e) { };
+	    } catch (Exception e) {
+	        Log.w("MobileOrg", "Failed to get package info", e);
+	    };
 	    return false;
 	}
 

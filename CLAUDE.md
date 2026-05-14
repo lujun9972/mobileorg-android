@@ -18,6 +18,8 @@ APK output: `MobileOrg/build/outputs/apk/debug/`
 
 **Build toolchain**: Gradle 8.5 + AGP 8.2.2 + JDK 17 + compileSdk 34 + targetSdk 34.
 
+**Remote/CI**: Git remote `git.zhlh6.cn` is a Gitea proxy that auto-syncs to GitHub. Pushing to it triggers GitHub Actions CI. Use `gh` CLI against the GitHub repo to check CI status (e.g. `gh run list`).
+
 **Tests**: 94 instrumentation tests in `MobileOrg/src/androidTest/` using `ProviderTestCase2` + `AndroidJUnit4`. Run via `./gradlew connectedDebugAndroidTest` (requires emulator). CI runs on API 30 emulator via GitHub Actions.
 
 ## Architecture

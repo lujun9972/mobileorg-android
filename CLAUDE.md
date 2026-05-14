@@ -18,6 +18,8 @@ APK output: `MobileOrg/build/outputs/apk/debug/`
 
 **Build toolchain**: Gradle 8.5 + AGP 8.2.2 + JDK 17 + compileSdk 34 + targetSdk 34.
 
+**注意**：不在本地构建。推送到远端由 CI 进行构建，用 `gh run list` / `gh run view` 检查 CI 结果即可。
+
 **Remote/CI**: Git remote `git.zhlh6.cn` is a Gitea proxy that auto-syncs to GitHub. Pushing to it triggers GitHub Actions CI. Use `gh` CLI against the GitHub repo to check CI status (e.g. `gh run list`).
 
 **Tests**: 94 instrumentation tests in `MobileOrg/src/androidTest/` using `ProviderTestCase2` + `AndroidJUnit4`. Run via `./gradlew connectedDebugAndroidTest` (requires emulator). CI runs on API 30 emulator via GitHub Actions.
@@ -75,6 +77,7 @@ The original code targets API 17 and crashes on modern Android. The following fi
 - **Vector drawable namespace**: `<vector>` XML must use `xmlns:android="http://schemas.android.com/apk/res/android"`. Using `res-auto` (which is for `app:` attributes in layouts) causes AAPT build failure with "attribute not found" errors.
 - **MaterialComponents theme migration**: When migrating from AppCompat to MaterialComponents (required for Chip, ChipGroup, etc.), style parents change: `Theme.AppCompat` → `Theme.MaterialComponents`, `Widget.AppCompat.ActionBar.Solid` → `Widget.MaterialComponents.ActionBar.Solid`. The `.Inverse` variants (e.g. `Widget.AppCompat.Light.ActionBar.Solid.Inverse`) have NO MaterialComponents equivalent — use the `.Solid` variant instead, since `Theme.MaterialComponents.Light.DarkActionBar` already provides a dark ActionBar.
 - **Multidex for large dependencies**: Adding Material Components library (~21000 methods) can push total DEX method count over the 65536 single-dex limit. For minSdk < 21 (no native multidex), must: (1) add `multiDexEnabled true` in `defaultConfig`, (2) add `implementation 'androidx.multidex:multidex:2.0.1'`, (3) override `attachBaseContext()` in Application class to call `MultiDex.install(this)`.
+- **MaterialComponents widgets require explicit layout_width/layout_height**: When using MaterialComponents theme (`Theme.MaterialComponents`), all widgets including `ChipGroup`, `Chip`, etc. must have explicit `android:layout_width` and `android:layout_height` in XML. Unlike some AppCompat widgets that may inherit defaults, MaterialComponents views will crash with `UnsupportedOperationException: You must supply a layout_width attribute` during inflation if these attributes are missing. Always verify every view element in layout XML has both dimensions declared.
 - **Never wrap Activity lifecycle in broad try-catch**: Wrapping `onCreate()` in `try { ... } catch (Exception e) { log(e); }` silently swallows initialization failures (including `setContentView()` errors). The Activity continues without views, and subsequent lifecycle methods (`onResume()`) crash with misleading NPEs on null views. The original error is invisible if logged at INFO level while user filters logcat for errors. Instead: let RuntimeExceptions propagate naturally, and add null checks in methods called from `onResume()` or broadcast receivers for defensive coding against configuration changes.
 
 All guards use `Build.VERSION.SDK_INT >= Build.VERSION_CODES.O` pattern.

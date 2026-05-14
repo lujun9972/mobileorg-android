@@ -11,7 +11,6 @@ import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
-import android.util.Log;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
@@ -75,80 +74,67 @@ public class OutlineActivity extends AppCompatActivity {
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
-		MobileOrgApplication.log("OutlineActivity.onCreate() start");
-		try {
-			OrgUtils.setTheme(this);
-			MobileOrgApplication.log("OutlineActivity.onCreate() setTheme done");
-			super.onCreate(savedInstanceState);
-			MobileOrgApplication.log("OutlineActivity.onCreate() super.onCreate done");
-			setContentView(R.layout.outline);
-			MobileOrgApplication.log("OutlineActivity.onCreate() setContentView done");
+		OrgUtils.setTheme(this);
+		super.onCreate(savedInstanceState);
+		setContentView(R.layout.outline);
 
-			Intent intent = getIntent();
-			node_id = intent.getLongExtra(NODE_ID, -1);
-			MobileOrgApplication.log("OutlineActivity.onCreate() node_id=" + node_id);
+		Intent intent = getIntent();
+		node_id = intent.getLongExtra(NODE_ID, -1);
 
-			if (this.node_id == -1)
-				displayNewUserDialogs();
-			MobileOrgApplication.log("OutlineActivity.onCreate() displayNewUserDialogs done");
+		if (this.node_id == -1)
+			displayNewUserDialogs();
 
-			// Restore filter state
-			if (savedInstanceState != null) {
-				String[] savedTags = savedInstanceState.getStringArray(STATE_FILTER_TAGS);
-				boolean savedAndMode = savedInstanceState.getBoolean(STATE_FILTER_AND_MODE, false);
-				if (savedTags != null && savedTags.length > 0) {
-					tagFilter.setSelectedTags(savedTags);
-					tagFilter.setAndMode(savedAndMode);
-					tagFilter.rebuild(getContentResolver());
-				}
-			} else {
-				String[] intentTags = intent.getStringArrayExtra("filter_tags");
-				boolean intentAndMode = intent.getBooleanExtra("filter_and_mode", false);
-				if (intentTags != null && intentTags.length > 0) {
-					tagFilter.setSelectedTags(intentTags);
-					tagFilter.setAndMode(intentAndMode);
-					tagFilter.rebuild(getContentResolver());
-				}
+		// Restore filter state
+		if (savedInstanceState != null) {
+			String[] savedTags = savedInstanceState.getStringArray(STATE_FILTER_TAGS);
+			boolean savedAndMode = savedInstanceState.getBoolean(STATE_FILTER_AND_MODE, false);
+			if (savedTags != null && savedTags.length > 0) {
+				tagFilter.setSelectedTags(savedTags);
+				tagFilter.setAndMode(savedAndMode);
+				tagFilter.rebuild(getContentResolver());
 			}
-
-			setupList();
-			MobileOrgApplication.log("OutlineActivity.onCreate() setupList done");
-
-			this.syncReceiver = new SynchServiceReceiver();
-			IntentFilter syncFilter = new IntentFilter(Synchronizer.SYNC_UPDATE);
-			if (Build.VERSION.SDK_INT >= 33) {
-				registerReceiver(this.syncReceiver, syncFilter, Context.RECEIVER_NOT_EXPORTED);
-			} else {
-				registerReceiver(this.syncReceiver, syncFilter);
+		} else {
+			String[] intentTags = intent.getStringArrayExtra("filter_tags");
+			boolean intentAndMode = intent.getBooleanExtra("filter_and_mode", false);
+			if (intentTags != null && intentTags.length > 0) {
+				tagFilter.setSelectedTags(intentTags);
+				tagFilter.setAndMode(intentAndMode);
+				tagFilter.rebuild(getContentResolver());
 			}
-			MobileOrgApplication.log("OutlineActivity.onCreate() registerReceiver done");
-
-			recordingReceiver = new BroadcastReceiver() {
-				@Override
-				public void onReceive(Context context, Intent intent) {
-					String action = intent.getAction();
-					if (RecordingService.BROADCAST_UPDATE.equals(action)) {
-						long elapsed = intent.getLongExtra(RecordingService.EXTRA_ELAPSED_SECONDS, 0);
-						showOrUpdateRecordingBar(elapsed);
-					} else if (RecordingService.BROADCAST_STOPPED.equals(action)) {
-						removeRecordingBar();
-					}
-				}
-			};
-
-			IntentFilter recordingFilter = new IntentFilter(RecordingService.BROADCAST_UPDATE);
-			recordingFilter.addAction(RecordingService.BROADCAST_STOPPED);
-			if (Build.VERSION.SDK_INT >= 33) {
-				registerReceiver(recordingReceiver, recordingFilter, Context.RECEIVER_NOT_EXPORTED);
-			} else {
-				registerReceiver(recordingReceiver, recordingFilter);
-			}
-
-			refreshDisplay();
-			MobileOrgApplication.log("OutlineActivity.onCreate() complete");
-		} catch (Exception e) {
-			MobileOrgApplication.log("OutlineActivity.onCreate() FATAL: " + Log.getStackTraceString(e));
 		}
+
+		setupList();
+
+		this.syncReceiver = new SynchServiceReceiver();
+		IntentFilter syncFilter = new IntentFilter(Synchronizer.SYNC_UPDATE);
+		if (Build.VERSION.SDK_INT >= 33) {
+			registerReceiver(this.syncReceiver, syncFilter, Context.RECEIVER_NOT_EXPORTED);
+		} else {
+			registerReceiver(this.syncReceiver, syncFilter);
+		}
+
+		recordingReceiver = new BroadcastReceiver() {
+			@Override
+			public void onReceive(Context context, Intent intent) {
+				String action = intent.getAction();
+				if (RecordingService.BROADCAST_UPDATE.equals(action)) {
+					long elapsed = intent.getLongExtra(RecordingService.EXTRA_ELAPSED_SECONDS, 0);
+					showOrUpdateRecordingBar(elapsed);
+				} else if (RecordingService.BROADCAST_STOPPED.equals(action)) {
+					removeRecordingBar();
+				}
+			}
+		};
+
+		IntentFilter recordingFilter = new IntentFilter(RecordingService.BROADCAST_UPDATE);
+		recordingFilter.addAction(RecordingService.BROADCAST_STOPPED);
+		if (Build.VERSION.SDK_INT >= 33) {
+			registerReceiver(recordingReceiver, recordingFilter, Context.RECEIVER_NOT_EXPORTED);
+		} else {
+			registerReceiver(recordingReceiver, recordingFilter);
+		}
+
+		refreshDisplay();
 	}
 
 	@Override
@@ -212,13 +198,17 @@ public class OutlineActivity extends AppCompatActivity {
 	private void setupFilterBar() {
 		ArrayList<String> tags = OrgProviderUtils.getTags(getContentResolver());
 		View filterBar = findViewById(R.id.tag_filter_bar);
+		ChipGroup chipGroup = findViewById(R.id.tag_filter_chips);
+
+		if (filterBar == null || chipGroup == null) {
+			return;
+		}
 
 		if (tags.isEmpty()) {
 			filterBar.setVisibility(View.GONE);
 			return;
 		}
 
-		ChipGroup chipGroup = findViewById(R.id.tag_filter_chips);
 		ToggleButton modeToggle = findViewById(R.id.tag_filter_mode);
 
 		programmaticChipChange = true;

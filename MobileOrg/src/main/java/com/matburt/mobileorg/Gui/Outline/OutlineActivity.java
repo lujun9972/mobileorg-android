@@ -307,6 +307,7 @@ public class OutlineActivity extends AppCompatActivity {
 		if (!tagFilter.isActive()) {
 			allFilterChip.setChecked(true);
 			programmaticChipChange = false;
+			applyFilter();
 			return;
 		}
 		programmaticChipChange = false;

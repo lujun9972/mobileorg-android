@@ -68,6 +68,7 @@ public class OutlineActivity extends AppCompatActivity {
 
 	private OutlineTagFilter tagFilter = new OutlineTagFilter();
 	private boolean programmaticChipChange = false;
+	private boolean allPreviouslyChecked = true;
 	private Chip allFilterChip;
 	private static final String STATE_FILTER_TAGS = "filter_tags";
 	private static final String STATE_FILTER_AND_MODE = "filter_and_mode";
@@ -252,6 +253,7 @@ public class OutlineActivity extends AppCompatActivity {
 		modeToggle.setChecked(tagFilter.isAndMode());
 
 		programmaticChipChange = false;
+		allPreviouslyChecked = allFilterChip.isChecked();
 
 		chipGroup.setOnCheckedStateChangeListener((group, checkedIds) -> {
 			if (programmaticChipChange) return;
@@ -281,35 +283,38 @@ public class OutlineActivity extends AppCompatActivity {
 
 	private void handleChipChange() {
 		ChipGroup chipGroup = findViewById(R.id.tag_filter_chips);
+		boolean allNowChecked = allFilterChip.isChecked();
 
-		boolean allChecked = allFilterChip.isChecked();
+		programmaticChipChange = true;
 
-		if (allChecked) {
-			programmaticChipChange = true;
+		if (allNowChecked && !allPreviouslyChecked) {
+			// All was unchecked, now checked → user clicked All
+			// Uncheck all tags, clear filter
 			tagFilter.clearAll();
 			for (int i = 1; i < chipGroup.getChildCount(); i++) {
 				((Chip) chipGroup.getChildAt(i)).setChecked(false);
 			}
-			programmaticChipChange = false;
-			applyFilter();
-			return;
-		}
+		} else {
+			// Tags were toggled
+			if (allNowChecked && allPreviouslyChecked) {
+				// All was already checked, user clicked a tag → uncheck All
+				allFilterChip.setChecked(false);
+			}
 
-		programmaticChipChange = true;
-		tagFilter.clearAll();
-		for (int i = 1; i < chipGroup.getChildCount(); i++) {
-			Chip chip = (Chip) chipGroup.getChildAt(i);
-			if (chip.isChecked()) {
-				tagFilter.setTagSelected((String) chip.getTag(), true);
+			tagFilter.clearAll();
+			for (int i = 1; i < chipGroup.getChildCount(); i++) {
+				Chip chip = (Chip) chipGroup.getChildAt(i);
+				if (chip.isChecked()) {
+					tagFilter.setTagSelected((String) chip.getTag(), true);
+				}
+			}
+
+			if (!tagFilter.isActive()) {
+				allFilterChip.setChecked(true);
 			}
 		}
 
-		if (!tagFilter.isActive()) {
-			allFilterChip.setChecked(true);
-			programmaticChipChange = false;
-			applyFilter();
-			return;
-		}
+		allPreviouslyChecked = allFilterChip.isChecked();
 		programmaticChipChange = false;
 		applyFilter();
 	}

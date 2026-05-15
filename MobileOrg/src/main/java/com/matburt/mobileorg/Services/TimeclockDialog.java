@@ -1,17 +1,20 @@
 package com.matburt.mobileorg.Services;
 
+import android.app.AlertDialog;
 import android.app.Dialog;
-import android.app.TimePickerDialog;
 import android.os.Bundle;
-import androidx.fragment.app.DialogFragment;
-import androidx.fragment.app.FragmentActivity;
-import androidx.fragment.app.FragmentTransaction;
+import android.view.Gravity;
 import android.view.View;
 import android.view.Window;
 import android.widget.Button;
+import android.widget.LinearLayout;
+import android.widget.NumberPicker;
 import android.widget.TextView;
-import android.widget.TimePicker;
 import android.util.Log;
+
+import androidx.fragment.app.DialogFragment;
+import androidx.fragment.app.FragmentActivity;
+import androidx.fragment.app.FragmentTransaction;
 
 import com.matburt.mobileorg.R;
 import com.matburt.mobileorg.OrgData.OrgNode;
@@ -22,24 +25,24 @@ public class TimeclockDialog extends FragmentActivity {
 	private OrgNode node;
 	private int hour = 0;
 	private int minute = 0;
-	
+
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
-		
-        requestWindowFeature(Window.FEATURE_LEFT_ICON);
-        setContentView(R.layout.timeclock_dialog);
-        getWindow().setFeatureDrawableResource(Window.FEATURE_LEFT_ICON, 
-                android.R.drawable.ic_dialog_alert);
-        
-        Button button = (Button) findViewById(R.id.timeclock_cancel);
-        button.setOnClickListener(cancelListener);
-        button = (Button) findViewById(R.id.timeclock_edit);
-        button.setOnClickListener(editListener);
-        button = (Button) findViewById(R.id.timeclock_save);
-        button.setOnClickListener(saveListener);
+
+		requestWindowFeature(Window.FEATURE_LEFT_ICON);
+		setContentView(R.layout.timeclock_dialog);
+		getWindow().setFeatureDrawableResource(Window.FEATURE_LEFT_ICON,
+				android.R.drawable.ic_dialog_alert);
+
+		Button button = (Button) findViewById(R.id.timeclock_cancel);
+		button.setOnClickListener(cancelListener);
+		button = (Button) findViewById(R.id.timeclock_edit);
+		button.setOnClickListener(editListener);
+		button = (Button) findViewById(R.id.timeclock_save);
+		button.setOnClickListener(saveListener);
 	}
-	
+
 	@Override
 	protected void onStart() {
 		super.onStart();
@@ -63,7 +66,7 @@ public class TimeclockDialog extends FragmentActivity {
 			textView.setText(name + "@" + elapsedTime);
 		}
 	}
-	
+
 	private void parseElapsedTime(String elapsedTime) {
 		String[] split = elapsedTime.trim().split(":");
 		try {
@@ -84,19 +87,18 @@ public class TimeclockDialog extends FragmentActivity {
 				+ ", startTime=" + startTime + ", endTime=" + endTime);
 		node.addLogbook(startTime, endTime, elapsedTime, getContentResolver());
 	}
-	
+
 	private void endTimeclock() {
 		TimeclockService.getInstance().cancelNotification();
 		finish();
 	}
 
-	
 	private View.OnClickListener cancelListener = new View.OnClickListener() {
 		public void onClick(View v) {
 			endTimeclock();
 		}
 	};
-	
+
 	private View.OnClickListener saveListener = new View.OnClickListener() {
 		public void onClick(View v) {
 			saveClock(hour, minute);
@@ -104,19 +106,25 @@ public class TimeclockDialog extends FragmentActivity {
 		}
 	};
 
-	
 	private View.OnClickListener editListener = new View.OnClickListener() {
 		public void onClick(View v) {
 			FragmentTransaction ft = getSupportFragmentManager()
 					.beginTransaction();
-			DialogFragment newFragment = EditTimePickerFragment.newInstance(hour, minute);
-			newFragment.show(ft, "TimeDialog");
+			DialogFragment newFragment = DurationPickerFragment.newInstance(hour, minute);
+			newFragment.show(ft, "DurationDialog");
 		}
 	};
 
-	public static class EditTimePickerFragment extends DialogFragment {
-		public static EditTimePickerFragment newInstance(int hour, int minute) {
-			EditTimePickerFragment f = new EditTimePickerFragment();
+	/**
+	 * Duration picker using NumberPicker widgets.
+	 * Replaces TimePickerDialog which returns wrong values on some devices.
+	 */
+	public static class DurationPickerFragment extends DialogFragment {
+		private NumberPicker hourPicker;
+		private NumberPicker minutePicker;
+
+		public static DurationPickerFragment newInstance(int hour, int minute) {
+			DurationPickerFragment f = new DurationPickerFragment();
 			Bundle args = new Bundle();
 			args.putInt("hour", hour);
 			args.putInt("minute", minute);
@@ -126,18 +134,52 @@ public class TimeclockDialog extends FragmentActivity {
 
 		@Override
 		public Dialog onCreateDialog(Bundle savedInstanceState) {
-			int hour = getArguments().getInt("hour", 0);
-			int minute = getArguments().getInt("minute", 0);
-			if (hour <= 23 && minute <= 59) {
-				TimeclockDialog activity = (TimeclockDialog) getActivity();
-				return new TimePickerDialog(getActivity(),
-						(view, h, m) -> {
-							activity.saveClock(h, m);
-							activity.endTimeclock();
-						}, hour, minute, true);
-			} else {
-				return null;
-			}
+			int initHour = getArguments().getInt("hour", 0);
+			int initMinute = getArguments().getInt("minute", 0);
+			TimeclockDialog activity = (TimeclockDialog) getActivity();
+
+			// Build layout with two NumberPickers
+			LinearLayout layout = new LinearLayout(getActivity());
+			layout.setOrientation(LinearLayout.HORIZONTAL);
+			layout.setGravity(Gravity.CENTER);
+			int pad = (int) (24 * getResources().getDisplayMetrics().density);
+			layout.setPadding(pad, pad, pad, pad);
+
+			// Hours picker
+			hourPicker = new NumberPicker(getActivity());
+			hourPicker.setMinValue(0);
+			hourPicker.setMaxValue(23);
+			hourPicker.setValue(initHour);
+			hourPicker.setWrapSelectorWheel(true);
+			layout.addView(hourPicker);
+
+			// Separator
+			TextView sep = new TextView(getActivity());
+			sep.setText(" : ");
+			sep.setTextSize(24);
+			sep.setGravity(Gravity.CENTER);
+			layout.addView(sep);
+
+			// Minutes picker
+			minutePicker = new NumberPicker(getActivity());
+			minutePicker.setMinValue(0);
+			minutePicker.setMaxValue(59);
+			minutePicker.setValue(initMinute);
+			minutePicker.setWrapSelectorWheel(true);
+			layout.addView(minutePicker);
+
+			return new AlertDialog.Builder(getActivity())
+					.setTitle("Edit Duration (hours : minutes)")
+					.setView(layout)
+					.setPositiveButton("OK", (dialog, which) -> {
+						int h = hourPicker.getValue();
+						int m = minutePicker.getValue();
+						Log.d("MobileOrg", "DurationPicker: hour=" + h + ", minute=" + m);
+						activity.saveClock(h, m);
+						activity.endTimeclock();
+					})
+					.setNegativeButton("Cancel", null)
+					.create();
 		}
 	}
 }

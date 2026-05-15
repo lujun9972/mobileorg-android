@@ -182,6 +182,10 @@ public class Synchronizer {
 		// Remove local files that no longer exist on remote
 		removeRemoteDeletedFiles(filenameMap);
 
+		// Only download files that are listed in index.org
+		// (checksums.dat may reference files removed from index)
+		changedFiles.retainAll(filenameMap.keySet());
+
 		if(changedFiles.size() == 0) {
 			Log.i("MobileOrg", "Sync: no changed files to download");
 			return changedFiles;

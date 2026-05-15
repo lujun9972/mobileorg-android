@@ -228,4 +228,34 @@ public class SynchronizerTest extends ProviderTestCase2<OrgProvider> {
 		HashMap<String, String> localAfter = OrgProviderUtils.getFileChecksums(resolver);
 		assertTrue("agenda file should NOT be removed", localAfter.containsKey(OrgFile.AGENDA_FILE));
 	}
+
+	@Test
+	public void testPullDoesNotReDownloadDeletedFile() throws Exception {
+		// File in checksums.dat but NOT in index.org should not be downloaded
+		OrgFile archiveFile = new OrgFile("books.org_archive", "Archive", "old_checksum");
+		archiveFile.write(resolver);
+
+		String indexWithoutArchive = "#+READONLY\n"
+				+ "#+TODO: TODO | DONE\n"
+				+ "#+TAGS: { Home Computer Errands }\n"
+				+ "#+ALLPRIORITIES: A B C\n"
+				+ "* [[file:GTD.org][GTD.org]]\n";
+		// checksums.dat STILL references books.org_archive
+		String checksumsWithArchive = "25aade750f6b60aa1df155fcbb357191  index.org\n"
+				+ "42055316a0808ad634d7981653cf4400faddb91f  GTD.org\n"
+				+ "deadbeef  books.org_archive";
+		synchronizerStub.addFile("index.org", indexWithoutArchive);
+		synchronizerStub.addFile("checksums.dat", checksumsWithArchive);
+		synchronizerStub.addFile("GTD.org", SimpleOrgFiles.orgFile);
+		synchronizerStub.addFile("books.org_archive", "* archived item");
+
+		synchronizer.pull(parserStub);
+
+		// archive file should be removed despite being in checksums.dat
+		HashMap<String, String> localAfter = OrgProviderUtils.getFileChecksums(resolver);
+		assertFalse("books.org_archive should be removed even if in checksums.dat",
+				localAfter.containsKey("books.org_archive"));
+		assertFalse("books.org_archive should not be downloaded",
+				parserStub.filesParsed.contains("books.org_archive"));
+	}
 }

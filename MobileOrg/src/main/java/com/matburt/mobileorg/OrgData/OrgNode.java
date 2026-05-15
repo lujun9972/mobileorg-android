@@ -603,7 +603,7 @@ public class OrgNode {
 	public void addLogbook(long startTime, long endTime, String elapsedTime, ContentResolver resolver) {
 		StringBuilder rawPayload = new StringBuilder(getPayload());
 		rawPayload = OrgNodePayload.addLogbook(rawPayload, startTime, endTime, elapsedTime);
-		
+
 		boolean generateEdits = !getFilename(resolver).equals(FileUtils.CAPTURE_FILE);
 
 		if(generateEdits) {
@@ -611,6 +611,7 @@ public class OrgNode {
 			edit.write(resolver);
 		}
 		setPayload(rawPayload.toString());
+		write(resolver);
 	}
 
 	/**
@@ -627,6 +628,7 @@ public class OrgNode {
 			edit.write(resolver);
 		}
 		setPayload(rawPayload.toString());
+		write(resolver);
 	}
 
 	public void addAutomaticTimestamp() {

@@ -11,6 +11,7 @@ import android.view.Window;
 import android.widget.Button;
 import android.widget.TextView;
 import android.widget.TimePicker;
+import android.util.Log;
 
 import com.matburt.mobileorg.R;
 import com.matburt.mobileorg.OrgData.OrgNode;
@@ -74,10 +75,13 @@ public class TimeclockDialog extends FragmentActivity {
 
 	private void saveClock(int hour, int minute) {
 		if (node == null) return;
-		long endTime = System.currentTimeMillis();
+		TimeclockService service = TimeclockService.getInstance();
+		long startTime = (service != null) ? service.getStartTime() : System.currentTimeMillis();
 		long durationMillis = (hour * 3600L + minute * 60L) * 1000L;
-		long startTime = endTime - durationMillis;
+		long endTime = startTime + durationMillis;
 		String elapsedTime = String.format("%d:%02d", hour, minute);
+		Log.d("MobileOrg", "saveClock: duration=" + elapsedTime
+				+ ", startTime=" + startTime + ", endTime=" + endTime);
 		node.addLogbook(startTime, endTime, elapsedTime, getContentResolver());
 	}
 	

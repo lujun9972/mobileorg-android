@@ -29,7 +29,12 @@ import org.junit.runner.RunWith;
 import androidx.test.core.app.ApplicationProvider;
 import androidx.test.ext.junit.runners.AndroidJUnit4;
 
+import java.util.HashMap;
+
+import com.matburt.mobileorg.OrgData.OrgProviderUtils;
+
 import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertFalse;
 import static org.junit.Assert.assertTrue;
 import static org.junit.Assert.fail;
 
@@ -159,5 +164,68 @@ public class SynchronizerTest extends ProviderTestCase2<OrgProvider> {
 
 		// TODO Make actual test out of this
 		//assertEquals(edit.toString(), synchronizerStub.files.get(Synchronizer.CAPTURE_FILE));
+	}
+
+	@Test
+	public void testPullRemovesRemoteDeletedFiles() throws Exception {
+		// Step 1: Simulate a previously synced archive.org in local DB
+		OrgFile archiveFile = new OrgFile("archive.org", "Archive", "old_checksum");
+		archiveFile.write(resolver);
+
+		HashMap<String, String> localBefore = OrgProviderUtils.getFileChecksums(resolver);
+		assertTrue("archive.org should be in local DB before sync", localBefore.containsKey("archive.org"));
+
+		// Step 2: Sync with remote that no longer has archive.org
+		String indexWithoutArchive = "#+READONLY\n"
+				+ "#+TODO: TODO | DONE\n"
+				+ "#+TAGS: { Home Computer Errands }\n"
+				+ "#+ALLPRIORITIES: A B C\n"
+				+ "* [[file:GTD.org][GTD.org]]\n";
+		String checksumsWithoutArchive = "25aade750f6b60aa1df155fcbb357191  index.org\n"
+				+ "42055316a0808ad634d7981653cf4400faddb91f  GTD.org";
+		synchronizerStub.addFile("index.org", indexWithoutArchive);
+		synchronizerStub.addFile("checksums.dat", checksumsWithoutArchive);
+		synchronizerStub.addFile("GTD.org", SimpleOrgFiles.orgFile);
+
+		synchronizer.pull(parserStub);
+
+		// Step 3: Verify archive.org was removed from local DB
+		HashMap<String, String> localAfter = OrgProviderUtils.getFileChecksums(resolver);
+		assertFalse("archive.org should be removed from local DB after sync",
+				localAfter.containsKey("archive.org"));
+	}
+
+	@Test
+	public void testPullDoesNotRemoveCaptureFile() throws Exception {
+		// Capture file should never be removed even if not in remote index
+		OrgFile captureFile = new OrgFile(Synchronizer.CAPTURE_FILE, "Captures", "cap_checksum");
+		captureFile.write(resolver);
+
+		String indexEmpty = "#+READONLY\n#+TODO: TODO | DONE\n#+TAGS:\n#+ALLPRIORITIES:\n";
+		String checksumsEmpty = "abc123  index.org\n";
+		synchronizerStub.addFile("index.org", indexEmpty);
+		synchronizerStub.addFile("checksums.dat", checksumsEmpty);
+
+		synchronizer.pull(parserStub);
+
+		HashMap<String, String> localAfter = OrgProviderUtils.getFileChecksums(resolver);
+		assertTrue("capture file should NOT be removed", localAfter.containsKey(Synchronizer.CAPTURE_FILE));
+	}
+
+	@Test
+	public void testPullDoesNotRemoveAgendaFile() throws Exception {
+		// Agenda file should never be removed even if not in remote index
+		OrgFile agendaFile = new OrgFile(OrgFile.AGENDA_FILE, OrgFile.AGENDA_FILE_ALIAS, "agenda_checksum");
+		agendaFile.write(resolver);
+
+		String indexEmpty = "#+READONLY\n#+TODO: TODO | DONE\n#+TAGS:\n#+ALLPRIORITIES:\n";
+		String checksumsEmpty = "abc123  index.org\n";
+		synchronizerStub.addFile("index.org", indexEmpty);
+		synchronizerStub.addFile("checksums.dat", checksumsEmpty);
+
+		synchronizer.pull(parserStub);
+
+		HashMap<String, String> localAfter = OrgProviderUtils.getFileChecksums(resolver);
+		assertTrue("agenda file should NOT be removed", localAfter.containsKey(OrgFile.AGENDA_FILE));
 	}
 }

@@ -173,17 +173,21 @@ public class Synchronizer {
 		Log.i("MobileOrg", "Sync: changedFiles=" + changedFiles.size()
 				+ ", files=" + changedFiles);
 
-		if(changedFiles.size() == 0) {
-			Log.w("MobileOrg", "Sync: no changed files detected, skipping download");
-			return changedFiles;
-		}
-
-		changedFiles.remove(INDEX_FILE);
 		announceProgressDownload(INDEX_FILE, 0, changedFiles.size() + 2);
 		HashMap<String,String> filenameMap = getAndParseIndexFile();
 		syncDiag += "index.org: " + filenameMap.size() + " files listed\n";
 		Log.i("MobileOrg", "Sync: index parsed, filenameMap=" + filenameMap.size()
 				+ ", entries=" + filenameMap.keySet());
+
+		// Remove local files that no longer exist on remote
+		removeRemoteDeletedFiles(filenameMap);
+
+		if(changedFiles.size() == 0) {
+			Log.i("MobileOrg", "Sync: no changed files to download");
+			return changedFiles;
+		}
+
+		changedFiles.remove(INDEX_FILE);
 
 		Collections.sort(changedFiles, new OrgUtils.SortIgnoreCase());
 
@@ -254,6 +258,30 @@ public class Synchronizer {
 		filesToGet.remove(CAPTURE_FILE);
 
 		return filesToGet;
+	}
+
+	/**
+	 * Remove local files that no longer exist on the remote server.
+	 * Compares local DB files against the remote index.org file list
+	 * and removes any local-only files (except capture and agenda files).
+	 */
+	private void removeRemoteDeletedFiles(HashMap<String, String> remoteFileMap) {
+		HashMap<String, String> localChecksums = OrgProviderUtils.getFileChecksums(resolver);
+
+		for (String localFile : localChecksums.keySet()) {
+			if (localFile.equals(CAPTURE_FILE) || localFile.equals(OrgFile.AGENDA_FILE))
+				continue;
+
+			if (!remoteFileMap.containsKey(localFile)) {
+				Log.i("MobileOrg", "Sync: removing locally deleted remote file: " + localFile);
+				syncDiag += "removed: " + localFile + "\n";
+				try {
+					new OrgFile(localFile, resolver).removeFile(resolver);
+				} catch (OrgFileNotFoundException e) {
+					// already gone
+				}
+			}
+		}
 	}
 
 	private void getAndParseFile(OrgFile orgFile, OrgFileParser parser)

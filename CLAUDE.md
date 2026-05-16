@@ -38,8 +38,9 @@ APK output: `MobileOrg/build/outputs/apk/debug/`
 - **`OrgData/`** — Core data layer. `OrgDatabase` (SQLite), `OrgFileParser` (parses org files into DB), `OrgProvider`/`OrgProviderUtils` (ContentProvider), `MobileOrgApplication` (app init). Singletons via static `getInstance()` / `startXxx()`.
 - **`Synchronizers/`** — Abstract `Synchronizer` base with implementations: `WebDAVSynchronizer`, `SSHSynchronizer` (JSch), `SDCardSynchronizer`. Each implements `isConfigured()`, `isConnectable()`, `synchronize()`, `postSynchronize()`.
 - **`Gui/Outline/`** — Main UI. `OutlineAdapter` prepends 2 fixed header items (TODO, Agenda) before the file list (`numExtraItems = 2`), so all position-to-index conversions must subtract 2.
-- **`Services/`** — `SyncService` (sync via `AlarmManager` + background thread, foreground service on API 26+), `TimeclockService` (timer with foreground notification), `CalendarSyncService`.
+- **`Services/`** — `SyncService` (sync via `AlarmManager` + background thread, foreground service on API 26+), `TimeclockService` (timer with foreground notification), `CalendarSyncService`, `ReminderReceiver` (individual deadline/scheduled notifications), `DailyOverviewReceiver` (daily summary notification).
 - **`Gui/`** — Notifications (`SynchronizerNotification`/`Compat` with NotificationChannel support), wizard activities, widgets, search.
+- **`util/ReminderScheduler`** — Scans OrgData for DEADLINE/SCHEDULED dates, registers AlarmManager reminders. Called after sync and on boot.
 
 ### Data Flow
 
@@ -101,3 +102,9 @@ All guards use `Build.VERSION.SDK_INT >= Build.VERSION_CODES.O` pattern.
 - **RecyclerView + extra items**: `OutlineAdapter` adds 2 header items. Position-to-index must subtract `numExtraItems`.
 - **`OrgNodeListActivity`**: No `onSaveInstanceState` — rotation can cause issues.
 - **AndroidX**: Project uses AndroidX (`androidx.*` imports). Jetifier enabled for local JARs.
+- **OrgRenderer XSS prevention**: When rendering user content to HTML, always call `htmlEncode()` BEFORE `applyInlineMarkup()`. The order encode→markup→links prevents injection while preserving org formatting.
+- **OrgRenderer uses raw payload**: `OrgRenderer` calls `node.getPayload()` (raw) and handles cleaning internally via `preClean()`. Do NOT use `getCleanedPayload()` which strips `#+BEGIN_SRC` blocks needed for source code rendering.
+- **OrgRenderer recursion depth**: `nodeToHTMLRecursive()` has `MAX_RECURSION_DEPTH = 50`. Deeply nested org files beyond 50 levels will be silently truncated.
+- **PayloadFragment preview sync**: Before rendering, must call `node.setPayload(payload.get())` to sync edited content. Otherwise the preview shows stale data.
+- **OrgData is an inner class**: `OrgData` is `OrgContract.OrgData`, not a standalone class. When importing from outside the `OrgData` package, use `import com.matburt.mobileorg.OrgData.OrgContract.OrgData`. The short `import ...OrgData.OrgData` only works within the `OrgData` package itself.
+- **Cross-package static methods must be public**: Package-private (`static` without `public`) methods are invisible to classes in other packages. If a utility method in `util/` is called from `Services/`, it must be `public static`.

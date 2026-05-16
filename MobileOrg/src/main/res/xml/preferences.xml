@@ -68,16 +68,6 @@
                     android:title="@string/preference_fontsize" />
             </PreferenceCategory>
             <PreferenceCategory android:title="@string/preference_view" >
-                <CheckBoxPreference
-                    android:key="viewWrapLines"
-                    android:summary="@string/preference_view_wrap_lines_summary"
-                    android:title="@string/preference_view_wrap_lines" />
-                <CheckBoxPreference
-                    android:defaultValue="true"
-                    android:key="viewApplyFormatting"
-                    android:summary="@string/preference_view_apply_formatting_summary"
-                    android:title="@string/preference_view_apply_formatting" />
-
                 <ListPreference
                     android:defaultValue="0"
                     android:entries="@array/viewRecursionLevels"

@@ -33,7 +33,14 @@ public class OrgRenderer {
 
 	public OrgRenderer(ContentResolver resolver, Context context) {
 		this.resolver = resolver;
-		this.fontColor = DefaultTheme.getTheme(context).defaultFontColor;
+		String color = DefaultTheme.getTheme(context).defaultFontColor;
+		// Convert named colors to hex for CSS compatibility
+		if ("white".equals(color)) {
+			color = "ffffff";
+		} else if ("black".equals(color)) {
+			color = "000000";
+		}
+		this.fontColor = color;
 	}
 
 	/**

@@ -12,6 +12,7 @@ This fork brings the original project (API 17) up to modern Android standards �
 
 - **Multiple sync methods**: WebDAV, SSH (scp via JSch), SD card
 - **Org-mode browsing**: Navigate nodes, TODO states, tags, priorities
+- **Rich content rendering**: HTML rendering engine with inline markup (`*bold*`, `/italic/`, `~code~`, `=verbatim=`, `_underline_`, `+strike+`), source blocks with syntax highlighting, tables, quote/example blocks, and org-mode link navigation (`[[file:]`, `[[id:]`, `[[*heading]`)
 - **Tag filtering**: Filter outline by tags with AND/OR mode, auto-updating chip bar
 - **Agenda view**: Day/week/month agenda from your org files
 - **Capture**: Quick note entry (like `org-capture`)
@@ -20,6 +21,7 @@ This fork brings the original project (API 17) up to modern Android standards �
 - **Quick recording**: Record audio and attach to org nodes (requires RECORD_AUDIO permission)
 - **Auto-sync**: Periodic background synchronization via AlarmManager
 - **Homescreen widgets**: Agenda widget and capture shortcut widget
+- **Theme support**: Light and dark themes with theme-aware UI colors
 
 ## Tech Stack
 
@@ -29,6 +31,7 @@ This fork brings the original project (API 17) up to modern Android standards �
 | Build | Gradle 8.5 + AGP 8.2.2 + JDK 17 |
 | Database | SQLite via ContentProvider |
 | SSH | [JSch](http://www.jcraft.com/jsch/) 0.1.50 |
+| Syntax Highlighting | [highlight.js](https://highlightjs.org/) 11.9.0 (Atom One Dark) |
 | UI | Material Components, AndroidX AppCompat, RecyclerView |
 
 ## Getting Started
@@ -56,9 +59,13 @@ MobileOrg/src/main/java/com/matburt/mobileorg/
 ├── Synchronizers/  # Sync implementations (WebDAV, SSH, SD card)
 ├── Settings/       # Preference activities
 ├── Plugin/         # BroadcastReceiver for external sync triggers
-└── util/           # Utility classes
+└── util/           # OrgRenderer (org→HTML), OrgUtils, preferences
 ```
 
 ## License
 
 [GNU General Public License v2.0](LICENSE.txt)
+
+## Changelog
+
+See [ Releases](https://github.com/lujun9972/mobileorg-android/releases) for version history.

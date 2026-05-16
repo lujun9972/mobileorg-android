@@ -7,6 +7,7 @@ import android.util.Log;
 import androidx.multidex.MultiDex;
 import com.matburt.mobileorg.Services.SyncService;
 import com.matburt.mobileorg.util.Compat;
+import com.matburt.mobileorg.R;
 
 import java.io.File;
 import java.io.FileWriter;

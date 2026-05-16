@@ -16,7 +16,9 @@ import android.widget.RelativeLayout;
 import com.matburt.mobileorg.R;
 import com.matburt.mobileorg.Gui.ViewFragment;
 import com.matburt.mobileorg.Gui.Theme.DefaultTheme;
+import com.matburt.mobileorg.OrgData.OrgNode;
 import com.matburt.mobileorg.OrgData.OrgNodePayload;
+import com.matburt.mobileorg.util.OrgRenderer;
 
 public class PayloadFragment extends ViewFragment {
 	private static final String PAYLOAD = "payload";
@@ -157,8 +159,13 @@ public class PayloadFragment extends ViewFragment {
 		payloadEdit.setVisibility(View.GONE);
 		cancelButton.setVisibility(View.GONE);
 		saveButton.setVisibility(View.GONE);
-		
-		display(this.payload.getCleanedPayload());
+
+		EditHost editActivity = (EditHost) getActivity();
+		OrgNode node = editActivity.getController().getOrgNode();
+		OrgRenderer renderer = new OrgRenderer(resolver, getActivity());
+		String html = renderer.payloadToHTML(node);
+		displayHtml(html);
+
 		webView.setVisibility(View.VISIBLE);
 		editButton.setVisibility(View.VISIBLE);
 	}

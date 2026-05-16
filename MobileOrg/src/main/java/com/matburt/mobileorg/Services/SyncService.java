@@ -27,6 +27,8 @@ import com.matburt.mobileorg.Synchronizers.Synchronizer;
 import com.matburt.mobileorg.Synchronizers.SynchronizerInterface;
 import com.matburt.mobileorg.Synchronizers.WebDAVSynchronizer;
 import com.matburt.mobileorg.util.Compat;
+import com.matburt.mobileorg.util.ReminderScheduler;
+import android.util.Log;
 
 public class SyncService extends Service implements
 		SharedPreferences.OnSharedPreferenceChangeListener {
@@ -171,6 +173,14 @@ public class SyncService extends Service implements
 					db.close();
 				} finally {
 					syncRunning = false;
+
+					// Schedule reminder alarms after sync
+					try {
+						ReminderScheduler.scheduleAll(getContentResolver(), getBaseContext());
+					} catch (Exception e) {
+						Log.w("MobileOrg", "ReminderScheduler failed: " + e);
+					}
+
 					setAlarm();
 
 					if (Compat.isAtLeastO()) {

@@ -1,10 +1,13 @@
 package com.matburt.mobileorg.Services;
 
 import android.content.BroadcastReceiver;
+import android.content.ContentResolver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.preference.PreferenceManager;
+
+import com.matburt.mobileorg.util.ReminderScheduler;
 
 public class MobileOrgStartupIntentReceiver extends BroadcastReceiver {
 
@@ -21,9 +24,18 @@ public class MobileOrgStartupIntentReceiver extends BroadcastReceiver {
 		if (this.shouldStartService(context)) {
 			SyncService.startAlarm(context);
 		}
-		
+
 		Intent calIntent = new Intent(context, CalendarSyncService.class);
 		calIntent.putExtra(CalendarSyncService.FILELIST, new String[] {});
 		context.startService(calIntent);
+
+		// Re-register reminder alarms after boot
+		try {
+			ContentResolver resolver = context.getContentResolver();
+			ReminderScheduler.rescheduleAll(resolver, context);
+			ReminderScheduler.scheduleDailyOverview(context);
+		} catch (Exception e) {
+			// Silently ignore - reminders will be re-registered on next sync
+		}
 	}
 }

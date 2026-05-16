@@ -66,6 +66,19 @@
             </intent-filter>
         </receiver>
 
+        <receiver android:name=".Services.ReminderReceiver"
+            android:exported="false" >
+            <intent-filter>
+                <action android:name="com.matburt.mobileorg.REMINDER" />
+            </intent-filter>
+        </receiver>
+        <receiver android:name=".Services.DailyOverviewReceiver"
+            android:exported="false" >
+            <intent-filter>
+                <action android:name="com.matburt.mobileorg.DAILY_OVERVIEW" />
+            </intent-filter>
+        </receiver>
+
         <activity
             android:name=".Gui.Outline.OutlineActivity"
             android:exported="true"

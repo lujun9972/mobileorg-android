@@ -64,6 +64,7 @@
     <string name="error_dialog_title">Error</string>
     <string name="error_apg_not_found">APG not found</string>
     <string name="error_apg_version_not_supported">APG version not supported</string>
+    <string name="node_not_found">Node not found</string>
 
     <!-- menu strings -->
     <string name="menu_outline">Outline</string>

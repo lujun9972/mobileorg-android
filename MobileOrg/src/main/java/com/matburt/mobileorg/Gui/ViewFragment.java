@@ -14,19 +14,22 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
+import android.widget.Toast;
 
 import androidx.fragment.app.Fragment;
 import com.matburt.mobileorg.R;
 import com.matburt.mobileorg.Gui.Theme.DefaultTheme;
 import com.matburt.mobileorg.OrgData.OrgNode;
 import com.matburt.mobileorg.util.OrgFileNotFoundException;
-import com.matburt.mobileorg.util.OrgNode2Html;
+import com.matburt.mobileorg.util.OrgRenderer;
 import com.matburt.mobileorg.util.OrgUtils;
+import com.matburt.mobileorg.util.OrgNodeNotFoundException;
 
 public class ViewFragment extends Fragment {
-	
+
 	private ContentResolver resolver;
 	protected WebView webView;
+	private String currentFilename = "";
 	
 	@Override
 	public View onCreateView(LayoutInflater inflater, ViewGroup container,
@@ -49,23 +52,16 @@ public class ViewFragment extends Fragment {
 		this.resolver = getActivity().getContentResolver();
 	}
 	
-	public void display(String payload) {
-		OrgNode2Html htmlNode = new OrgNode2Html(resolver, getActivity());
-		htmlNode.wrapLines = true;
-		String html = htmlNode.toHTML(payload);
-		displayHtml(html);
-	}
-	
 	public void displayPayload(OrgNode node) {
-		OrgNode2Html htmlNode = new OrgNode2Html(resolver, getActivity());
-		htmlNode.wrapLines = true;
-		String html = htmlNode.payloadToHTML(node);
+		OrgRenderer renderer = new OrgRenderer(resolver, getActivity());
+		String html = renderer.payloadToHTML(node);
 		displayHtml(html);
 	}
-	
+
 	public void display(OrgNode node, int levelOfRecursion, ContentResolver resolver) {
-		OrgNode2Html htmlNode = new OrgNode2Html(resolver, getActivity());
-		String html = htmlNode.toHTML(node, levelOfRecursion);
+		OrgRenderer renderer = new OrgRenderer(resolver, getActivity());
+		this.currentFilename = node.getFilename(resolver);
+		String html = renderer.toHTML(node, levelOfRecursion);
 		displayHtml(html);
 	}
 
@@ -88,6 +84,19 @@ public class ViewFragment extends Fragment {
 
 		@Override
 		public boolean shouldOverrideUrlLoading(WebView view, String url) {
+			if (url.startsWith("orgfile:")) {
+				handleFileLink(url.substring("orgfile:".length()));
+				return true;
+			}
+			if (url.startsWith("orgid:")) {
+				handleIdLink(url.substring("orgid:".length()));
+				return true;
+			}
+			if (url.startsWith("orginternal:")) {
+				handleInternalLink(url.substring("orginternal:".length()));
+				return true;
+			}
+			// Keep existing file:// handling for backward compatibility
 			try {
 				URL urlObj = new URL(url);
 				if (urlObj.getProtocol().equals("file")) {
@@ -97,12 +106,9 @@ public class ViewFragment extends Fragment {
 			} catch (MalformedURLException e) {
 				Log.e("MobileOrg", "Malformed url :" + url);
 			}
-
-			Intent intent = new Intent(Intent.ACTION_VIEW);
-			intent.setData(Uri.parse(url));
-			try {
-				startActivity(intent);
-			} catch(ActivityNotFoundException e) {}
+			// External links - open in system browser
+			Intent intent = new Intent(Intent.ACTION_VIEW, Uri.parse(url));
+			try { startActivity(intent); } catch (ActivityNotFoundException e) {}
 			return true;
 		}
 
@@ -112,7 +118,48 @@ public class ViewFragment extends Fragment {
 		}
 
 	}
-	
+
+	private void handleFileLink(String target) {
+		try {
+			long nodeId;
+			int headingIdx = target.indexOf("::*");
+			if (headingIdx > -1) {
+				String filename = target.substring(0, headingIdx);
+				String heading = target.substring(headingIdx + 2); // skip "::*"
+				nodeId = OrgUtils.getNodeByHeading(filename, heading, resolver);
+			} else {
+				nodeId = OrgUtils.getNodeFromPath("file://" + target, resolver);
+			}
+			Intent intent = new Intent(getActivity(), ViewActivity.class);
+			intent.putExtra(ViewActivity.NODE_ID, nodeId);
+			startActivity(intent);
+		} catch (Exception e) {
+			Toast.makeText(getActivity(), R.string.node_not_found, Toast.LENGTH_SHORT).show();
+		}
+	}
+
+	private void handleIdLink(String id) {
+		try {
+			long nodeId = OrgUtils.getNodeById(id, resolver);
+			Intent intent = new Intent(getActivity(), ViewActivity.class);
+			intent.putExtra(ViewActivity.NODE_ID, nodeId);
+			startActivity(intent);
+		} catch (Exception e) {
+			Toast.makeText(getActivity(), R.string.node_not_found, Toast.LENGTH_SHORT).show();
+		}
+	}
+
+	private void handleInternalLink(String heading) {
+		try {
+			long nodeId = OrgUtils.getNodeByHeading(currentFilename, heading, resolver);
+			Intent intent = new Intent(getActivity(), ViewActivity.class);
+			intent.putExtra(ViewActivity.NODE_ID, nodeId);
+			startActivity(intent);
+		} catch (Exception e) {
+			Toast.makeText(getActivity(), R.string.node_not_found, Toast.LENGTH_SHORT).show();
+		}
+	}
+
 	private void handleInternalOrgUrl(String url) {
 		try {
 			long nodeId = OrgUtils.getNodeFromPath(url, resolver);

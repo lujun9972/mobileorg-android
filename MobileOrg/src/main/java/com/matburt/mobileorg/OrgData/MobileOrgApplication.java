@@ -6,6 +6,7 @@ import android.util.Log;
 
 import androidx.multidex.MultiDex;
 import com.matburt.mobileorg.Services.SyncService;
+import com.matburt.mobileorg.util.Compat;
 
 import java.io.File;
 import java.io.FileWriter;
@@ -40,6 +41,13 @@ public class MobileOrgApplication extends Application {
 		try {
 			SyncService.startAlarm(getApplicationContext());
 			log("MobileOrgApplication.onCreate() SyncService.startAlarm done");
+
+			// Create reminder notification channel
+			Compat.createNotificationChannelHigh(getApplicationContext(),
+				Compat.CHANNEL_REMINDER,
+				getString(R.string.reminder_notification_channel),
+				getString(R.string.reminder_notification_channel_desc));
+			log("MobileOrgApplication.onCreate() reminder notification channel created");
 		} catch (Exception e) {
 			log("MobileOrgApplication.onCreate() ERROR: " + e);
 		}

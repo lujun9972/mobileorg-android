@@ -16,6 +16,7 @@ public class Compat {
 
     public static final int SDK_O = 26;
     public static final int FLAG_IMMUTABLE = 0x04000000;
+    public static final String CHANNEL_REMINDER = "mobileorg_reminder";
 
     public static boolean isAtLeastO() {
         return Build.VERSION.SDK_INT >= SDK_O;
@@ -30,6 +31,19 @@ public class Compat {
         if (nm == null) return;
         NotificationChannel channel = new NotificationChannel(channelId, name, NotificationManager.IMPORTANCE_LOW);
         channel.setDescription(name);
+        nm.createNotificationChannel(channel);
+    }
+
+    /**
+     * Create a HIGH importance NotificationChannel for reminders (API 26+).
+     */
+    public static void createNotificationChannelHigh(Context context, String channelId, String name, String description) {
+        if (!isAtLeastO()) return;
+        NotificationManager nm = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
+        if (nm == null) return;
+        NotificationChannel channel = new NotificationChannel(channelId, name, NotificationManager.IMPORTANCE_HIGH);
+        channel.setDescription(description);
+        channel.enableVibration(true);
         nm.createNotificationChannel(channel);
     }
 

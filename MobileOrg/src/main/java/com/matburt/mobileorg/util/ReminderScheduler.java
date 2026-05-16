@@ -246,7 +246,7 @@ public class ReminderScheduler {
     /**
      * Format date string for display: extract "YYYY-MM-DD" part.
      */
-    static String formatDate(String dateStr) {
+    public static String formatDate(String dateStr) {
         Matcher m = DATE_PATTERN.matcher(dateStr);
         if (m.find()) {
             return m.group(1) + "-" + m.group(2) + "-" + m.group(3);

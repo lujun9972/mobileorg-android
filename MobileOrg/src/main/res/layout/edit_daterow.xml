@@ -25,7 +25,8 @@
         android:includeFontPadding="false"
         android:minHeight="35dp"
         android:paddingLeft="5dp"
-        android:paddingRight="5dp" />
+        android:paddingRight="5dp"
+        android:textColor="?android:attr/textColorPrimary" />
 
     <Button
         android:id="@+id/dateTimeStartButton"
@@ -39,7 +40,8 @@
         android:minHeight="35dip"
         android:minWidth="30dip"
         android:paddingLeft="5dp"
-        android:paddingRight="5dp" />
+        android:paddingRight="5dp"
+        android:textColor="?android:attr/textColorPrimary" />
 
     <Button
         android:id="@+id/dateTimeEndButton"
@@ -53,7 +55,8 @@
         android:minHeight="35dp"
         android:minWidth="30dp"
         android:paddingLeft="5dp"
-        android:paddingRight="5dp" />
+        android:paddingRight="5dp"
+        android:textColor="?android:attr/textColorPrimary" />
 
     <Button
         android:id="@+id/dateRemove"

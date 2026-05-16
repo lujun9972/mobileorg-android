@@ -14,7 +14,7 @@ import android.util.Log;
 import androidx.core.app.NotificationCompat;
 
 import com.matburt.mobileorg.Gui.Outline.OutlineActivity;
-import com.matburt.mobileorg.OrgData.OrgData;
+import com.matburt.mobileorg.OrgData.OrgContract.OrgData;
 import com.matburt.mobileorg.OrgData.OrgNodePayload;
 import com.matburt.mobileorg.OrgData.OrgProviderUtils;
 import com.matburt.mobileorg.R;

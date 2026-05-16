@@ -12,7 +12,7 @@ import android.preference.PreferenceManager;
 import android.text.TextUtils;
 import android.util.Log;
 
-import com.matburt.mobileorg.OrgData.OrgData;
+import com.matburt.mobileorg.OrgData.OrgContract.OrgData;
 import com.matburt.mobileorg.OrgData.OrgNodePayload;
 import com.matburt.mobileorg.OrgData.OrgProviderUtils;
 
@@ -211,7 +211,7 @@ public class ReminderScheduler {
      * Parse an org date string like "2024-01-15 10:00" into a Calendar.
      * Returns null if parsing fails.
      */
-    static Calendar parseDateToCalendar(String dateStr) {
+    public static Calendar parseDateToCalendar(String dateStr) {
         if (TextUtils.isEmpty(dateStr)) return null;
         Matcher m = DATE_PATTERN.matcher(dateStr);
         if (!m.find()) return null;

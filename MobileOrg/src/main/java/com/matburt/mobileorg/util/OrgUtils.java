@@ -19,6 +19,7 @@ import android.content.ContentResolver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.database.Cursor;
 import android.net.ConnectivityManager;
 import android.net.NetworkInfo;
 import android.net.NetworkInfo.State;
@@ -29,8 +30,10 @@ import android.widget.ArrayAdapter;
 import android.widget.Spinner;
 
 import com.matburt.mobileorg.R;
+import com.matburt.mobileorg.OrgData.OrgContract.OrgData;
 import com.matburt.mobileorg.OrgData.OrgFile;
 import com.matburt.mobileorg.OrgData.OrgNode;
+import com.matburt.mobileorg.util.OrgNodeNotFoundException;
 import com.matburt.mobileorg.Synchronizers.Synchronizer;
 
 public class OrgUtils {
@@ -87,13 +90,46 @@ public class OrgUtils {
 
 	public static long getNodeFromPath(String path, ContentResolver resolver) throws OrgFileNotFoundException {
 		String filename = path.substring("file://".length(), path.length());
-		
+
 		// TODO Handle links to headings instead of simply stripping it out
 		if(filename.indexOf(":") > -1)
 			filename = filename.substring(0, filename.indexOf(":"));
-				
+
 		OrgFile file = new OrgFile(filename, resolver);
 		return file.nodeId;
+	}
+
+	public static long getNodeByHeading(String filename, String heading, ContentResolver resolver)
+			throws OrgNodeNotFoundException {
+		OrgFile file = new OrgFile(filename, resolver);
+		Cursor cursor = resolver.query(OrgData.CONTENT_URI, OrgData.DEFAULT_COLUMNS,
+				OrgData.FILE_ID + "=? AND " + OrgData.NAME + "=?",
+				new String[] { String.valueOf(file.nodeId), heading }, null);
+		try {
+			if (cursor != null && cursor.moveToFirst()) {
+				OrgNode node = new OrgNode(cursor);
+				return node.id;
+			}
+		} finally {
+			if (cursor != null) cursor.close();
+		}
+		throw new OrgNodeNotFoundException("Heading \"" + heading + "\" not found in " + filename);
+	}
+
+	public static long getNodeById(String id, ContentResolver resolver)
+			throws OrgNodeNotFoundException {
+		Cursor cursor = resolver.query(OrgData.CONTENT_URI, OrgData.DEFAULT_COLUMNS,
+				OrgData.PAYLOAD + " LIKE ?",
+				new String[] { "%:ID: " + id + "%" }, null);
+		try {
+			if (cursor != null && cursor.moveToFirst()) {
+				OrgNode node = new OrgNode(cursor);
+				return node.id;
+			}
+		} finally {
+			if (cursor != null) cursor.close();
+		}
+		throw new OrgNodeNotFoundException("Node with ID \"" + id + "\" not found");
 	}
 	
 	public static void announceSyncDone(Context context) {

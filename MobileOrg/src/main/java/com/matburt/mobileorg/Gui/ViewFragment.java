@@ -27,7 +27,7 @@ import com.matburt.mobileorg.util.OrgNodeNotFoundException;
 
 public class ViewFragment extends Fragment {
 
-	private ContentResolver resolver;
+	protected ContentResolver resolver;
 	protected WebView webView;
 	private String currentFilename = "";
 	

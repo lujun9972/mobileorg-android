@@ -33,6 +33,7 @@ import com.matburt.mobileorg.R;
 import com.matburt.mobileorg.OrgData.OrgContract.OrgData;
 import com.matburt.mobileorg.OrgData.OrgFile;
 import com.matburt.mobileorg.OrgData.OrgNode;
+import com.matburt.mobileorg.util.OrgFileNotFoundException;
 import com.matburt.mobileorg.util.OrgNodeNotFoundException;
 import com.matburt.mobileorg.Synchronizers.Synchronizer;
 
@@ -100,7 +101,7 @@ public class OrgUtils {
 	}
 
 	public static long getNodeByHeading(String filename, String heading, ContentResolver resolver)
-			throws OrgNodeNotFoundException {
+			throws OrgNodeNotFoundException, OrgFileNotFoundException {
 		OrgFile file = new OrgFile(filename, resolver);
 		Cursor cursor = resolver.query(OrgData.CONTENT_URI, OrgData.DEFAULT_COLUMNS,
 				OrgData.FILE_ID + "=? AND " + OrgData.NAME + "=?",

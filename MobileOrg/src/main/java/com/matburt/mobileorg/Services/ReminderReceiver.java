@@ -43,6 +43,7 @@ public class ReminderReceiver extends BroadcastReceiver {
             }
 
             String label = dateType.equals("deadline") ? "DEADLINE" : "SCHEDULED";
+            String title = node.name != null ? node.name : "Node " + nodeId;
 
             Intent viewIntent = new Intent(context, ViewActivity.class);
             viewIntent.putExtra(ViewActivity.NODE_ID, nodeId);
@@ -51,7 +52,7 @@ public class ReminderReceiver extends BroadcastReceiver {
 
             NotificationCompat.Builder builder = new NotificationCompat.Builder(context, Compat.CHANNEL_REMINDER)
                 .setSmallIcon(R.drawable.icon)
-                .setContentTitle(node.name)
+                .setContentTitle(title)
                 .setContentText(label + ": " + dateString)
                 .setAutoCancel(true)
                 .setContentIntent(pi)

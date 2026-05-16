@@ -62,46 +62,49 @@ public class DailyOverviewReceiver extends BroadcastReceiver {
 
         if (cursor == null) return;
 
-        while (cursor.moveToNext()) {
-            String todo = cursor.getString(cursor.getColumnIndex(OrgData.TODO));
-            if (todo != null && !activeTodos.contains(todo)) continue;
+        try {
+            while (cursor.moveToNext()) {
+                String todo = cursor.getString(cursor.getColumnIndex(OrgData.TODO));
+                if (todo != null && !activeTodos.contains(todo)) continue;
 
-            String name = cursor.getString(cursor.getColumnIndex(OrgData.NAME));
-            String payload = cursor.getString(cursor.getColumnIndex(OrgData.PAYLOAD));
-            OrgNodePayload nodePayload = new OrgNodePayload(payload);
+                String name = cursor.getString(cursor.getColumnIndex(OrgData.NAME));
+                String payload = cursor.getString(cursor.getColumnIndex(OrgData.PAYLOAD));
+                OrgNodePayload nodePayload = new OrgNodePayload(payload);
 
-            // Check SCHEDULED today
-            String scheduledStr = nodePayload.getScheduled();
-            if (!TextUtils.isEmpty(scheduledStr)) {
-                Calendar scheduledCal = ReminderScheduler.parseDateToCalendar(scheduledStr);
-                if (scheduledCal != null) {
-                    long ms = scheduledCal.getTimeInMillis();
-                    if (ms >= todayMs && ms < tomorrowMs) {
-                        scheduledItems.add(name);
+                // Check SCHEDULED today
+                String scheduledStr = nodePayload.getScheduled();
+                if (!TextUtils.isEmpty(scheduledStr)) {
+                    Calendar scheduledCal = ReminderScheduler.parseDateToCalendar(scheduledStr);
+                    if (scheduledCal != null) {
+                        long ms = scheduledCal.getTimeInMillis();
+                        if (ms >= todayMs && ms < tomorrowMs) {
+                            scheduledItems.add(name);
+                        }
                     }
                 }
-            }
 
-            // Check DEADLINE within advance window
-            String deadlineStr = nodePayload.getDeadline();
-            if (!TextUtils.isEmpty(deadlineStr)) {
-                Calendar deadlineCal = ReminderScheduler.parseDateToCalendar(deadlineStr);
-                if (deadlineCal != null) {
-                    long ms = deadlineCal.getTimeInMillis();
-                    if (ms >= todayMs && ms <= deadlineWindowMs) {
-                        long daysDiff = (ms - todayMs) / 86400000;
-                        if (daysDiff == 0) {
-                            deadlineItems.add(name);
-                        } else if (daysDiff == 1) {
-                            deadlineItems.add(name + " (明天)");
-                        } else {
-                            deadlineItems.add(name + " (" + daysDiff + "天后)");
+                // Check DEADLINE within advance window
+                String deadlineStr = nodePayload.getDeadline();
+                if (!TextUtils.isEmpty(deadlineStr)) {
+                    Calendar deadlineCal = ReminderScheduler.parseDateToCalendar(deadlineStr);
+                    if (deadlineCal != null) {
+                        long ms = deadlineCal.getTimeInMillis();
+                        if (ms >= todayMs && ms < deadlineWindowMs) {
+                            long daysDiff = (ms - todayMs) / 86400000;
+                            if (daysDiff == 0) {
+                                deadlineItems.add(name);
+                            } else if (daysDiff == 1) {
+                                deadlineItems.add(name + " (明天)");
+                            } else {
+                                deadlineItems.add(name + " (" + daysDiff + "天后)");
+                            }
                         }
                     }
                 }
             }
+        } finally {
+            cursor.close();
         }
-        cursor.close();
 
         NotificationManager nm = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
 

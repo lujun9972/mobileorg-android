@@ -64,44 +64,47 @@ public class ReminderScheduler {
         long now = System.currentTimeMillis();
         int registered = 0;
 
-        while (cursor.moveToNext()) {
-            String todo = cursor.getString(cursor.getColumnIndex(OrgData.TODO));
-            // Include: no TODO state OR active TODO
-            if (todo != null && !activeTodos.contains(todo)) continue;
+        try {
+            while (cursor.moveToNext()) {
+                String todo = cursor.getString(cursor.getColumnIndex(OrgData.TODO));
+                // Include: no TODO state OR active TODO
+                if (todo != null && !activeTodos.contains(todo)) continue;
 
-            long nodeId = cursor.getLong(cursor.getColumnIndex(OrgData.ID));
-            String payload = cursor.getString(cursor.getColumnIndex(OrgData.PAYLOAD));
+                long nodeId = cursor.getLong(cursor.getColumnIndex(OrgData.ID));
+                String payload = cursor.getString(cursor.getColumnIndex(OrgData.PAYLOAD));
 
-            // Process DEADLINE
-            OrgNodePayload nodePayload = new OrgNodePayload(payload);
-            String deadlineStr = nodePayload.getDeadline();
-            if (!TextUtils.isEmpty(deadlineStr)) {
-                Calendar deadlineCal = parseDateToCalendar(deadlineStr);
-                if (deadlineCal != null) {
-                    long reminderTime = deadlineCal.getTimeInMillis() - deadlineAdvance;
-                    if (reminderTime > now && (reminderTime - now) <= SEVEN_DAYS_MS) {
-                        registerAlarm(alarmManager, context, nodeId, "deadline",
-                            formatDate(deadlineStr), reminderTime);
-                        registered++;
+                // Process DEADLINE
+                OrgNodePayload nodePayload = new OrgNodePayload(payload);
+                String deadlineStr = nodePayload.getDeadline();
+                if (!TextUtils.isEmpty(deadlineStr)) {
+                    Calendar deadlineCal = parseDateToCalendar(deadlineStr);
+                    if (deadlineCal != null) {
+                        long reminderTime = deadlineCal.getTimeInMillis() - deadlineAdvance;
+                        if (reminderTime > now && (reminderTime - now) <= SEVEN_DAYS_MS) {
+                            registerAlarm(alarmManager, context, nodeId, "deadline",
+                                formatDate(deadlineStr), reminderTime);
+                            registered++;
+                        }
+                    }
+                }
+
+                // Process SCHEDULED
+                String scheduledStr = nodePayload.getScheduled();
+                if (!TextUtils.isEmpty(scheduledStr)) {
+                    Calendar scheduledCal = parseDateToCalendar(scheduledStr);
+                    if (scheduledCal != null) {
+                        long reminderTime = scheduledCal.getTimeInMillis() - scheduledAdvance;
+                        if (reminderTime > now && (reminderTime - now) <= SEVEN_DAYS_MS) {
+                            registerAlarm(alarmManager, context, nodeId, "scheduled",
+                                formatDate(scheduledStr), reminderTime);
+                            registered++;
+                        }
                     }
                 }
             }
-
-            // Process SCHEDULED
-            String scheduledStr = nodePayload.getScheduled();
-            if (!TextUtils.isEmpty(scheduledStr)) {
-                Calendar scheduledCal = parseDateToCalendar(scheduledStr);
-                if (scheduledCal != null) {
-                    long reminderTime = scheduledCal.getTimeInMillis() - scheduledAdvance;
-                    if (reminderTime > now && (reminderTime - now) <= SEVEN_DAYS_MS) {
-                        registerAlarm(alarmManager, context, nodeId, "scheduled",
-                            formatDate(scheduledStr), reminderTime);
-                        registered++;
-                    }
-                }
-            }
+        } finally {
+            cursor.close();
         }
-        cursor.close();
         Log.d(TAG, "ReminderScheduler: registered " + registered + " alarms");
 
         scheduleDailyOverview(context);
@@ -121,20 +124,23 @@ public class ReminderScheduler {
 
         if (cursor == null) return;
 
-        while (cursor.moveToNext()) {
-            long nodeId = cursor.getLong(cursor.getColumnIndex(OrgData.ID));
-            String payload = cursor.getString(cursor.getColumnIndex(OrgData.PAYLOAD));
-            boolean hasDeadline = payload.contains("DEADLINE:");
-            boolean hasScheduled = payload.contains("SCHEDULED:");
+        try {
+            while (cursor.moveToNext()) {
+                long nodeId = cursor.getLong(cursor.getColumnIndex(OrgData.ID));
+                String payload = cursor.getString(cursor.getColumnIndex(OrgData.PAYLOAD));
+                boolean hasDeadline = payload.contains("DEADLINE:");
+                boolean hasScheduled = payload.contains("SCHEDULED:");
 
-            if (hasDeadline) {
-                cancelAlarm(alarmManager, context, nodeId, "deadline");
+                if (hasDeadline) {
+                    cancelAlarm(alarmManager, context, nodeId, "deadline");
+                }
+                if (hasScheduled) {
+                    cancelAlarm(alarmManager, context, nodeId, "scheduled");
+                }
             }
-            if (hasScheduled) {
-                cancelAlarm(alarmManager, context, nodeId, "scheduled");
-            }
+        } finally {
+            cursor.close();
         }
-        cursor.close();
     }
 
     public static void rescheduleAll(ContentResolver resolver, Context context) {
@@ -156,13 +162,14 @@ public class ReminderScheduler {
 
         long timeFromMidnight = Long.parseLong(
             prefs.getString("key_reminderDailyOverviewTime", "28800000"));
+        int hours = (int)(timeFromMidnight / 3600000);
+        int minutes = (int)((timeFromMidnight % 3600000) / 60000);
 
         Calendar triggerAt = Calendar.getInstance();
-        triggerAt.set(Calendar.HOUR_OF_DAY, 0);
-        triggerAt.set(Calendar.MINUTE, 0);
+        triggerAt.set(Calendar.HOUR_OF_DAY, hours);
+        triggerAt.set(Calendar.MINUTE, minutes);
         triggerAt.set(Calendar.SECOND, 0);
         triggerAt.set(Calendar.MILLISECOND, 0);
-        triggerAt.add(Calendar.MILLISECOND, (int) timeFromMidnight);
 
         // If today's time has passed, schedule for tomorrow
         if (triggerAt.getTimeInMillis() <= System.currentTimeMillis()) {

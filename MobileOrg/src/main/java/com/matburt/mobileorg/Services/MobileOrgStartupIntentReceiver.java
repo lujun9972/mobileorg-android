@@ -6,6 +6,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.preference.PreferenceManager;
+import android.util.Log;
 
 import com.matburt.mobileorg.util.ReminderScheduler;
 
@@ -35,7 +36,7 @@ public class MobileOrgStartupIntentReceiver extends BroadcastReceiver {
 			ReminderScheduler.rescheduleAll(resolver, context);
 			ReminderScheduler.scheduleDailyOverview(context);
 		} catch (Exception e) {
-			// Silently ignore - reminders will be re-registered on next sync
+			Log.w("MobileOrg", "Failed to re-register reminders on boot: " + e.getMessage());
 		}
 	}
 }

@@ -74,14 +74,12 @@ public class OrgRenderer {
 				continue;
 			}
 			if (inLogbook) {
-				if (trimmed.startsWith(":") && !trimmed.equals(":END:")) {
-					continue;
-				}
 				if (trimmed.equals(":END:")) {
 					inLogbook = false;
 					continue;
 				}
-				inLogbook = false;
+				// All lines inside LOGBOOK block are skipped
+				continue;
 			}
 
 			if (trimmed.startsWith("SCHEDULED:") ||

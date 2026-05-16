@@ -271,6 +271,24 @@
     <string name="sync_config_import_failed">导入失败:\n%s</string>
     <string name="sync_config_no_data">没有可导出的同步配置</string>
 
-    <!-- others -->
+    <!-- Reminder settings -->
+<string name="preference_reminder">任务提醒</string>
+<string name="preference_reminder_enabled">启用提醒</string>
+<string name="preference_reminder_enabled_summary">DEADLINE 和 SCHEDULED 到期时发送通知</string>
+<string name="preference_reminder_deadline_advance">DEADLINE 提前提醒</string>
+<string name="preference_reminder_scheduled_advance">SCHEDULED 提前提醒</string>
+<string name="preference_reminder_daily_overview_time">每日概览时间</string>
+
+<!-- Reminder notifications -->
+<string name="reminder_notification_channel">任务提醒</string>
+<string name="reminder_notification_channel_desc">DEADLINE 和 SCHEDULED 任务到期提醒</string>
+<string name="reminder_daily_overview_title">今日待办</string>
+<string name="reminder_daily_overview_empty">今日无待办</string>
+<string name="reminder_scheduled_today">今日 SCHEDULED</string>
+<string name="reminder_deadline_upcoming">即将到期 DEADLINE</string>
+<string name="reminder_days_later">%d 天后</string>
+<string name="reminder_tomorrow">明天</string>
+
+<!-- others -->
 
 </resources>

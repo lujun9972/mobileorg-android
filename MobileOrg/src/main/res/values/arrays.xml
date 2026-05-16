@@ -77,4 +77,36 @@
         <item></item>
     </string-array>
 
+<!-- Reminder advance time options (milliseconds) -->
+<string-array name="reminder_advance_labels">
+    <item>当天</item>
+    <item>1 小时前</item>
+    <item>3 小时前</item>
+    <item>1 天前</item>
+    <item>3 天前</item>
+</string-array>
+<string-array name="reminder_advance_values">
+    <item>0</item>
+    <item>3600000</item>
+    <item>10800000</item>
+    <item>86400000</item>
+    <item>259200000</item>
+</string-array>
+
+<!-- Daily overview time options (milliseconds from midnight) -->
+<string-array name="daily_overview_time_labels">
+    <item>6:00</item>
+    <item>7:00</item>
+    <item>8:00</item>
+    <item>9:00</item>
+    <item>10:00</item>
+</string-array>
+<string-array name="daily_overview_time_values">
+    <item>21600000</item>
+    <item>25200000</item>
+    <item>28800000</item>
+    <item>32400000</item>
+    <item>36000000</item>
+</string-array>
+
 </resources>

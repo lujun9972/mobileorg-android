@@ -162,6 +162,7 @@ public class PayloadFragment extends ViewFragment {
 
 		EditHost editActivity = (EditHost) getActivity();
 		OrgNode node = editActivity.getController().getOrgNode();
+		node.setPayload(this.payload.get());
 		OrgRenderer renderer = new OrgRenderer(resolver, getActivity());
 		String html = renderer.payloadToHTML(node);
 		displayHtml(html);

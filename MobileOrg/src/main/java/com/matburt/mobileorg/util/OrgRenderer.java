@@ -143,7 +143,7 @@ public class OrgRenderer {
                         state = STATE_SRC_BLOCK;
                         // Extract language: #+BEGIN_SRC lang
                         String[] parts = trimmed.split("\\s+", 3);
-                        srcLang = parts.length > 1 ? parts[1] : "";
+                        srcLang = parts.length > 1 ? mapLanguage(parts[1]) : "";
                         blockBuffer = new StringBuilder();
                         continue;
                     }
@@ -219,7 +219,13 @@ public class OrgRenderer {
                         break;
                     }
 
-                    // Not a list item — close any open list
+                    // Empty line — don't close list (matches org-mode semantics)
+                    if (trimmed.isEmpty()) {
+                        result.append("<br/>\n");
+                        break;
+                    }
+
+                    // Non-empty, non-list item — close any open list
                     if (inUnorderedList || inOrderedList) {
                         closeListIfNeeded(result, inUnorderedList, inOrderedList);
                         inUnorderedList = false;
@@ -229,11 +235,7 @@ public class OrgRenderer {
                     // Normal line processing
                     String processed = applyInlineMarkup(line);
                     processed = convertLinks(processed);
-                    if (trimmed.isEmpty()) {
-                        result.append("<br/>\n");
-                    } else {
-                        result.append(processed).append("\n");
-                    }
+                    result.append(processed).append("\n");
                     break;
 
                 case STATE_TABLE:
@@ -340,6 +342,18 @@ public class OrgRenderer {
     private void closeListIfNeeded(StringBuilder result, boolean inUl, boolean inOl) {
         if (inUl) result.append("</ul>\n");
         if (inOl) result.append("</ol>\n");
+    }
+
+    /**
+     * Map org-babel language names to highlight.js language identifiers.
+     */
+    private String mapLanguage(String lang) {
+        if (lang == null || lang.isEmpty()) return "";
+        // elisp / emacs-lisp → lisp (highlight.js uses "lisp")
+        if (lang.equals("elisp") || lang.equals("emacs-lisp")) return "lisp";
+        // sh → bash (more common in highlight.js)
+        if (lang.equals("sh")) return "bash";
+        return lang;
     }
 
     /**

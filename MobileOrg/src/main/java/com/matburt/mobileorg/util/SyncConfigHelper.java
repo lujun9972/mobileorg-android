@@ -21,7 +21,7 @@ import java.util.Set;
 
 public class SyncConfigHelper {
     private static final String TAG = "MobileOrg";
-    private static final String EXPORT_MIME = "application/json";
+    public static final String EXPORT_MIME = "application/json";
     private static final int FORMAT_VERSION = 1;
 
     private static final Set<String> BOOLEAN_KEYS = new HashSet<String>(Arrays.asList(

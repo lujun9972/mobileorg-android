@@ -617,7 +617,7 @@ public class OrgNode {
 		if(generateEdits) {
 			OrgEdit edit = new OrgEdit(this, OrgEdit.TYPE.BODY, rawPayload.toString(), resolver);
 			edit.write(resolver);
-			Log.d("MobileOrg", "[ClockIn] OrgNode.addLogbook: OrgEdit written, edit.id=" + edit.getId());
+			Log.d("MobileOrg", "[ClockIn] OrgNode.addLogbook: OrgEdit written");
 		}
 		setPayload(rawPayload.toString());
 		write(resolver);

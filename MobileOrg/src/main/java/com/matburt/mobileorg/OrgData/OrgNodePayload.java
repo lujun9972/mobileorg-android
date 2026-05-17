@@ -291,12 +291,17 @@ public class OrgNodePayload {
 		// TODO Add => total to end
 		String line = "CLOCK: " + formatClockEntry(startTime) + "--"
 				+ formatClockEntry(endTime) + " =>  " + elapsedTime;
-		
+		android.util.Log.d("MobileOrg", "[ClockIn] OrgNodePayload.addLogbook: generated line=[" + line + "]");
+
 		int logbookIndex = payload.indexOf(":LOGBOOK:");
-		if(logbookIndex == -1)
+		android.util.Log.d("MobileOrg", "[ClockIn] OrgNodePayload.addLogbook: logbookIndex=" + logbookIndex);
+		if(logbookIndex == -1) {
 			payload.insert(0, ":LOGBOOK:\n" + line + "\n:END:\n");
-		else
+			android.util.Log.d("MobileOrg", "[ClockIn] OrgNodePayload.addLogbook: created new :LOGBOOK: block");
+		} else {
 			payload.insert(logbookIndex + ":LOGBOOK:".length(), "\n" + line);
+			android.util.Log.d("MobileOrg", "[ClockIn] OrgNodePayload.addLogbook: inserted into existing :LOGBOOK: at index " + logbookIndex);
+		}
 		return payload;
 	}	
 }

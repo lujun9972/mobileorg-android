@@ -12,6 +12,7 @@ import android.database.Cursor;
 import android.net.Uri;
 import android.preference.PreferenceManager;
 import android.text.TextUtils;
+import android.util.Log;
 
 import com.matburt.mobileorg.Gui.Outline.OutlineItem;
 import com.matburt.mobileorg.OrgData.OrgContract.OrgData;
@@ -601,17 +602,26 @@ public class OrgNode {
 	}
 	
 	public void addLogbook(long startTime, long endTime, String elapsedTime, ContentResolver resolver) {
+		Log.d("MobileOrg", "[ClockIn] OrgNode.addLogbook: node.id=" + this.id
+				+ ", startTime=" + startTime + ", endTime=" + endTime
+				+ ", elapsedTime=" + elapsedTime);
 		StringBuilder rawPayload = new StringBuilder(getPayload());
+		Log.d("MobileOrg", "[ClockIn] OrgNode.addLogbook: rawPayload before = [" + rawPayload + "]");
 		rawPayload = OrgNodePayload.addLogbook(rawPayload, startTime, endTime, elapsedTime);
+		Log.d("MobileOrg", "[ClockIn] OrgNode.addLogbook: rawPayload after  = [" + rawPayload + "]");
 
 		boolean generateEdits = !getFilename(resolver).equals(FileUtils.CAPTURE_FILE);
+		Log.d("MobileOrg", "[ClockIn] OrgNode.addLogbook: filename=" + getFilename(resolver)
+				+ ", generateEdits=" + generateEdits);
 
 		if(generateEdits) {
 			OrgEdit edit = new OrgEdit(this, OrgEdit.TYPE.BODY, rawPayload.toString(), resolver);
 			edit.write(resolver);
+			Log.d("MobileOrg", "[ClockIn] OrgNode.addLogbook: OrgEdit written, edit.id=" + edit.getId());
 		}
 		setPayload(rawPayload.toString());
 		write(resolver);
+		Log.d("MobileOrg", "[ClockIn] OrgNode.addLogbook: node written to DB, payload now = [" + getPayload() + "]");
 	}
 
 	/**

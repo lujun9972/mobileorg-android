@@ -225,9 +225,20 @@ public class OutlineActionMode implements ActionMode.Callback {
 	}
 	
 	private void runTimeClockingService() {
+		Log.d("MobileOrg", "[ClockIn] OutlineActionMode.runTimeClockingService: node.id=" + node.id
+				+ ", name=" + node.name);
 		Intent intent = new Intent(context, TimeclockService.class);
 		intent.putExtra(TimeclockService.NODE_ID, node.id);
+
+		// Check if already clocking in
+		TimeclockService existing = TimeclockService.getInstance();
+		if (existing != null) {
+			Log.w("MobileOrg", "[ClockIn] TimeclockService already running! node_id="
+					+ existing.getNodeID() + ", startTime=" + existing.getStartTime());
+		}
+
 		context.startService(intent);
+		Log.d("MobileOrg", "[ClockIn] startService intent sent for node_id=" + node.id);
 	}
 
 	private void runRecordingService() {

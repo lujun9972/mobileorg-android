@@ -60,10 +60,12 @@ public class TimeclockService extends Service {
 		this.mNM = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
 		this.alarmManager = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
 		this.appInst = (MobileOrgApplication) getApplication();
+		Log.d("MobileOrg", "[ClockIn] TimeclockService.onCreate: sInstance set");
 	}
 
 	@Override
 	public void onDestroy() {
+		Log.d("MobileOrg", "[ClockIn] TimeclockService.onDestroy: sInstance clearing");
 		cancelNotification();
 		super.onDestroy();
 	}
@@ -71,25 +73,38 @@ public class TimeclockService extends Service {
 	@Override
 	public int onStartCommand(Intent intent, int flags, int startId) {
 		if (intent == null) {
+			Log.w("MobileOrg", "[ClockIn] TimeclockService.onStartCommand: null intent, stopping");
 			stopSelf();
 			return START_NOT_STICKY;
 		}
 		String action = intent.getStringExtra("action");
-		Log.d("MobileOrg", "Called onStartCommand() with :" + action);
+		Log.d("MobileOrg", "[ClockIn] TimeclockService.onStartCommand: action=" + action
+				+ ", flags=" + flags + ", startId=" + startId);
+
 		if(action == null) {
 			this.node_id = intent.getLongExtra(NODE_ID, -1);
+			Log.d("MobileOrg", "[ClockIn] New clock-in: node_id=" + node_id);
 			try {
 				this.node = new OrgNode(node_id, getContentResolver());
-			} catch (OrgNodeNotFoundException e) {}
+				Log.d("MobileOrg", "[ClockIn] Node loaded: name=" + node.name);
+			} catch (OrgNodeNotFoundException e) {
+				Log.e("MobileOrg", "[ClockIn] Node not found! node_id=" + node_id, e);
+			}
 			this.startTime = System.currentTimeMillis();
+			Log.d("MobileOrg", "[ClockIn] startTime=" + startTime
+					+ " (" + new java.text.SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new java.util.Date(startTime)) + ")");
 
 			getEstimated();
+			Log.d("MobileOrg", "[ClockIn] estimatedHour=" + this.estimatedHour
+					+ ", estimatedMinute=" + this.estimatedMinute);
 			showNotification(node_id);
 			setUpdateAlarm();
 			setTimeoutAlarm(this.estimatedHour, this.estimatedMinute);
 		}
 		else if(action.equals(TIMECLOCK_UPDATE)) {
+			Log.d("MobileOrg", "[ClockIn] Update tick: notification=" + (notification != null));
 			if (notification == null) {
+				Log.w("MobileOrg", "[ClockIn] Update tick but notification is null, stopping");
 				unsetAlarms();
 				stopSelf();
 				return START_NOT_STICKY;
@@ -97,6 +112,7 @@ public class TimeclockService extends Service {
 			updateTime();
 		}
 		else if(action.equals(TIMECLOCK_TIMEOUT)){
+			Log.d("MobileOrg", "[ClockIn] Timeout reached!");
 			doTimeout();
 		}
 
@@ -220,11 +236,12 @@ public class TimeclockService extends Service {
 
 	public String getElapsedTimeString() {
 		long difference = System.currentTimeMillis() - this.startTime;
+		Log.d("MobileOrg", "[ClockIn] getElapsedTimeString: startTime=" + startTime
+				+ ", now=" + System.currentTimeMillis() + ", diff=" + difference + "ms");
 		if(difference >= 0) {
 			String elapsed = String.format("%d:%02d",
 					(int) ((difference / (1000 * 60 * 60)) % 24),
 					(int) ((difference / (1000 * 60)) % 60));
-
 			return elapsed;
 		}
 		else
@@ -253,6 +270,7 @@ public class TimeclockService extends Service {
 	}
 
 	public void cancelNotification() {
+		Log.d("MobileOrg", "[ClockIn] cancelNotification called: startTime was " + startTime);
 		unsetAlarms();
 		mNM.cancel(notificationID);
 		if (Compat.isAtLeastO()) {

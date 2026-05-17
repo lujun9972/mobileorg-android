@@ -2,6 +2,7 @@ package com.matburt.mobileorg.util;
 
 import android.content.Context;
 import android.content.SharedPreferences;
+import android.os.Environment;
 import android.preference.PreferenceManager;
 import android.util.Log;
 
@@ -48,8 +49,8 @@ public class SyncConfigHelper {
     ));
 
     public static File getExportFile(Context context) {
-        File dir = context.getExternalFilesDir(null);
-        if (dir == null) dir = context.getFilesDir();
+        // Use public Downloads directory so the file survives app uninstall
+        File dir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS);
         return new File(dir, EXPORT_FILE);
     }
 

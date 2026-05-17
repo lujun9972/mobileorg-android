@@ -206,6 +206,9 @@ public class TimeclockDialog extends FragmentActivity {
 					.setTitle("Edit Duration (hours : minutes)")
 					.setView(layout)
 					.setPositiveButton("OK", (dialog, which) -> {
+						// Must clear focus to commit scrolled value before reading
+						hourPicker.clearFocus();
+						minutePicker.clearFocus();
 						int h = hourPicker.getValue();
 						int m = minutePicker.getValue();
 						Log.d("MobileOrg", "[ClockIn] DurationPicker OK: picked hour=" + h + ", minute=" + m);

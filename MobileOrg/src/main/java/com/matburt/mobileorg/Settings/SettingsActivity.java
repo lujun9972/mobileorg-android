@@ -15,6 +15,9 @@ import android.text.TextUtils;
 import android.widget.Toast;
 
 import android.preference.PreferenceActivity;
+import androidx.core.app.ActivityCompat;
+import androidx.core.content.ContextCompat;
+
 import com.matburt.mobileorg.OrgData.OrgProviderUtils;
 import com.matburt.mobileorg.R;
 import com.matburt.mobileorg.Services.CalendarSyncService;
@@ -159,7 +162,17 @@ public class SettingsActivity extends PreferenceActivity implements
 		}
 	}
 
+	private static final int REQUEST_CALENDAR_PERMISSION = 1001;
+
 	private void populateCalendarNames() {
+		// Check calendar permission first
+		if (ContextCompat.checkSelfPermission(this, "android.permission.READ_CALENDAR")
+				!= PackageManager.PERMISSION_GRANTED) {
+			ActivityCompat.requestPermissions(this,
+					new String[]{"android.permission.READ_CALENDAR", "android.permission.WRITE_CALENDAR"},
+					REQUEST_CALENDAR_PERMISSION);
+			return;
+		}
 		try {
 			ListPreference calendarName = (ListPreference) findPreference(KEY_CALENDAR_NAME);
 			if (calendarName == null) return;
@@ -171,6 +184,15 @@ public class SettingsActivity extends PreferenceActivity implements
 			calendarName.setEntryValues(calendars);
 		} catch (Exception e) {
 			// Don't crash because of anything in calendar
+		}
+	}
+
+	@Override
+	public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
+		if (requestCode == REQUEST_CALENDAR_PERMISSION) {
+			if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
+				populateCalendarNames();
+			}
 		}
 	}
 

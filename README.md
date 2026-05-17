@@ -20,6 +20,9 @@ This fork brings the original project (API 17) up to modern Android standards �
 - **Timeclock**: Built-in timer for clocking tasks (with Effort estimation support)
 - **Quick recording**: Record audio and attach to org nodes (requires RECORD_AUDIO permission)
 - **Auto-sync**: Periodic background synchronization via AlarmManager
+- **DEADLINE/SCHEDULED reminders**: Individual notifications for upcoming deadlines and scheduled items
+- **Daily overview**: Morning summary notification of today's scheduled items and upcoming deadlines
+- **Sync config backup**: Export/import sync settings via system file picker (SAF), survives app reinstall
 - **Homescreen widgets**: Agenda widget and capture shortcut widget
 - **Theme support**: Light and dark themes with theme-aware UI colors
 
@@ -55,11 +58,11 @@ APK output: `MobileOrg/build/outputs/apk/debug/`
 MobileOrg/src/main/java/com/matburt/mobileorg/
 ├── Gui/            # Activities, adapters, notifications, widgets, wizards
 ├── OrgData/        # SQLite database, org file parser, ContentProvider
-├── Services/       # SyncService, TimeclockService, CalendarSyncService, RecordingService
+├── Services/       # SyncService, TimeclockService, CalendarSyncService, RecordingService, ReminderReceiver, DailyOverviewReceiver
 ├── Synchronizers/  # Sync implementations (WebDAV, SSH, SD card)
 ├── Settings/       # Preference activities
 ├── Plugin/         # BroadcastReceiver for external sync triggers
-└── util/           # OrgRenderer (org→HTML), OrgUtils, preferences
+└── util/           # OrgRenderer (org→HTML), OrgUtils, ReminderScheduler, SyncConfigHelper, preferences
 ```
 
 ## License
@@ -68,4 +71,20 @@ MobileOrg/src/main/java/com/matburt/mobileorg/
 
 ## Changelog
 
-See [ Releases](https://github.com/lujun9972/mobileorg-android/releases) for version history.
+### v2.5.0
+
+- **Reminder system**: DEADLINE/SCHEDULED notifications with configurable advance time
+- **Daily overview**: Morning summary of today's scheduled items and upcoming deadlines
+- **SAF sync config**: Export/import sync settings via system file picker, survives app uninstall
+- **Android compatibility**: AlarmManager broadcast delivery fix (API 31+), calendar runtime permission check
+- **Bug fixes**: Cursor leak prevention, null safety in reminder system, boundary consistency
+
+### v2.4.0
+
+- Material Components theme migration
+- Duration picker for timeclock (replaces broken TimePickerDialog)
+- OrgRenderer XSS prevention
+- Remote-deleted file cleanup on sync
+- Android 8-14 compatibility fixes (NotificationChannel, PendingIntent, foreground service, scoped storage)
+
+See [Releases](https://github.com/lujun9972/mobileorg-android/releases) for full version history.

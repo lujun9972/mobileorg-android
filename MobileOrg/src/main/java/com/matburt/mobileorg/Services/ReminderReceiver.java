@@ -23,7 +23,11 @@ public class ReminderReceiver extends BroadcastReceiver {
 
     @Override
     public void onReceive(Context context, Intent intent) {
-        if (!Compat.hasNotificationPermission(context)) return;
+        Log.d(TAG, "ReminderReceiver.onReceive() called");
+        if (!Compat.hasNotificationPermission(context)) {
+            Log.w(TAG, "ReminderReceiver: no notification permission, skipping");
+            return;
+        }
 
         long nodeId = intent.getLongExtra("nodeId", -1);
         String dateType = intent.getStringExtra("dateType");

@@ -31,7 +31,11 @@ public class DailyOverviewReceiver extends BroadcastReceiver {
 
     @Override
     public void onReceive(Context context, Intent intent) {
-        if (!Compat.hasNotificationPermission(context)) return;
+        Log.d(TAG, "DailyOverviewReceiver.onReceive() called");
+        if (!Compat.hasNotificationPermission(context)) {
+            Log.w(TAG, "DailyOverviewReceiver: no notification permission, skipping");
+            return;
+        }
 
         ContentResolver resolver = context.getContentResolver();
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(context);

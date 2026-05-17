@@ -265,7 +265,7 @@
     <string name="preference_export_sync_config_summary">将同步设置导出到文件</string>
     <string name="preference_import_sync_config">导入同步配置</string>
     <string name="preference_import_sync_config_summary">从文件恢复同步设置</string>
-    <string name="sync_config_export_success">同步配置已导出到:\n%s</string>
+    <string name="sync_config_export_success">同步配置导出成功</string>
     <string name="sync_config_export_failed">导出失败:\n%s</string>
     <string name="sync_config_import_success">同步配置导入成功，请重新进入设置页确认</string>
     <string name="sync_config_import_failed">导入失败:\n%s</string>

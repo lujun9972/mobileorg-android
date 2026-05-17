@@ -5,6 +5,7 @@ import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.net.Uri;
 import android.content.pm.PackageItemInfo;
 import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
@@ -162,6 +163,9 @@ public class SettingsActivity extends PreferenceActivity implements
 		}
 	}
 
+	private static final int REQUEST_EXPORT_CONFIG = 2001;
+	private static final int REQUEST_IMPORT_CONFIG = 2002;
+
 	private static final int REQUEST_CALENDAR_PERMISSION = 1001;
 
 	private void populateCalendarNames() {
@@ -192,6 +196,40 @@ public class SettingsActivity extends PreferenceActivity implements
 		if (requestCode == REQUEST_CALENDAR_PERMISSION) {
 			if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
 				populateCalendarNames();
+			}
+		}
+	}
+
+	@Override
+	protected void onActivityResult(int requestCode, int resultCode, Intent data) {
+		if (resultCode != RESULT_OK || data == null) return;
+
+		Uri uri = data.getData();
+		if (uri == null) return;
+
+		if (requestCode == REQUEST_EXPORT_CONFIG) {
+			String error = SyncConfigHelper.exportConfig(this, uri);
+			if (error != null) {
+				Toast.makeText(this,
+						getString(R.string.sync_config_export_failed, error),
+						Toast.LENGTH_LONG).show();
+			} else {
+				Toast.makeText(this,
+						R.string.sync_config_export_success,
+						Toast.LENGTH_LONG).show();
+			}
+		} else if (requestCode == REQUEST_IMPORT_CONFIG) {
+			String error = SyncConfigHelper.importConfig(this, uri);
+			if (error != null) {
+				Toast.makeText(this,
+						getString(R.string.sync_config_import_failed, error),
+						Toast.LENGTH_LONG).show();
+			} else {
+				Toast.makeText(this,
+						R.string.sync_config_import_success,
+						Toast.LENGTH_LONG).show();
+				// Refresh summaries to reflect imported values
+				initSettings();
 			}
 		}
 	}
@@ -308,17 +346,11 @@ public class SettingsActivity extends PreferenceActivity implements
 	private Preference.OnPreferenceClickListener onExportSyncConfigClick = new Preference.OnPreferenceClickListener() {
 		@Override
 		public boolean onPreferenceClick(Preference preference) {
-			String error = SyncConfigHelper.exportConfig(SettingsActivity.this);
-			if (error != null) {
-				Toast.makeText(SettingsActivity.this,
-						getString(R.string.sync_config_export_failed, error),
-						Toast.LENGTH_LONG).show();
-			} else {
-				Toast.makeText(SettingsActivity.this,
-						getString(R.string.sync_config_export_success,
-								SyncConfigHelper.getExportFile(SettingsActivity.this).getAbsolutePath()),
-						Toast.LENGTH_LONG).show();
-			}
+			Intent intent = new Intent(Intent.ACTION_CREATE_DOCUMENT);
+			intent.addCategory(Intent.CATEGORY_OPENABLE);
+			intent.setType(SyncConfigHelper.EXPORT_MIME);
+			intent.putExtra(Intent.EXTRA_TITLE, SyncConfigHelper.DEFAULT_FILENAME);
+			startActivityForResult(intent, REQUEST_EXPORT_CONFIG);
 			return false;
 		}
 	};
@@ -326,16 +358,10 @@ public class SettingsActivity extends PreferenceActivity implements
 	private Preference.OnPreferenceClickListener onImportSyncConfigClick = new Preference.OnPreferenceClickListener() {
 		@Override
 		public boolean onPreferenceClick(Preference preference) {
-			String error = SyncConfigHelper.importConfig(SettingsActivity.this);
-			if (error != null) {
-				Toast.makeText(SettingsActivity.this,
-						getString(R.string.sync_config_import_failed, error),
-						Toast.LENGTH_LONG).show();
-			} else {
-				Toast.makeText(SettingsActivity.this,
-						R.string.sync_config_import_success,
-						Toast.LENGTH_LONG).show();
-			}
+			Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
+			intent.addCategory(Intent.CATEGORY_OPENABLE);
+			intent.setType(SyncConfigHelper.EXPORT_MIME);
+			startActivityForResult(intent, REQUEST_IMPORT_CONFIG);
 			return false;
 		}
 	};

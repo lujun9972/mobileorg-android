@@ -7,6 +7,7 @@ import android.util.Log;
 import androidx.multidex.MultiDex;
 import com.matburt.mobileorg.Services.SyncService;
 import com.matburt.mobileorg.util.Compat;
+import com.matburt.mobileorg.util.ReminderScheduler;
 import com.matburt.mobileorg.R;
 
 import java.io.File;
@@ -49,6 +50,10 @@ public class MobileOrgApplication extends Application {
 				getString(R.string.reminder_notification_channel),
 				getString(R.string.reminder_notification_channel_desc));
 			log("MobileOrgApplication.onCreate() reminder notification channel created");
+
+			// Register daily overview alarm on app start
+			ReminderScheduler.scheduleDailyOverview(getApplicationContext());
+			log("MobileOrgApplication.onCreate() daily overview scheduled");
 		} catch (Exception e) {
 			log("MobileOrgApplication.onCreate() ERROR: " + e);
 		}

@@ -21,12 +21,15 @@
         <item name="android:background">@drawable/actionbar_background</item>
     </style>
 
-    <style name="Theme.MobileOrg.Monochrome" parent="Theme.MaterialComponents">
+    <style name="Theme.MobileOrg.Monochrome" parent="Theme.MaterialComponents.Light.DarkActionBar">
         <item name="actionBarStyle">@style/Widget.Styled.ActionBar.Monochrome</item>
         <item name="android:actionBarStyle">@style/Widget.Styled.ActionBar.Monochrome</item>
+        <item name="android:windowBackground">@color/mono_window_background</item>
+        <item name="android:textColorPrimary">@color/mono_text_primary</item>
+        <item name="android:textColorSecondary">@color/mono_text_secondary</item>
     </style>
 
-    <style name="Widget.Styled.ActionBar.Monochrome" parent="Widget.MaterialComponents.ActionBar.Solid">
+    <style name="Widget.Styled.ActionBar.Monochrome" parent="Widget.MaterialComponents.Light.ActionBar.Solid">
         <item name="background">@drawable/actionbar_background_mono</item>
         <item name="android:background">@drawable/actionbar_background_mono</item>
     </style>

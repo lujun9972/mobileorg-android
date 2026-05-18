@@ -41,7 +41,7 @@ public class PreferenceUtils {
 		
 		HashSet<String> tagsSet = new HashSet<String>();
 		for (String tag: tags.split(":")) {
-			!if(TextUtils.isEmpty(tag))
+			if(!TextUtils.isEmpty(tag))
 				tagsSet.add(tag);
 		}
 		

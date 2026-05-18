@@ -59,7 +59,7 @@ public class OrgQueryBuilder implements Serializable {
 			cursor.moveToFirst();
 			switch (type) {
 			case ALL:
-				!while(cursor.isAfterLast()) {
+				while(!cursor.isAfterLast()) {
 					long id = cursor.getLong(cursor.getColumnIndex(OrgData.ID));
 					result[i++] = id;
 					cursor.moveToNext();
@@ -89,7 +89,7 @@ public class OrgQueryBuilder implements Serializable {
 				if (deadlineWarningDays != 0) {
 					warn.add(Calendar.DATE, deadlineWarningDays + 1);
 				}
-				!while(cursor.isAfterLast()) {
+				while(!cursor.isAfterLast()) {
 					long id = cursor.getLong(cursor.getColumnIndex(OrgData.ID));
 					try {
 						OrgNode node = new OrgNode(id, resolver);

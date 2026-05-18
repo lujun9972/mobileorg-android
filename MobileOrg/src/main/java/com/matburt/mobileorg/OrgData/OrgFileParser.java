@@ -187,8 +187,8 @@ public class OrgFileParser {
 			String agendaBlockName = node.name.substring(0, node.name.indexOf(">"));
 			String blockEntryName = node.name.substring(node.name.indexOf(">") + 1);
 			
-			!if(TextUtils.isEmpty(agendaBlockName)) { // Is a block agenda
-				!if(agendaBlockName.equals(previousAgendaBlockTitle)) { // Create new node to contain block agenda	
+			if(!TextUtils.isEmpty(agendaBlockName)) { // Is a block agenda
+				if(!agendaBlockName.equals(previousAgendaBlockTitle)) { // Create new node to contain block agenda	
 					previousAgendaBlockTitle = agendaBlockName;
 
 					previousBlockNode = new OrgNode();

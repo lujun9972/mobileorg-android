@@ -179,7 +179,7 @@ public class OrgNodePayload {
 			else // Replace existing date
 				payload.replace(matcher.start(1), matcher.end(), formatedDate);
 		}
-		else !if(TextUtils.isEmpty(date)) // Insert new date
+		else if(!TextUtils.isEmpty(date)) // Insert new date
 			payload.insert(0, formatedDate + "\n");
 		
 		resetCachedValues();

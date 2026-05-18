@@ -605,11 +605,7 @@ public class OrgNode {
 		Log.d("MobileOrg", "[ClockIn] OrgNode.addLogbook: rawPayload after  = [" + rawPayload + "]");
 
 			writePayloadWithEdits(rawPayload.toString(), resolver);
-			Log.d("MobileOrg", "[ClockIn] OrgNode.addLogbook: OrgEdit written");
-		}
-		setPayload(rawPayload.toString());
-		write(resolver);
-		Log.d("MobileOrg", "[ClockIn] OrgNode.addLogbook: node written to DB, payload now = [" + getPayload() + "]");
+			Log.d("MobileOrg", "[ClockIn] OrgNode.addLogbook: writePayloadWithEdits done");
 	}
 
 	/**
@@ -621,9 +617,6 @@ public class OrgNode {
 		rawPayload.append("\n").append(link);
 
 			writePayloadWithEdits(rawPayload.toString(), resolver);
-		}
-		setPayload(rawPayload.toString());
-		write(resolver);
 	}
 
 	private void writePayloadWithEdits(String newPayload, ContentResolver resolver) {

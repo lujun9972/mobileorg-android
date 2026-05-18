@@ -80,7 +80,7 @@ public class EditActivity extends AppCompatActivity implements EditHost,
 	}
 	
 	private void doCancel() {
-		!if(hasEdits()) {
+		if(!hasEdits()) {
 			setResult(RESULT_CANCELED);
 			finish();
 			return;

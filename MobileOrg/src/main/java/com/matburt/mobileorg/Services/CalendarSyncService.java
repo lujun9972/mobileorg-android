@@ -248,7 +248,7 @@ public class CalendarSyncService extends Service implements
 		CalendarEntriesParser entriesParser = new CalendarEntriesParser(
 				calendarWrapper.calendar.events, query);
 				
-		!while(query.isAfterLast()) {
+		while(!query.isAfterLast()) {
 			CalendarEntry entry = entriesParser.getEntryFromCursor(query);
 			OrgNode node = entry.convertToOrgNode();
 			

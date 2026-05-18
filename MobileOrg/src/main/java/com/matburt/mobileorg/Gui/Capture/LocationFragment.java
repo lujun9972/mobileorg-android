@@ -123,7 +123,7 @@ public class LocationFragment extends Fragment {
 	private LocationEntry getLocationEntry(OrgNode node, ArrayList<String> data, String selection) {
 		if(this.node != null && node != null && this.node.id == node.id) {
 			String editNodeName = ((EditActivity) getActivity()).getController().getOrgNode().name;
-			!if(TextUtils.isEmpty(editNodeName))
+			if(!TextUtils.isEmpty(editNodeName))
 				data.remove(editNodeName); // Prevents refiling node "under itself"
 		}
 		

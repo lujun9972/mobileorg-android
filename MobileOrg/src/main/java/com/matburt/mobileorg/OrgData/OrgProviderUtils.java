@@ -245,7 +245,7 @@ public class OrgProviderUtils {
 	
 	public static OrgFile getOrCreateFile(String filename, String fileAlias, ContentResolver resolver) {
 		OrgFile file = new OrgFile(filename, fileAlias, "");
-		!if(file.doesFileExist(resolver)) {
+		if(!file.doesFileExist(resolver)) {
 			file.includeInOutline = true;
 			file.write(resolver);
 		} else {
@@ -327,7 +327,7 @@ public class OrgProviderUtils {
 		
 		String whereQuery = OrgData.FILE_ID + "=? AND (" + OrgData.PAYLOAD + " LIKE '%<%>%'";
 
-		!if(showHabits)
+		if(!showHabits)
 			whereQuery += " AND NOT " + OrgData.PAYLOAD + " LIKE '%:STYLE: habit%'";
 		
 		whereQuery += ")";
@@ -387,7 +387,7 @@ public class OrgProviderUtils {
 		
 		cursor.moveToFirst();
 		
-		!while(cursor.isAfterLast()) {
+		while(!cursor.isAfterLast()) {
 			try {
 				result.add(new OrgNode(cursor));
 			} catch (OrgNodeNotFoundException e) {}

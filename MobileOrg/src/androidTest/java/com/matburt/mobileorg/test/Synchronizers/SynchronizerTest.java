@@ -20,6 +20,7 @@ import com.matburt.mobileorg.OrgData.OrgContract.Edits;
 import com.matburt.mobileorg.OrgData.OrgContract.Files;
 import com.matburt.mobileorg.OrgData.OrgContract.OrgData;
 import com.matburt.mobileorg.Synchronizers.Synchronizer;
+import com.matburt.mobileorg.util.FileUtils;
 import com.matburt.mobileorg.test.util.OrgTestFiles.SimpleOrgFiles;
 
 import org.junit.After;
@@ -135,27 +136,27 @@ public class SynchronizerTest extends ProviderTestCase2<OrgProvider> {
 
 	@Test
 	public void testPushWithCaptures() throws SSLHandshakeException, CertificateException, IOException, Exception {
-		synchronizerStub.addFile(Synchronizer.CAPTURE_FILE, "");
-		OrgFile file = new OrgFile(Synchronizer.CAPTURE_FILE, Synchronizer.CAPTURE_FILE, "");
+		synchronizerStub.addFile(FileUtils.CAPTURE_FILE, "");
+		OrgFile file = new OrgFile(FileUtils.CAPTURE_FILE, FileUtils.CAPTURE_FILE, "");
 		file.write(resolver);
 
 		OrgNode node = new OrgNode();
-		node.setFilename(Synchronizer.CAPTURE_FILE, resolver);
+		node.setFilename(FileUtils.CAPTURE_FILE, resolver);
 		node.write(resolver);
 		synchronizer.pushCaptures();
 
 		// TODO Make actual test out of this
-		//assertEquals(node.toString(), synchronizerStub.files.get(Synchronizer.CAPTURE_FILE));
+		//assertEquals(node.toString(), synchronizerStub.files.get(FileUtils.CAPTURE_FILE));
 	}
 
 	@Test
 	public void testPushWithCapturesAndEdits() throws SSLHandshakeException, CertificateException, IOException, Exception {
-		synchronizerStub.addFile(Synchronizer.CAPTURE_FILE, "");
-		OrgFile file = new OrgFile(Synchronizer.CAPTURE_FILE, Synchronizer.CAPTURE_FILE, "");
+		synchronizerStub.addFile(FileUtils.CAPTURE_FILE, "");
+		OrgFile file = new OrgFile(FileUtils.CAPTURE_FILE, FileUtils.CAPTURE_FILE, "");
 		file.write(resolver);
 
 		OrgNode node = new OrgNode();
-		node.setFilename(Synchronizer.CAPTURE_FILE, resolver);
+		node.setFilename(FileUtils.CAPTURE_FILE, resolver);
 		node.write(resolver);
 
 		OrgEdit edit = new OrgEdit(node, OrgEdit.TYPE.ADDHEADING, resolver);
@@ -163,7 +164,7 @@ public class SynchronizerTest extends ProviderTestCase2<OrgProvider> {
 		synchronizer.pushCaptures();
 
 		// TODO Make actual test out of this
-		//assertEquals(edit.toString(), synchronizerStub.files.get(Synchronizer.CAPTURE_FILE));
+		//assertEquals(edit.toString(), synchronizerStub.files.get(FileUtils.CAPTURE_FILE));
 	}
 
 	@Test
@@ -198,7 +199,7 @@ public class SynchronizerTest extends ProviderTestCase2<OrgProvider> {
 	@Test
 	public void testPullDoesNotRemoveCaptureFile() throws Exception {
 		// Capture file should never be removed even if not in remote index
-		OrgFile captureFile = new OrgFile(Synchronizer.CAPTURE_FILE, "Captures", "cap_checksum");
+		OrgFile captureFile = new OrgFile(FileUtils.CAPTURE_FILE, "Captures", "cap_checksum");
 		captureFile.write(resolver);
 
 		String indexEmpty = "#+READONLY\n#+TODO: TODO | DONE\n#+TAGS:\n#+ALLPRIORITIES:\n";
@@ -209,7 +210,7 @@ public class SynchronizerTest extends ProviderTestCase2<OrgProvider> {
 		synchronizer.pull(parserStub);
 
 		HashMap<String, String> localAfter = OrgProviderUtils.getFileChecksums(resolver);
-		assertTrue("capture file should NOT be removed", localAfter.containsKey(Synchronizer.CAPTURE_FILE));
+		assertTrue("capture file should NOT be removed", localAfter.containsKey(FileUtils.CAPTURE_FILE));
 	}
 
 	@Test

@@ -5,4 +5,7 @@
     <color name="actionbar_background_start">#3A5FCD</color>
     <color name="actionbar_background_end">#27408B</color>
 
+    <color name="actionbar_background_start_mono">#444444</color>
+    <color name="actionbar_background_end_mono">#222222</color>
+
 </resources>

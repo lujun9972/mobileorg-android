@@ -187,10 +187,12 @@ public class OrgUtils {
     
     public static void setTheme(Activity activity) {
     	String themeName = PreferenceUtils.getThemeName();
-    	
+
     	if(themeName.equals("Dark"))
     		activity.setTheme(R.style.Theme_MobileOrg_Dark);
-    	else 
+    	else if(themeName.equals("Monochrome"))
+    		activity.setTheme(R.style.Theme_MobileOrg_Monochrome);
+    	else
     		activity.setTheme(R.style.Theme_MobileOrg_Light);
     }
     

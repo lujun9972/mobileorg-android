@@ -21,4 +21,14 @@
         <item name="android:background">@drawable/actionbar_background</item>
     </style>
 
+    <style name="Theme.MobileOrg.Monochrome" parent="Theme.MaterialComponents">
+        <item name="actionBarStyle">@style/Widget.Styled.ActionBar.Monochrome</item>
+        <item name="android:actionBarStyle">@style/Widget.Styled.ActionBar.Monochrome</item>
+    </style>
+
+    <style name="Widget.Styled.ActionBar.Monochrome" parent="Widget.MaterialComponents.ActionBar.Solid">
+        <item name="background">@drawable/actionbar_background_mono</item>
+        <item name="android:background">@drawable/actionbar_background_mono</item>
+    </style>
+
 </resources>

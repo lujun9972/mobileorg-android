@@ -246,8 +246,7 @@ public class Synchronizer {
 		return remoteChecksums;
 	}
 
-	private ArrayList<String> getFilesThatChangedRemotely(HashMap<String, String> remoteChecksums) {
-		HashMap<String, String> localChecksums = OrgProviderUtils.getFileChecksums(resolver);
+	private ArrayList<String> getFilesThatChangedRemotely(HashMap<String, String> remoteChecksums, HashMap<String, String> localChecksums) {
 		syncDiag += "local: " + localChecksums.size() + " files in DB\n";
 
 		ArrayList<String> filesToGet = new ArrayList<String>();
@@ -269,8 +268,7 @@ public class Synchronizer {
 	 * Compares local DB files against the remote index.org file list
 	 * and removes any local-only files (except capture and agenda files).
 	 */
-	private void removeRemoteDeletedFiles(HashMap<String, String> remoteFileMap) {
-		HashMap<String, String> localChecksums = OrgProviderUtils.getFileChecksums(resolver);
+	private void removeRemoteDeletedFiles(HashMap<String, String> remoteFileMap, HashMap<String, String> localChecksums) {
 
 		for (String localFile : localChecksums.keySet()) {
 			if (localFile.equals(FileUtils.CAPTURE_FILE) || localFile.equals(OrgFile.AGENDA_FILE))

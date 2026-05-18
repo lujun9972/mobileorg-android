@@ -20,6 +20,8 @@ APK output: `MobileOrg/build/outputs/apk/debug/`
 
 **注意**：不在本地构建。推送到远端由 CI 进行构建，用 `gh run list` / `gh run view` 检查 CI 结果即可。
 
+**测试设备**: 无线调试已开启，`adb connect 192.168.31.198:34217` 可连接。若需本地运行 instrumentation 测试，先连接设备再执行 `./gradlew connectedDebugAndroidTest`。
+
 **Remote/CI**: Git remote `git.zhlh6.cn` is a Gitea proxy that auto-syncs to GitHub. Pushing to it triggers GitHub Actions CI. Use `gh` CLI against the GitHub repo to check CI status (e.g. `gh run list`).
 
 **Tests**: 94 instrumentation tests in `MobileOrg/src/androidTest/` using `ProviderTestCase2` + `AndroidJUnit4`. Run via `./gradlew connectedDebugAndroidTest` (requires emulator). CI runs on API 30 emulator via GitHub Actions.
@@ -116,3 +118,7 @@ All guards use `Build.VERSION.SDK_INT >= Build.VERSION_CODES.O` pattern.
 - **Cross-package static methods must be public**: Package-private (`static` without `public`) methods are invisible to classes in other packages. If a utility method in `util/` is called from `Services/`, it must be `public static`.
 - **Sync config export/import must use SAF**: Direct `FileWriter` to `getExternalFilesDir()` is lost on uninstall, and `getExternalStoragePublicDirectory()` fails with EACCES on API 29+ (Scoped Storage). Use `ACTION_CREATE_DOCUMENT` / `ACTION_OPEN_DOCUMENT` (Storage Access Framework) so users pick the file location and config survives reinstalls.
 - **Never uninstall app without checking unsynced data**: Local captures/edits exist only in the app-private SQLite database. `adb uninstall` permanently deletes them with no recovery. Always warn the user to sync or export data first.
+- **Mass regex refactoring must be verified by CI before considering done**: Batch find-and-replace patterns can be too aggressive. The `== false` regex `(\b\S+) == false\b` captured `if(` prefix producing `!if(expr)` and `!while(expr)`. The `return true/false` pattern with non-greedy `(.+?)` matched unintended `if` bodies like `if (entry.get(name))` → `return entry.get(name))`. Always push a single commit and wait for CI — do not stack up multiple mechanical changes without verification.
+- **Deleting a constant/field must grep entire repo including tests**: When removing a symbol from main source, search both `src/main/` and `src/androidTest/` for references. Tests often reference the same constants (`Synchronizer.CAPTURE_FILE`), and broken test imports cause CI failures that the build step alone won't catch.
+- **Constructor params should use base types for testability**: `Synchronizer` constructor took `SynchronizerNotification` (concrete subclass), but test stubs extend `SynchronizerNotificationCompat` (base class). Using the base class as the param type allows test stubs to be passed in without type errors.
+- **Never use `git add -A`**: It stages untracked files (`debug.sh`, `.superpowers/`, docs) that should not be committed. Always stage specific files with `git add <file>`, then use `git status` / `git diff --cached` to review before committing.

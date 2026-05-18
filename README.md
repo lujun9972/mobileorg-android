@@ -71,6 +71,19 @@ MobileOrg/src/main/java/com/matburt/mobileorg/
 
 ## Changelog
 
+### v2.6.1
+
+- **Code simplification**: Removed 500+ lines of dead code across the codebase
+- **Performance**: Pre-compiled 11 regex patterns in OrgRenderer, cached duplicate DB queries in Synchronizer
+- **Code quality**: Fixed `== false` → `!expr` anti-patterns, extracted shared helpers (`Compat.startForeground`, `OrgNode.writePayloadWithEdits`)
+- **Maintainability**: Removed unused `DirectoryBrowser`, stripped `FileUtils` to static-only utilities
+
+### v2.6.0
+
+- **Monochrome theme**: New warm-paper eye-comfort theme with full-screen consistency
+- **Theme switching fix**: Theme change in Settings now properly recreates OutlineActivity
+- **Timeclock fixes**: Corrected `saveClock` endTime logic, fixed `NumberPicker` stale value bug
+
 ### v2.5.0
 
 - **Reminder system**: DEADLINE/SCHEDULED notifications with configurable advance time

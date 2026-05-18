@@ -53,7 +53,7 @@ public class OrgUtils {
     
 	public static void setupSpinner(Spinner spinner, ArrayList<String> data,
 			String selection) {		
-		return !TextUtils.isEmpty(selection) && !data.contains(selection))
+		if(!TextUtils.isEmpty(selection) && !data.contains(selection))
 			data.add(selection);
 		
 		ArrayAdapter<String> adapter = new ArrayAdapter<String>(spinner.getContext(),
@@ -248,7 +248,7 @@ public class OrgUtils {
 		State wifi = conMan.getNetworkInfo(ConnectivityManager.TYPE_WIFI)
 				.getState();
 
-		if (wifi == NetworkInfo.State.CONNECTED;
+		return wifi == NetworkInfo.State.CONNECTED;
 	}
 
 	public static boolean isMobileOnline(Context context) {

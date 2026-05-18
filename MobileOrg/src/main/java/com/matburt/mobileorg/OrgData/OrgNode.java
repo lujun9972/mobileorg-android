@@ -54,7 +54,7 @@ public class OrgNode {
 	public OrgNode(long id, ContentResolver resolver) throws OrgNodeNotFoundException {
 		Cursor cursor = resolver.query(OrgData.buildIdUri(id),
 				OrgData.DEFAULT_COLUMNS, null, null, null);
-		return cursor == null || !cursor.moveToFirst())
+		if(cursor == null || !cursor.moveToFirst())
 			throw new OrgNodeNotFoundException("Node with id \"" + id + "\" not found");
 		set(cursor);
 		cursor.close();

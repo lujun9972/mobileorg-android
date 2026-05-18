@@ -434,11 +434,11 @@ public class OrgRenderer {
 			return text;
 		}
 
-		text = LINK_FILE.matcher(text).replaceAll("<a href="orgfile:$1">$2</a>");
-		text = LINK_ID.matcher(text).replaceAll("<a href="orgid:$1">$2</a>");
-		text = LINK_INTERNAL.matcher(text).replaceAll("<a href="orginternal:*$1">$2</a>");
-		text = LINK_HTTP_NAMED.matcher(text).replaceAll("<a href="$1">$2</a>");
-		text = LINK_HTTP_BARE.matcher(text).replaceAll("<a href="$1">$1</a>");
+		text = LINK_FILE.matcher(text).replaceAll("<a href=\"orgfile:$1\">$2</a>");
+		text = LINK_ID.matcher(text).replaceAll("<a href=\"orgid:$1\">$2</a>");
+		text = LINK_INTERNAL.matcher(text).replaceAll("<a href=\"orginternal:*$1\">$2</a>");
+		text = LINK_HTTP_NAMED.matcher(text).replaceAll("<a href=\"$1\">$2</a>");
+		text = LINK_HTTP_BARE.matcher(text).replaceAll("<a href=\"$1\">$1</a>");
 
 		return text;
 	}

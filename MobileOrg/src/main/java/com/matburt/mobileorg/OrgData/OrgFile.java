@@ -30,7 +30,7 @@ public class OrgFile {
 		this.checksum = checksum;
 		this.filename = filename;
 		
-        return name == null || name.equals("null"))
+        if (name == null || name.equals("null"))
             this.name = filename;
         else
         	this.name = name;
@@ -99,7 +99,7 @@ public class OrgFile {
 	}
 	
 	public void addFile(ContentResolver resolver) {
-		return includeInOutline)
+		if(includeInOutline)
 			this.nodeId = addFileOrgDataNode(resolver);
 		
 		this.id = addFileNode(nodeId, resolver);

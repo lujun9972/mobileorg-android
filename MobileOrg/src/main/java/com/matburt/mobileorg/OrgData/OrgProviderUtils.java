@@ -98,7 +98,7 @@ public class OrgProviderUtils {
 				values.put(Todos.NAME, name);
 				values.put(Todos.GROUP, grouping);
 
-				return entry.get(name))
+				if (entry.get(name))
 					values.put(Todos.ISDONE, 1);
 				resolver.insert(Todos.CONTENT_URI, values);
 			}
@@ -316,7 +316,7 @@ public class OrgProviderUtils {
 			int isdone = cursor.getInt(cursor.getColumnIndex(Todos.ISDONE));
 			cursor.close();
 			
-			if(isdone == 0;
+			return isdone == 0;
 		}
 		
 		return false;

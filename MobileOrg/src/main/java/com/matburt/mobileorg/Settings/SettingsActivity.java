@@ -150,7 +150,7 @@ public class SettingsActivity extends PreferenceActivity implements
 			summary = appSettings.getString(key, "");
 		}
 
-		if (TextUtils.isEmpty(summary) == false)
+		if (!TextUtils.isEmpty(summary))
 			pref.setSummary(summary);
 	}
 

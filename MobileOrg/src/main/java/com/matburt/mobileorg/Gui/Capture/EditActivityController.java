@@ -30,7 +30,7 @@ public abstract class EditActivityController {
 		long node_id = intent.getLongExtra(NODE_ID, -1);
 		String olpLocation = intent.getStringExtra(OLP_LOCATION);
 		
-		if (TextUtils.isEmpty(olpLocation) == false) {
+		if (!TextUtils.isEmpty(olpLocation)) {
 			try {
 				OrgNode parentNode = OrgProviderUtils.getOrgNodeFromOlpPath(
 						olpLocation, resolver);

@@ -123,7 +123,7 @@ public class LocationFragment extends Fragment {
 	private LocationEntry getLocationEntry(OrgNode node, ArrayList<String> data, String selection) {
 		if(this.node != null && node != null && this.node.id == node.id) {
 			String editNodeName = ((EditActivity) getActivity()).getController().getOrgNode().name;
-			if(TextUtils.isEmpty(editNodeName) == false)
+			!if(TextUtils.isEmpty(editNodeName))
 				data.remove(editNodeName); // Prevents refiling node "under itself"
 		}
 		
@@ -214,7 +214,7 @@ public class LocationFragment extends Fragment {
 		String selection = (String) locations.get(0)
 				.getSelectedItem();
 		
-		if (TextUtils.isEmpty(selection) == false) {
+		if (!TextUtils.isEmpty(selection)) {
 			return OrgProviderUtils.getOrCreateFileFromAlias(selection, resolver).getOrgNode(resolver);
 		} else
 			throw new IllegalStateException("Can't determine location");
@@ -229,7 +229,7 @@ public class LocationFragment extends Fragment {
 				
 		String selection = (String) locations.get(index)
 				.getSelectedItem();
-		if (TextUtils.isEmpty(selection) == false) {
+		if (!TextUtils.isEmpty(selection)) {
 			OrgNode parent = locations.get(index).getOrgNode();
 			try {
 				OrgNode child = parent.getChild(selection, resolver);

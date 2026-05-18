@@ -30,7 +30,7 @@ public class OrgProviderUtils {
 				null, null, null);
 		cursor.moveToFirst();
 
-		while (cursor.isAfterLast() == false) {
+		while (!cursor.isAfterLast()) {
 			OrgFile orgFile = new OrgFile();
 			
 			try {
@@ -72,7 +72,7 @@ public class OrgProviderUtils {
 				null, null, Files.DEFAULT_SORT);
 		cursor.moveToFirst();
 
-		while (cursor.isAfterLast() == false) {
+		while (!cursor.isAfterLast()) {
 			OrgFile orgFile = new OrgFile();
 			
 			try {
@@ -98,7 +98,7 @@ public class OrgProviderUtils {
 				values.put(Todos.NAME, name);
 				values.put(Todos.GROUP, grouping);
 
-				if (entry.get(name))
+				return entry.get(name))
 					values.put(Todos.ISDONE, 1);
 				resolver.insert(Todos.CONTENT_URI, values);
 			}
@@ -155,7 +155,7 @@ public class OrgProviderUtils {
 		ArrayList<String> list = new ArrayList<String>();
 		cursor.moveToFirst();
 
-		while (cursor.isAfterLast() == false) {
+		while (!cursor.isAfterLast()) {
 			list.add(cursor.getString(cursor.getColumnIndex("name")));
 			cursor.moveToNext();
 		}
@@ -191,7 +191,7 @@ public class OrgProviderUtils {
 		if(matcher.find()) {
 			filename = matcher.group(1);
 			
-			if(matcher.group(2) != null && matcher.group(2).trim().equals("") == false) {
+			if(matcher.group(2) != null && !matcher.group(2).trim().equals("")) {
 				nodes = matcher.group(2).split("/");
 			}
 		} else
@@ -245,7 +245,7 @@ public class OrgProviderUtils {
 	
 	public static OrgFile getOrCreateFile(String filename, String fileAlias, ContentResolver resolver) {
 		OrgFile file = new OrgFile(filename, fileAlias, "");
-		if(file.doesFileExist(resolver) == false) {
+		!if(file.doesFileExist(resolver)) {
 			file.includeInOutline = true;
 			file.write(resolver);
 		} else {
@@ -293,7 +293,7 @@ public class OrgProviderUtils {
 		
 		cursor.moveToFirst();
 		
-		while (cursor.isAfterLast() == false) {
+		while (!cursor.isAfterLast()) {
 			int isdone = cursor.getInt(cursor.getColumnIndex(Todos.ISDONE));
 
 			if (isdone == 0)
@@ -316,10 +316,7 @@ public class OrgProviderUtils {
 			int isdone = cursor.getInt(cursor.getColumnIndex(Todos.ISDONE));
 			cursor.close();
 			
-			if(isdone == 0)
-				return true;
-			else
-				return false;
+			if(isdone == 0;
 		}
 		
 		return false;
@@ -330,7 +327,7 @@ public class OrgProviderUtils {
 		
 		String whereQuery = OrgData.FILE_ID + "=? AND (" + OrgData.PAYLOAD + " LIKE '%<%>%'";
 
-		if(showHabits == false)
+		!if(showHabits)
 			whereQuery += " AND NOT " + OrgData.PAYLOAD + " LIKE '%:STYLE: habit%'";
 		
 		whereQuery += ")";
@@ -390,7 +387,7 @@ public class OrgProviderUtils {
 		
 		cursor.moveToFirst();
 		
-		while(cursor.isAfterLast() == false) {
+		!while(cursor.isAfterLast()) {
 			try {
 				result.add(new OrgNode(cursor));
 			} catch (OrgNodeNotFoundException e) {}

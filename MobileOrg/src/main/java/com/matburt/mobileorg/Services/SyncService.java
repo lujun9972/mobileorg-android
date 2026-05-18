@@ -9,14 +9,12 @@ import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.os.Build;
 import android.os.IBinder;
 import android.preference.PreferenceManager;
 import androidx.core.app.NotificationCompat;
 
 import com.matburt.mobileorg.R;
 import com.matburt.mobileorg.Gui.SynchronizerNotification;
-import com.matburt.mobileorg.Gui.SynchronizerNotificationCompat;
 import com.matburt.mobileorg.OrgData.MobileOrgApplication;
 import com.matburt.mobileorg.OrgData.OrgDatabase;
 import com.matburt.mobileorg.OrgData.OrgFileParser;
@@ -35,7 +33,7 @@ public class SyncService extends Service implements
 	private static final String ACTION = "action";
 	private static final String START_ALARM = "START_ALARM";
 	private static final String STOP_ALARM = "STOP_ALARM";
-	private static final String CHANNEL_ID = SynchronizerNotificationCompat.CHANNEL_ID;
+	private static final String CHANNEL_ID = "mobileorg_sync";
 	private static final int FOREGROUND_NOTIFY_ID = 1;
 
 	private SharedPreferences appSettings;
@@ -87,12 +85,8 @@ public class SyncService extends Service implements
 
 		if (Compat.isAtLeastO()) {
 			Compat.createNotificationChannel(this, CHANNEL_ID, "MobileOrg Sync");
-			if (Build.VERSION.SDK_INT >= 34) {
-				startForeground(FOREGROUND_NOTIFY_ID, createForegroundNotification(),
-						android.content.pm.ServiceInfo.FOREGROUND_SERVICE_TYPE_DATA_SYNC);
-			} else {
-				startForeground(FOREGROUND_NOTIFY_ID, createForegroundNotification());
-			}
+			Compat.startForeground(this, FOREGROUND_NOTIFY_ID, createForegroundNotification(),
+					android.content.pm.ServiceInfo.FOREGROUND_SERVICE_TYPE_DATA_SYNC);
 		}
 
 		if (action != null && action.equals(START_ALARM)) {
@@ -141,11 +135,7 @@ public class SyncService extends Service implements
 		else
 			synchronizer = null;
 
-		SynchronizerNotificationCompat notification;
-		if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.HONEYCOMB)
-			notification = new SynchronizerNotification(this);
-		else
-			notification = new SynchronizerNotificationCompat(this);
+		SynchronizerNotification notification = new SynchronizerNotification(this);
 
 		return new Synchronizer(c, synchronizer, notification);
     }

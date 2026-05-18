@@ -183,7 +183,7 @@ public class OutlineActivity extends AppCompatActivity {
 	}
 
 	private void displayNewUserDialogs() {
-		if (PreferenceUtils.isSyncConfigured() == false)
+		if (!PreferenceUtils.isSyncConfigured())
 			runShowWizard(null);
 
 		if (PreferenceUtils.isUpgradedVersion())
@@ -543,11 +543,7 @@ public class OutlineActivity extends AppCompatActivity {
 		Intent intent = new Intent(this, RecordingService.class);
 		intent.putExtra(RecordingService.ACTION_NAME, RecordingService.ACTION_START);
 		intent.putExtra(RecordingService.NODE_ID, nodeId);
-		if (Build.VERSION.SDK_INT >= 26) {
-			startForegroundService(intent);
-		} else {
-			startService(intent);
-		}
+		Compat.startService(this, intent);
 	}
 
 	@Override

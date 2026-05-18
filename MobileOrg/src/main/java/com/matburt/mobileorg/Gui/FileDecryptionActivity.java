@@ -35,7 +35,7 @@ public class FileDecryptionActivity extends Activity
 	public void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);
 		
-		if(isAvailable() == false)
+		!if(isAvailable())
 			return;
 		
 		Intent intent = getIntent();

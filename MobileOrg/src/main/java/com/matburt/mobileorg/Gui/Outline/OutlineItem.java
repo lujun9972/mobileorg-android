@@ -171,11 +171,11 @@ public class OutlineItem extends RelativeLayout implements Checkable {
 	}
 	
 	public void applyLevelIndentation(long level, SpannableStringBuilder item) {
-		String indentString = "";
+		StringBuilder sb = new StringBuilder();
 		for(int i = 0; i < level; i++)
-			indentString += "   ";
+			sb.append("   ");
 	
-		this.levelView.setText(indentString);
+		this.levelView.setText(sb.toString());
 	}
 	
 	public static void applyLevelFormating(DefaultTheme theme, long level, SpannableStringBuilder item) {

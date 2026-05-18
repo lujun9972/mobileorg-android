@@ -6,6 +6,8 @@ import android.content.Context;
 import com.matburt.mobileorg.Gui.Theme.DefaultTheme;
 import com.matburt.mobileorg.OrgData.OrgNode;
 
+import java.util.regex.Pattern;
+
 /**
  * OrgRenderer - A line-level state machine that converts org-mode text to HTML.
  *
@@ -27,6 +29,32 @@ public class OrgRenderer {
 	private static final int STATE_QUOTE = 3;
 	private static final int STATE_EXAMPLE = 4;
 	private static final int MAX_RECURSION_DEPTH = 50;
+
+	// Pre-compiled inline markup patterns
+	private static final Pattern MARKUP_CODE_TILDE = Pattern.compile(
+		"(^|\\s)~(\\S(?:[\\S\\s]*?\\S)?)~(?=[\\s,.;:!?)\\]}>]|$)");
+	private static final Pattern MARKUP_CODE_EQUALS = Pattern.compile(
+		"(^|\\s)=(\\S(?:[\\S\\s]*?\\S)?)=(?=[\\s,.;:!?)\\]}>]|$)");
+	private static final Pattern MARKUP_BOLD = Pattern.compile(
+		"(^|\\s)\\*(\\S(?:[\\S\\s]*?\\S)?)\\*(?=[\\s,.;:!?)\\]}>]|$)");
+	private static final Pattern MARKUP_ITALIC = Pattern.compile(
+		"(^|\\s)/(\\S(?:[\\S\\s]*?\\S)?)/(?=[\\s,.;:!?)\\]}>]|$)");
+	private static final Pattern MARKUP_UNDERLINE = Pattern.compile(
+		"(^|\\s)_(\\S(?:[\\S\\s]*?\\S)?)_(?=[\\s,.;:!?)\\]}>]|$)");
+	private static final Pattern MARKUP_STRIKE = Pattern.compile(
+		"(^|\\s)\\+(\\S(?:[\\S\\s]*?\\S)?)\\+(?=[\\s,.;:!?)\\]}>]|$)");
+
+	// Pre-compiled link patterns
+	private static final Pattern LINK_FILE = Pattern.compile(
+		"\\[\\[file:([^\\]]+)\\]\\[([^\\]]+)\\]\\]");
+	private static final Pattern LINK_ID = Pattern.compile(
+		"\\[\\[id:([^\\]]+)\\]\\[([^\\]]+)\\]\\]");
+	private static final Pattern LINK_INTERNAL = Pattern.compile(
+		"\\[\\[\\*([^\\]]+)\\]\\[([^\\]]+)\\]\\]");
+	private static final Pattern LINK_HTTP_NAMED = Pattern.compile(
+		"\\[\\[(https?://[^\\]]+)\\]\\[([^\\]]+)\\]\\]");
+	private static final Pattern LINK_HTTP_BARE = Pattern.compile(
+		"(?<!<a href=\")(?<!\">)(https?://[^\\s<]+)");
 
 	private final ContentResolver resolver;
 	private final String fontColor;
@@ -387,20 +415,18 @@ public class OrgRenderer {
 			return text;
 		}
 
-		text = markupRegex("~", "code", text);
-		text = markupRegex("=", "code", text);
-		text = markupRegex("*", "b", text);
-		text = markupRegex("/", "i", text);
-		text = markupRegex("_", "u", text);
-		text = markupRegex("+", "strike", text);
+		text = markupReplace(MARKUP_CODE_TILDE, "code", text);
+		text = markupReplace(MARKUP_CODE_EQUALS, "code", text);
+		text = markupReplace(MARKUP_BOLD, "b", text);
+		text = markupReplace(MARKUP_ITALIC, "i", text);
+		text = markupReplace(MARKUP_UNDERLINE, "u", text);
+		text = markupReplace(MARKUP_STRIKE, "strike", text);
 
 		return text;
 	}
 
-	private String markupRegex(String ch, String tag, String text) {
-		return text.replaceAll(
-			"(^|\\s)\\" + ch + "(\\S(?:[\\S\\s]*?\\S)?)\\" + ch + "(?=[\\s,.;:!?)\\]}>]|$)",
-			"$1<" + tag + ">$2</" + tag + ">");
+	private String markupReplace(Pattern pattern, String tag, String text) {
+		return pattern.matcher(text).replaceAll("$1<" + tag + ">$2</" + tag + ">");
 	}
 
 	String convertLinks(String text) {
@@ -408,16 +434,11 @@ public class OrgRenderer {
 			return text;
 		}
 
-		text = text.replaceAll("\\[\\[file:([^\\]]+)\\]\\[([^\\]]+)\\]\\]",
-							   "<a href=\"orgfile:$1\">$2</a>");
-		text = text.replaceAll("\\[\\[id:([^\\]]+)\\]\\[([^\\]]+)\\]\\]",
-							   "<a href=\"orgid:$1\">$2</a>");
-		text = text.replaceAll("\\[\\[\\*([^\\]]+)\\]\\[([^\\]]+)\\]\\]",
-							   "<a href=\"orginternal:*$1\">$2</a>");
-		text = text.replaceAll("\\[\\[(https?://[^\\]]+)\\]\\[([^\\]]+)\\]\\]",
-							   "<a href=\"$1\">$2</a>");
-		text = text.replaceAll("(?<!<a href=\")(?<!\">)(https?://[^\\s<]+)",
-							   "<a href=\"$1\">$1</a>");
+		text = LINK_FILE.matcher(text).replaceAll("<a href="orgfile:$1">$2</a>");
+		text = LINK_ID.matcher(text).replaceAll("<a href="orgid:$1">$2</a>");
+		text = LINK_INTERNAL.matcher(text).replaceAll("<a href="orginternal:*$1">$2</a>");
+		text = LINK_HTTP_NAMED.matcher(text).replaceAll("<a href="$1">$2</a>");
+		text = LINK_HTTP_BARE.matcher(text).replaceAll("<a href="$1">$1</a>");
 
 		return text;
 	}

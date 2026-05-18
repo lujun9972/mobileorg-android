@@ -54,7 +54,7 @@ public class OrgNode {
 	public OrgNode(long id, ContentResolver resolver) throws OrgNodeNotFoundException {
 		Cursor cursor = resolver.query(OrgData.buildIdUri(id),
 				OrgData.DEFAULT_COLUMNS, null, null, null);
-		if(cursor == null || cursor.moveToFirst() == false)
+		return cursor == null || !cursor.moveToFirst())
 			throw new OrgNodeNotFoundException("Node with id \"" + id + "\" not found");
 		set(cursor);
 		cursor.close();
@@ -133,7 +133,7 @@ public class OrgNode {
 		updateNode(resolver);
 		
 		String nodeId = getNodeId(resolver);
-		if (nodeId.startsWith("olp:") == false) { // Update all nodes that have this :ID:
+		if (!nodeId.startsWith("olp:")) { // Update all nodes that have this :ID:
 			String nodeIdQuery = "%" + nodeId + "%";
 			resolver.update(OrgData.CONTENT_URI, getSimpleContentValues(),
 					OrgData.PAYLOAD + " LIKE ?", new String[] { nodeIdQuery });
@@ -144,11 +144,11 @@ public class OrgNode {
 		if(parentId == -1)
 			return this;
 		
-		if (getFilename(resolver).equals(OrgFile.AGENDA_FILE) == false)
+		if (!getFilename(resolver).equals(OrgFile.AGENDA_FILE))
 			return this;
 		
 		String nodeId = getNodeId(resolver);
-		if (nodeId.startsWith("olp:") == false) { // Update all nodes that have this :ID:
+		if (!nodeId.startsWith("olp:")) { // Update all nodes that have this :ID:
 			String nodeIdQuery = OrgData.PAYLOAD + " LIKE '%" + nodeId + "%'";
 			try {
 				OrgFile agendaFile = new OrgFile(OrgFile.AGENDA_FILE, resolver);
@@ -258,10 +258,7 @@ public class OrgNode {
 		int childCount = childCursor.getCount();
 		childCursor.close();
 		
-		if(childCount > 0)
-			return true;
-		else
-			return false;
+		if(childCount > 0;
 	}
 	
 	public static boolean hasChildren (long node_id, ContentResolver resolver) {
@@ -298,7 +295,7 @@ public class OrgNode {
 	public boolean isFilenode(ContentResolver resolver) {
 		try {
 			OrgFile file = new OrgFile(fileId, resolver);
-			if(file.nodeId == this.id)
+			return file.nodeId == this.id)
 				return true;
 		} catch (OrgFileNotFoundException e) {}
 		
@@ -358,7 +355,7 @@ public class OrgNode {
 		preparePayload();
 
 		String id = orgNodePayload.getId();				
-		if(id != null && id.equals("") == false)
+		if(id != null && !id.equals(""))
 			return id;
 		else
 			return getOlpId(resolver);
@@ -530,19 +527,19 @@ public class OrgNode {
 			result.append("*");
 		result.append(" ");
 
-		if (TextUtils.isEmpty(todo) == false)
+		if (!TextUtils.isEmpty(todo))
 			result.append(todo + " ");
 
-		if (TextUtils.isEmpty(priority) == false)
+		if (!TextUtils.isEmpty(priority))
 			result.append("[#" + priority + "] ");
 
 		result.append(name);
 		
-		if(tags != null && TextUtils.isEmpty(tags) == false)
+		if(tags != null && !TextUtils.isEmpty(tags))
 			result.append(" ").append(":" + tags + ":");
 		
 
-		if (payload != null && TextUtils.isEmpty(payload) == false)
+		if (payload != null && !TextUtils.isEmpty(payload))
 			result.append("\n").append(payload);
 
 		return result.toString();
@@ -551,10 +548,7 @@ public class OrgNode {
 	public boolean equals(OrgNode node) {
 		if (name.equals(node.name) && tags.equals(node.tags)
 				&& priority.equals(node.priority) && todo.equals(node.todo)
-				&& payload.equals(node.payload))
-			return true;
-		else
-			return false;
+				&& payload.equals(node.payload);
 	}
 
 	
@@ -610,13 +604,7 @@ public class OrgNode {
 		rawPayload = OrgNodePayload.addLogbook(rawPayload, startTime, endTime, elapsedTime);
 		Log.d("MobileOrg", "[ClockIn] OrgNode.addLogbook: rawPayload after  = [" + rawPayload + "]");
 
-		boolean generateEdits = !getFilename(resolver).equals(FileUtils.CAPTURE_FILE);
-		Log.d("MobileOrg", "[ClockIn] OrgNode.addLogbook: filename=" + getFilename(resolver)
-				+ ", generateEdits=" + generateEdits);
-
-		if(generateEdits) {
-			OrgEdit edit = new OrgEdit(this, OrgEdit.TYPE.BODY, rawPayload.toString(), resolver);
-			edit.write(resolver);
+			writePayloadWithEdits(rawPayload.toString(), resolver);
 			Log.d("MobileOrg", "[ClockIn] OrgNode.addLogbook: OrgEdit written");
 		}
 		setPayload(rawPayload.toString());
@@ -632,12 +620,19 @@ public class OrgNode {
 		StringBuilder rawPayload = new StringBuilder(getPayload());
 		rawPayload.append("\n").append(link);
 
-		boolean generateEdits = !getFilename(resolver).equals(FileUtils.CAPTURE_FILE);
-		if (generateEdits) {
-			OrgEdit edit = new OrgEdit(this, OrgEdit.TYPE.BODY, rawPayload.toString(), resolver);
-			edit.write(resolver);
+			writePayloadWithEdits(rawPayload.toString(), resolver);
 		}
 		setPayload(rawPayload.toString());
+		write(resolver);
+	}
+
+	private void writePayloadWithEdits(String newPayload, ContentResolver resolver) {
+		boolean generateEdits = !getFilename(resolver).equals(FileUtils.CAPTURE_FILE);
+		if (generateEdits) {
+			OrgEdit edit = new OrgEdit(this, OrgEdit.TYPE.BODY, newPayload, resolver);
+			edit.write(resolver);
+		}
+		setPayload(newPayload);
 		write(resolver);
 	}
 

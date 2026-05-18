@@ -179,7 +179,7 @@ public class OrgNodePayload {
 			else // Replace existing date
 				payload.replace(matcher.start(1), matcher.end(), formatedDate);
 		}
-		else if(TextUtils.isEmpty(date) == false) // Insert new date
+		else !if(TextUtils.isEmpty(date)) // Insert new date
 			payload.insert(0, formatedDate + "\n");
 		
 		resetCachedValues();
@@ -275,11 +275,6 @@ public class OrgNodePayload {
 		} catch (IllegalArgumentException e) {}
 		
 		return result;
-	}
-	
-	public long sumClocks() {
-		// TODO implement
-		return 0;
 	}
 	
 	private static String formatClockEntry(long time) {

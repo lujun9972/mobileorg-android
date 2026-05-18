@@ -122,7 +122,7 @@ public class TimeclockService extends Service {
 	private void getEstimated() {
 		String estimated = node.getOrgNodePayload().getProperty("Effort").trim();
 
-		if (TextUtils.isEmpty(estimated) == false) {
+		if (!TextUtils.isEmpty(estimated)) {
 			String[] split = estimated.split(":");
 			try {
 				if (split.length == 1)
@@ -161,12 +161,8 @@ public class TimeclockService extends Service {
 		updateTime();
 
 		if (Compat.isAtLeastO()) {
-			if (Build.VERSION.SDK_INT >= 34) {
-				startForeground(notificationID, notification,
-						android.content.pm.ServiceInfo.FOREGROUND_SERVICE_TYPE_SPECIAL_USE);
-			} else {
-				startForeground(notificationID, notification);
-			}
+			Compat.startForeground(this, notificationID, notification,
+					android.content.pm.ServiceInfo.FOREGROUND_SERVICE_TYPE_SPECIAL_USE);
 		} else {
 			mNM.notify(notificationID, notification);
 		}

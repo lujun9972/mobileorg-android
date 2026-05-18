@@ -1,8 +1,10 @@
 package com.matburt.mobileorg.util;
 
+import android.app.Notification;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
+import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
 import android.os.Build;
@@ -79,5 +81,16 @@ public class Compat {
         if (Build.VERSION.SDK_INT < SDK_TIRAMISU) return true;
         return ContextCompat.checkSelfPermission(context, "android.permission.POST_NOTIFICATIONS")
                 == android.content.pm.PackageManager.PERMISSION_GRANTED;
+    }
+
+    /**
+     * Start a service in the foreground, handling API 34+ service type requirement.
+     */
+    public static void startForeground(Service service, int id, Notification notification, int serviceType) {
+        if (Build.VERSION.SDK_INT >= 34) {
+            service.startForeground(id, notification, serviceType);
+        } else {
+            service.startForeground(id, notification);
+        }
     }
 }

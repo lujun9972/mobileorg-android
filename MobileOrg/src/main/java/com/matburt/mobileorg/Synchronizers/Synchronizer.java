@@ -10,7 +10,7 @@ import android.util.Log;
 import android.widget.Toast;
 
 import com.matburt.mobileorg.Gui.FileDecryptionActivity;
-import com.matburt.mobileorg.Gui.SynchronizerNotificationCompat;
+import com.matburt.mobileorg.Gui.SynchronizerNotification;
 import com.matburt.mobileorg.OrgData.OrgContract.Edits;
 import com.matburt.mobileorg.OrgData.OrgContract.Files;
 import com.matburt.mobileorg.OrgData.MobileOrgApplication;
@@ -50,16 +50,15 @@ public class Synchronizer {
 	public static final String SYNC_PROGRESS_UPDATE = "progress_update";
 	public static final String SYNC_SHOW_TOAST = "showToast";
 
-	public static final String CAPTURE_FILE = "mobileorg.org";
 	public static final String INDEX_FILE = "index.org";
 
 	private Context context;
 	private ContentResolver resolver;
 	private SynchronizerInterface syncher;
-	private SynchronizerNotificationCompat notify;
+	private SynchronizerNotification notify;
 	private String syncDiag = "";
 
-	public Synchronizer(Context context, SynchronizerInterface syncher, SynchronizerNotificationCompat notify) {
+	public Synchronizer(Context context, SynchronizerInterface syncher, SynchronizerNotification notify) {
 		this.context = context;
 		this.resolver = context.getContentResolver();
 		this.syncher = syncher;
@@ -125,7 +124,7 @@ public class Synchronizer {
 	 */
 	public void pushCaptures() throws IOException,
 			CertificateException, SSLHandshakeException {
-		final String filename = CAPTURE_FILE;
+		final String filename = FileUtils.CAPTURE_FILE;
 
 		notify.updateNotification("Uploading captures");
 
@@ -167,7 +166,8 @@ public class Synchronizer {
 		Log.i("MobileOrg", "Sync: remoteChecksums count=" + remoteChecksums.size()
 				+ ", entries=" + remoteChecksums.keySet());
 
-		ArrayList<String> changedFiles = getFilesThatChangedRemotely(remoteChecksums);
+		HashMap<String, String> localChecksums = OrgProviderUtils.getFileChecksums(resolver);
+			ArrayList<String> changedFiles = getFilesThatChangedRemotely(remoteChecksums, localChecksums);
 		syncDiag += "changed: " + changedFiles.size() + " files" +
 				(changedFiles.isEmpty() ? "" : " " + changedFiles) + "\n";
 		Log.i("MobileOrg", "Sync: changedFiles=" + changedFiles.size()
@@ -180,7 +180,7 @@ public class Synchronizer {
 				+ ", entries=" + filenameMap.keySet());
 
 		// Remove local files that no longer exist on remote
-		removeRemoteDeletedFiles(filenameMap);
+		removeRemoteDeletedFiles(filenameMap, localChecksums);
 
 		// Only download files that are listed in index.org
 		// (checksums.dat may reference files removed from index)
@@ -259,7 +259,7 @@ public class Synchronizer {
 			filesToGet.add(key);
 		}
 
-		filesToGet.remove(CAPTURE_FILE);
+		filesToGet.remove(FileUtils.CAPTURE_FILE);
 
 		return filesToGet;
 	}
@@ -273,7 +273,7 @@ public class Synchronizer {
 		HashMap<String, String> localChecksums = OrgProviderUtils.getFileChecksums(resolver);
 
 		for (String localFile : localChecksums.keySet()) {
-			if (localFile.equals(CAPTURE_FILE) || localFile.equals(OrgFile.AGENDA_FILE))
+			if (localFile.equals(FileUtils.CAPTURE_FILE) || localFile.equals(OrgFile.AGENDA_FILE))
 				continue;
 
 			if (!remoteFileMap.containsKey(localFile)) {
@@ -325,7 +325,7 @@ public class Synchronizer {
 	}
 
 	private void announceProgressUpdate(int progress, String message) {
-		if(message != null && TextUtils.isEmpty(message) == false)
+		if(message != null && !TextUtils.isEmpty(message))
 			notify.updateNotification(progress, message);
 		else
 			notify.updateNotification(progress);

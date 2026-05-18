@@ -133,7 +133,7 @@ public class CalendarSyncService extends Service implements
 
 	private void syncFiles(String[] files) {
 		for (String filename : files) {
-			if (filename.equals(OrgFile.AGENDA_FILE) == false) {
+			if (!filename.equals(OrgFile.AGENDA_FILE)) {
 				syncFile(filename);
 			}
 		}
@@ -159,7 +159,7 @@ public class CalendarSyncService extends Service implements
 
 		MultiMap<CalendarEntry> entries = getCalendarEntries(filename);
 
-		while (scheduledQuery.isAfterLast() == false) {
+		while (!scheduledQuery.isAfterLast()) {
 			try {
 				OrgNode node = new OrgNode(scheduledQuery);
 				syncNode(node, entries, filename);
@@ -200,14 +200,14 @@ public class CalendarSyncService extends Service implements
 
 	private boolean shouldInsertEntry(String todo, OrgNodeDate date) {
 		boolean isTodoActive = true;
-		if (TextUtils.isEmpty(todo) == false && allTodos.contains(todo))
+		if (!TextUtils.isEmpty(todo) && allTodos.contains(todo))
 			isTodoActive = this.activeTodos.contains(todo);
 		
-		if (this.showDone == false && isTodoActive == false)
+		if (!this.showDone && !isTodoActive)
 			return false;
 		
 
-		if (this.showPast == false && date.isInPast())
+		if (!this.showPast && date.isInPast())
 			return false;
 		
 		return true;
@@ -222,7 +222,7 @@ public class CalendarSyncService extends Service implements
 		CalendarEntriesParser entriesParser = new CalendarEntriesParser(calendarWrapper.calendar.events,
 				query);
 
-		while (query.isAfterLast() == false) {
+		while (!query.isAfterLast()) {
 			CalendarEntry entry = entriesParser.getEntryFromCursor(query);
 			map.put(entry.dtStart, entry);
 
@@ -248,7 +248,7 @@ public class CalendarSyncService extends Service implements
 		CalendarEntriesParser entriesParser = new CalendarEntriesParser(
 				calendarWrapper.calendar.events, query);
 				
-		while(query.isAfterLast() == false) {
+		!while(query.isAfterLast()) {
 			CalendarEntry entry = entriesParser.getEntryFromCursor(query);
 			OrgNode node = entry.convertToOrgNode();
 			

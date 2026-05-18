@@ -53,7 +53,7 @@ public class OrgUtils {
     
 	public static void setupSpinner(Spinner spinner, ArrayList<String> data,
 			String selection) {		
-		if(!TextUtils.isEmpty(selection) && !data.contains(selection))
+		return !TextUtils.isEmpty(selection) && !data.contains(selection))
 			data.add(selection);
 		
 		ArrayAdapter<String> adapter = new ArrayAdapter<String>(spinner.getContext(),
@@ -155,32 +155,22 @@ public class OrgUtils {
 	}
 
     public static String getStringFromResource(int resource, Context context) {
-        InputStream is = context.getResources().openRawResource(resource);
-        BufferedReader br = new BufferedReader(new InputStreamReader(is));
-        String readLine = null;
-        String contents = "";
-
         try {
-            // While the BufferedReader readLine is not null 
-            while ((readLine = br.readLine()) != null) {
-                contents += readLine + "\n";
+            InputStream is = context.getResources().openRawResource(resource);
+            BufferedReader br = new BufferedReader(new InputStreamReader(is));
+            try {
+                return FileUtils.read(br);
+            } finally {
+                br.close();
             }
-
-            // Close the InputStream and BufferedReader
-            is.close();
-            br.close();
-
         } catch (IOException e) {
-            e.printStackTrace();
+            return "";
         }
-        return contents;
     }
     
 
-    public static class SortIgnoreCase implements Comparator<Object> {
-        public int compare(Object o1, Object o2) {
-            String s1 = (String) o1;
-            String s2 = (String) o2;
+    public static class SortIgnoreCase implements Comparator<String> {
+        public int compare(String s1, String s2) {
             return s1.toLowerCase().compareTo(s2.toLowerCase());
         }
     }
@@ -258,10 +248,7 @@ public class OrgUtils {
 		State wifi = conMan.getNetworkInfo(ConnectivityManager.TYPE_WIFI)
 				.getState();
 
-		if (wifi == NetworkInfo.State.CONNECTED)
-			return true;
-		else
-			return false;
+		if (wifi == NetworkInfo.State.CONNECTED;
 	}
 
 	public static boolean isMobileOnline(Context context) {
@@ -271,10 +258,7 @@ public class OrgUtils {
 		State mobile = conMan.getNetworkInfo(ConnectivityManager.TYPE_MOBILE)
 				.getState();
 
-		if (mobile == NetworkInfo.State.CONNECTED)
-			return true;
-		else
-			return false;
+		return mobile == NetworkInfo.State.CONNECTED;
 	}
 	
 	

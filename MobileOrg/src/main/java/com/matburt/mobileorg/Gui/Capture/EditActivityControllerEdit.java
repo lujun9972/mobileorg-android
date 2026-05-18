@@ -48,9 +48,6 @@ public class EditActivityControllerEdit extends EditActivityController {
 					.generateApplyEditNodes(newNode, resolver).size();
 		} catch (OrgNodeNotFoundException e) {}
 		
-		if(numberOfEdits > 0)
-			return true;
-		else
-			return false;
+		return numberOfEdits > 0;
 	}
 }

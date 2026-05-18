@@ -109,17 +109,17 @@ public class DatesFragment extends Fragment {
 
 
 	private void addDateTimestamp(String date) {
-		if(date == null || TextUtils.isEmpty(date) == false)
+		if(date == null || !TextUtils.isEmpty(date))
 			this.timestampEntry = getDateTableRow(date, OrgNodeTimeDate.TYPE.Timestamp);
 	}
 	
 	private void addDateScheduled(String date) {
-		if(date == null || TextUtils.isEmpty(date) == false)
+		if(date == null || !TextUtils.isEmpty(date))
 			this.scheduledEntry = getDateTableRow(date, OrgNodeTimeDate.TYPE.Scheduled);
 	}
 	
 	private void addDateDeadline(String date) {
-		if(date == null || TextUtils.isEmpty(date) == false)
+		if(date == null || !TextUtils.isEmpty(date))
 			this.deadlineEntry = getDateTableRow(date, OrgNodeTimeDate.TYPE.Deadline);
 	}
 	

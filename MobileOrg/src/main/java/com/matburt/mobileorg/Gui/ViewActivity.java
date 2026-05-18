@@ -87,16 +87,8 @@ public class ViewActivity extends AppCompatActivity {
 	@Override
 	public boolean onOptionsItemSelected(MenuItem item) {
 		int order = item.getOrder();
-		if (order == 0) {
-			viewNode(0);
-		} else if (order == 1) {
-			viewNode(1);
-		} else if (order == 2) {
-			viewNode(2);
-		} else if (order == 3) {
-			viewNode(3);
-		} else if (order == 4) {
-			viewNode(4);
+		if (order >= 0 && order <= 4) {
+			viewNode(order);
 		} else {
 			return super.onOptionsItemSelected(item);
 		}

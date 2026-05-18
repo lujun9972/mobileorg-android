@@ -20,7 +20,6 @@ import com.jcraft.jsch.Session;
 import com.matburt.mobileorg.util.OrgUtils;
 
 public class SSHSynchronizer implements SynchronizerInterface {
-	private final String LT = "MobileOrg";
 
 	private String user;
 	private String host;
@@ -52,7 +51,7 @@ public class SSHSynchronizer implements SynchronizerInterface {
         }
         pass = appSettings.getString("scpPass", "");
 
-        Log.i(LT, "SSH: path=" + path + " user=" + user + " host=" + host + " port=" + port);
+        Log.i("MobileOrg", "SSH: path=" + path + " user=" + user + " host=" + host + " port=" + port);
 	}
 
     public String testConnection(String path, String user, String pass, String host, int port, String pubFile) {
@@ -140,9 +139,9 @@ public class SSHSynchronizer implements SynchronizerInterface {
 			session.setConfig(config);
 
 			session.connect();
-			Log.d(LT, "SSH Connected");
+			Log.d("MobileOrg", "SSH Connected");
 		} catch (JSchException e) {
-			Log.d(LT, e.getLocalizedMessage());
+			Log.d("MobileOrg", e.getLocalizedMessage());
             throw e;
 		}
     }

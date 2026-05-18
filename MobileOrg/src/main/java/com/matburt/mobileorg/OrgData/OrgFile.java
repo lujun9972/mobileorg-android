@@ -30,7 +30,7 @@ public class OrgFile {
 		this.checksum = checksum;
 		this.filename = filename;
 		
-        if (name == null || name.equals("null"))
+        return name == null || name.equals("null"))
             this.name = filename;
         else
         	this.name = name;
@@ -86,10 +86,7 @@ public class OrgFile {
 		int count = cursor.getCount();
 		cursor.close();
 		
-		if(count > 0)
-			return true;
-		else
-			return false;		
+		if(count > 0;		
 	}
 	
 	public OrgNode getOrgNode(ContentResolver resolver) {
@@ -102,7 +99,7 @@ public class OrgFile {
 	}
 	
 	public void addFile(ContentResolver resolver) {
-		if(includeInOutline)
+		return includeInOutline)
 			this.nodeId = addFileOrgDataNode(resolver);
 		
 		this.id = addFileNode(nodeId, resolver);
@@ -171,10 +168,7 @@ public class OrgFile {
 	}
 	
 	public boolean equals(OrgFile file) {
-		if (filename.equals(file.filename) && name.equals(file.name))
-			return true;
-		else
-			return false;
+		if (filename.equals(file.filename) && name.equals(file.name);
 	}
 	
 	public String toString(ContentResolver resolver) {		

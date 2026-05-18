@@ -34,7 +34,7 @@ public class CalendarEntry {
 
 		String payload = formatedDate + "\n" + this.description;
 
-		if (TextUtils.isEmpty(this.location) == false)
+		if (!TextUtils.isEmpty(this.location))
 			payload += "\n:LOCATION: " + this.location;
 
 		node.setPayload(payload);

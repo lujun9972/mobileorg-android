@@ -114,7 +114,7 @@ public class TagsFragment extends Fragment {
 		StringBuilder result = new StringBuilder();
 		for(TagTableRow entry: tagEntries) {
 			String selection = entry.getSelection();
-			if(TextUtils.isEmpty(selection) == false) {
+			!if(TextUtils.isEmpty(selection)) {
 				result.append(selection);
 				result.append(":");
 			}

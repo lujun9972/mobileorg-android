@@ -258,12 +258,8 @@ public class RecordingService extends Service {
                 .build();
 
         if (Compat.isAtLeastO()) {
-            if (Build.VERSION.SDK_INT >= 34) {
-                startForeground(NOTIFICATION_ID, notification,
-                        android.content.pm.ServiceInfo.FOREGROUND_SERVICE_TYPE_SPECIAL_USE);
-            } else {
-                startForeground(NOTIFICATION_ID, notification);
-            }
+            Compat.startForeground(this, NOTIFICATION_ID, notification,
+                    android.content.pm.ServiceInfo.FOREGROUND_SERVICE_TYPE_SPECIAL_USE);
         }
     }
 

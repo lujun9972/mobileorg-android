@@ -49,7 +49,7 @@ public class EditActivity extends AppCompatActivity implements EditHost,
 	public boolean onCreateOptionsMenu(Menu menu) {
 		getMenuInflater().inflate(R.menu.edit, menu);
 
-		if(controller != null && controller.isNodeEditable() == false)
+		if(controller != null && !controller.isNodeEditable())
 			menu.findItem(R.id.nodeedit_save).setVisible(false);
 	    
     	return super.onCreateOptionsMenu(menu);
@@ -80,7 +80,7 @@ public class EditActivity extends AppCompatActivity implements EditHost,
 	}
 	
 	private void doCancel() {
-		if(hasEdits() == false) {
+		!if(hasEdits()) {
 			setResult(RESULT_CANCELED);
 			finish();
 			return;

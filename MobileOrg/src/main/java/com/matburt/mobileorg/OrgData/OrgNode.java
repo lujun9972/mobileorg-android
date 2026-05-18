@@ -258,7 +258,7 @@ public class OrgNode {
 		int childCount = childCursor.getCount();
 		childCursor.close();
 		
-		if(childCount > 0;
+		return childCount > 0;
 	}
 	
 	public static boolean hasChildren (long node_id, ContentResolver resolver) {
@@ -295,7 +295,7 @@ public class OrgNode {
 	public boolean isFilenode(ContentResolver resolver) {
 		try {
 			OrgFile file = new OrgFile(fileId, resolver);
-			return file.nodeId == this.id)
+			if(file.nodeId == this.id)
 				return true;
 		} catch (OrgFileNotFoundException e) {}
 		
@@ -546,7 +546,7 @@ public class OrgNode {
 	}
 
 	public boolean equals(OrgNode node) {
-		if (name.equals(node.name) && tags.equals(node.tags)
+		return name.equals(node.name) && tags.equals(node.tags)
 				&& priority.equals(node.priority) && todo.equals(node.todo)
 				&& payload.equals(node.payload);
 	}

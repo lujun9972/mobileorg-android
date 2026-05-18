@@ -86,7 +86,7 @@ public class OrgFile {
 		int count = cursor.getCount();
 		cursor.close();
 		
-		if(count > 0;		
+		return count > 0;		
 	}
 	
 	public OrgNode getOrgNode(ContentResolver resolver) {
@@ -168,7 +168,7 @@ public class OrgFile {
 	}
 	
 	public boolean equals(OrgFile file) {
-		if (filename.equals(file.filename) && name.equals(file.name);
+		return filename.equals(file.filename) && name.equals(file.name);
 	}
 	
 	public String toString(ContentResolver resolver) {		

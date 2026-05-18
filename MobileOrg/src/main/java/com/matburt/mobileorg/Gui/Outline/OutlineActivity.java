@@ -72,9 +72,11 @@ public class OutlineActivity extends AppCompatActivity {
 	private Chip allFilterChip;
 	private static final String STATE_FILTER_TAGS = "filter_tags";
 	private static final String STATE_FILTER_AND_MODE = "filter_and_mode";
+	private String currentThemeName;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
+		currentThemeName = PreferenceUtils.getThemeName();
 		OrgUtils.setTheme(this);
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.outline);
@@ -142,6 +144,12 @@ public class OutlineActivity extends AppCompatActivity {
 	protected void onResume() {
 		MobileOrgApplication.log("OutlineActivity.onResume()");
 		super.onResume();
+		String newTheme = PreferenceUtils.getThemeName();
+		if (newTheme != null && !newTheme.equals(currentThemeName)) {
+			currentThemeName = newTheme;
+			recreate();
+			return;
+		}
 		refreshTitle();
 		setupFilterBar();
 	}

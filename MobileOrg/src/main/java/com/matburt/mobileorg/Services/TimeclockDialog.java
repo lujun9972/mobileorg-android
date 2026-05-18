@@ -93,18 +93,16 @@ public class TimeclockDialog extends FragmentActivity {
 			Log.e("MobileOrg", "[ClockIn] saveClock ABORTED: node is null!");
 			return;
 		}
-		TimeclockService service = TimeclockService.getInstance();
-		long startTime = (service != null) ? service.getStartTime() : System.currentTimeMillis();
+		long endTime = System.currentTimeMillis();
 		long durationMillis = (hour * 3600L + minute * 60L) * 1000L;
-		long endTime = startTime + durationMillis;
+		long startTime = endTime - durationMillis;
 		String elapsedTime = String.format("%d:%02d", hour, minute);
 
 		java.text.SimpleDateFormat sdf = new java.text.SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
 		Log.d("MobileOrg", "[ClockIn] saveClock: duration=" + elapsedTime
 				+ ", startTime=" + startTime + " (" + sdf.format(new java.util.Date(startTime)) + ")"
 				+ ", endTime=" + endTime + " (" + sdf.format(new java.util.Date(endTime)) + ")"
-				+ ", durationMillis=" + durationMillis
-				+ ", service=" + (service != null ? "alive" : "NULL"));
+				+ ", durationMillis=" + durationMillis);
 
 		Log.d("MobileOrg", "[ClockIn] saveClock: payload BEFORE = [" + node.getPayload() + "]");
 		node.addLogbook(startTime, endTime, elapsedTime, getContentResolver());

@@ -18,6 +18,7 @@ import androidx.fragment.app.FragmentTransaction;
 
 import com.matburt.mobileorg.R;
 import com.matburt.mobileorg.OrgData.OrgNode;
+import com.matburt.mobileorg.OrgData.OrgNodeRepository;
 import com.matburt.mobileorg.util.OrgNodeNotFoundException;
 
 public class TimeclockDialog extends FragmentActivity {
@@ -63,7 +64,7 @@ public class TimeclockDialog extends FragmentActivity {
 		Log.d("MobileOrg", "[ClockIn] TimeclockDialog.onStart: node_id from service=" + node_id);
 
 		try {
-			this.node = new OrgNode(node_id, getContentResolver());
+			this.node = new OrgNodeRepository(getContentResolver()).getById(node_id);
 			Log.d("MobileOrg", "[ClockIn] TimeclockDialog.onStart: node loaded, name=" + node.name);
 		} catch (OrgNodeNotFoundException e) {
 			Log.e("MobileOrg", "[ClockIn] TimeclockDialog.onStart: node not found! node_id=" + node_id, e);
@@ -105,7 +106,7 @@ public class TimeclockDialog extends FragmentActivity {
 				+ ", durationMillis=" + durationMillis);
 
 		Log.d("MobileOrg", "[ClockIn] saveClock: payload BEFORE = [" + node.getPayload() + "]");
-		node.addLogbook(startTime, endTime, elapsedTime, getContentResolver());
+		new OrgNodeRepository(getContentResolver()).addLogbook(node, startTime, endTime, elapsedTime);
 		Log.d("MobileOrg", "[ClockIn] saveClock: payload AFTER  = [" + node.getPayload() + "]");
 	}
 

@@ -18,6 +18,7 @@ import androidx.core.app.NotificationCompat;
 import android.util.Log;
 
 import com.matburt.mobileorg.OrgData.OrgNode;
+import com.matburt.mobileorg.OrgData.OrgNodeRepository;
 import com.matburt.mobileorg.R;
 import com.matburt.mobileorg.util.Compat;
 import com.matburt.mobileorg.util.OrgNodeNotFoundException;
@@ -202,8 +203,8 @@ public class RecordingService extends Service {
         String elapsedTime = formatElapsedTime(elapsedMillis);
 
         ContentResolver resolver = getContentResolver();
-        node.addLogbook(startTime, endTime, elapsedTime, resolver);
-        node.appendFileLink(recordingFilePath, resolver);
+        new OrgNodeRepository(resolver).addLogbook(node, startTime, endTime, elapsedTime);
+        new OrgNodeRepository(resolver).appendFileLink(node, recordingFilePath);
 
         Intent stoppedIntent = new Intent(BROADCAST_STOPPED);
         stoppedIntent.setPackage(getPackageName());

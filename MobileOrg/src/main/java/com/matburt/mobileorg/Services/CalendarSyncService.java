@@ -19,6 +19,7 @@ import com.matburt.mobileorg.OrgData.CalendarEntriesParser;
 import com.matburt.mobileorg.OrgData.CalendarEntry;
 import com.matburt.mobileorg.OrgData.OrgFile;
 import com.matburt.mobileorg.OrgData.OrgNode;
+import com.matburt.mobileorg.OrgData.OrgNodeRepository;
 import com.matburt.mobileorg.OrgData.OrgNodeDate;
 import com.matburt.mobileorg.OrgData.OrgNodePayload;
 import com.matburt.mobileorg.OrgData.OrgProviderUtils;
@@ -258,7 +259,7 @@ public class CalendarSyncService extends Service implements
 			node.parentId = captureFile.nodeId;
 			node.level = 1;
 						
-			node.write(getContentResolver());
+			new OrgNodeRepository(getContentResolver()).write(node);
 			
 			if (this.pullDelete)
 				calendarWrapper.deleteEntry(entry);

@@ -417,7 +417,11 @@ public class OrgNodeRepository {
                 return getOrgNodeFromOlpPath(olpPath);
             } catch (Exception ex) {
                 OrgFile captureFile = OrgProviderUtils.getOrCreateCaptureFile(resolver);
-                return getById(captureFile.nodeId);
+                try {
+                    return getById(captureFile.nodeId);
+                } catch (OrgNodeNotFoundException e2) {
+                    return new OrgNode();
+                }
             }
         }
     }

@@ -12,12 +12,14 @@ import android.widget.ListView;
 import androidx.appcompat.app.AppCompatActivity;
 import android.view.ActionMode;
 import com.matburt.mobileorg.OrgData.OrgNode;
+import com.matburt.mobileorg.OrgData.OrgNodeRepository;
 
 public class OutlineListView extends ListView {
 
 	private Context context;
 	private AppCompatActivity activity;
 	private ContentResolver resolver;
+	private OrgNodeRepository repo;
 
 	private OutlineAdapter adapter;
 	private OutlineActionMode actionMode;
@@ -27,6 +29,7 @@ public class OutlineListView extends ListView {
 		super(context, atts);
 		this.context = activity;
 		this.resolver = context.getContentResolver();
+		this.repo = new OrgNodeRepository(resolver);
 		setChoiceMode(ListView.CHOICE_MODE_SINGLE);
 		setOnItemClickListener(outlineClickListener);
 		setOnItemLongClickListener(outlineLongClickListener);
@@ -76,7 +79,7 @@ public class OutlineListView extends ListView {
 				activeActionMode.finish();
 			
 			OrgNode node = adapter.getItem(position);
-			if(node.hasChildren(resolver)) {
+			if(repo.hasChildren(node.id)) {
 				adapter.collapseExpand(position);
 			}
 			else {

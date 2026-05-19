@@ -18,6 +18,7 @@ import com.matburt.mobileorg.Gui.Capture.EditActivity;
 import com.matburt.mobileorg.Gui.Capture.EditActivityController;
 import com.matburt.mobileorg.OrgData.OrgFile;
 import com.matburt.mobileorg.OrgData.OrgNode;
+import com.matburt.mobileorg.OrgData.OrgNodeRepository;
 import com.matburt.mobileorg.Services.CalendarSyncService;
 import com.matburt.mobileorg.Services.RecordingService;
 import com.matburt.mobileorg.Services.TimeclockService;
@@ -29,6 +30,7 @@ public class OutlineActionMode implements ActionMode.Callback {
 
 	private Context context;
 	private ContentResolver resolver;
+	private OrgNodeRepository repo;
 	
 	private ListView list;
 	private OutlineAdapter adapter;
@@ -39,6 +41,7 @@ public class OutlineActionMode implements ActionMode.Callback {
 		super();
 		this.context = context;
 		this.resolver = context.getContentResolver();
+		this.repo = new OrgNodeRepository(resolver);
 	}
 	
 	public void initActionMode(ListView list, int position, int restorePosition) {
@@ -63,10 +66,10 @@ public class OutlineActionMode implements ActionMode.Callback {
 	public boolean onCreateActionMode(ActionMode mode, Menu menu) {
         MenuInflater inflater = mode.getMenuInflater();
 		
-		if (this.node != null && this.node.id >= 0 && node.isNodeEditable(resolver)) {
+		if (this.node != null && this.node.id >= 0 && repo.isNodeEditable(node)) {
 	        inflater.inflate(R.menu.outline_node, menu);
 		}
-		else if(this.node != null && this.node.isFilenode(resolver)) {
+		else if(this.node != null && repo.isFilenode(node)) {
 			if(this.node.name.equals(OrgFile.AGENDA_FILE_ALIAS))
 		        inflater.inflate(R.menu.outline_file_uneditable, menu);
 			else
@@ -143,7 +146,7 @@ public class OutlineActionMode implements ActionMode.Callback {
 				.setPositiveButton(R.string.yes,
 						new DialogInterface.OnClickListener() {
 							public void onClick(DialogInterface dialog, int id) {
-								node.deleteNode(resolver);
+								repo.deleteNode(node);
 								OrgUtils.announceSyncDone(context);
 							}
 						})
@@ -175,9 +178,9 @@ public class OutlineActionMode implements ActionMode.Callback {
 
 	private void archiveNode(boolean archiveToSibling) {		
 		if(archiveToSibling)
-			node.archiveNodeToSibling(resolver);
+			repo.archiveNodeToSibling(node);
 		else
-			node.archiveNode(resolver);
+			repo.archiveNode(node);
 		OrgUtils.announceSyncDone(context);
 	}
 	
@@ -249,7 +252,7 @@ public class OutlineActionMode implements ActionMode.Callback {
 
 	private void runRecover() {
 		try {
-			OrgFile orgFile = this.node.getOrgFile(resolver);
+			OrgFile orgFile = repo.getOrgFile(this.node);
 			Log.d("MobileOrg", orgFile.toString(resolver));
 		} catch (OrgFileNotFoundException e) {
 			e.printStackTrace();

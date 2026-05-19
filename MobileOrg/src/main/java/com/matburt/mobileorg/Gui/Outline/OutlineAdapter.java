@@ -14,12 +14,14 @@ import com.matburt.mobileorg.R;
 import com.matburt.mobileorg.Gui.Theme.DefaultTheme;
 import com.matburt.mobileorg.OrgData.MobileOrgApplication;
 import com.matburt.mobileorg.OrgData.OrgNode;
+import com.matburt.mobileorg.OrgData.OrgNodeRepository;
 import com.matburt.mobileorg.OrgData.OrgProviderUtils;
 import com.matburt.mobileorg.util.OrgNodeNotFoundException;
 
 public class OutlineAdapter extends ArrayAdapter<OrgNode> {
 
 	private ContentResolver resolver;
+	private OrgNodeRepository repo;
 	
 	private ArrayList<Boolean> expanded = new ArrayList<Boolean>();
 
@@ -36,6 +38,7 @@ public class OutlineAdapter extends ArrayAdapter<OrgNode> {
 	public OutlineAdapter(Context context) {
 		super(context, R.layout.outline_item);
 		this.resolver = context.getContentResolver();
+		this.repo = new OrgNodeRepository(resolver);
 
 		this.theme = DefaultTheme.getTheme(context);
 		init();
@@ -44,7 +47,7 @@ public class OutlineAdapter extends ArrayAdapter<OrgNode> {
 	public void init() {
 		clear();
 
-		for (OrgNode node : OrgProviderUtils.getOrgNodeChildren(-1, resolver)) {
+		for (OrgNode node : repo.getChildren(-1)) {
 			if (filter == null || !filter.isActive() || filter.shouldShow(node.id)) {
 				add(node);
 			}
@@ -70,7 +73,7 @@ public class OutlineAdapter extends ArrayAdapter<OrgNode> {
 		
 		for(int i = 0; i < state.length; i++) {
 			try {
-				OrgNode node = new OrgNode(state[i], resolver);
+				OrgNode node = repo.getById(state[i]);
 				add(node);
 			} catch (OrgNodeNotFoundException e) {}
 		}
@@ -187,7 +190,7 @@ public class OutlineAdapter extends ArrayAdapter<OrgNode> {
 	
 	public void expand(int position) {
 		OrgNode node = getItem(position);
-		ArrayList<OrgNode> children = node.getChildren(resolver);
+		ArrayList<OrgNode> children = repo.getChildren(node.id);
 		ArrayList<OrgNode> filteredChildren = new ArrayList<OrgNode>();
 		for (OrgNode child : children) {
 			if (filter == null || !filter.isActive() || filter.shouldShow(child.id)) {

@@ -27,6 +27,7 @@ import com.matburt.mobileorg.R;
 import com.matburt.mobileorg.Gui.Theme.DefaultTheme;
 import com.matburt.mobileorg.OrgData.OrgFileParser;
 import com.matburt.mobileorg.OrgData.OrgNode;
+import com.matburt.mobileorg.OrgData.OrgNodeRepository;
 import com.matburt.mobileorg.OrgData.OrgProviderUtils;
 import com.matburt.mobileorg.util.OrgNodeNotFoundException;
 import com.matburt.mobileorg.util.OrgUtils;
@@ -91,19 +92,20 @@ public class OutlineItem extends RelativeLayout implements Checkable {
 		
 		OrgNode newNode;
 		try {
-			newNode = new OrgNode(node.id, resolver);
+			newNode = repo.getById(node.id);
 		} catch (OrgNodeNotFoundException e) {
 			e.printStackTrace();
 			return;
 		}
 		newNode.todo = selectedTodo;
-		node.generateApplyWriteEdits(newNode, null, resolver);
-		node.write(resolver);
+		repo.generateApplyWriteEdits(node, newNode, null);
+		repo.write(node);
 		setupTodo(node.todo, theme, resolver);
 		OrgUtils.announceSyncDone(getContext());
 	}
 	
 	private OrgNode node;
+	private OrgNodeRepository repo;
 	
 	public void setLevelFormating(boolean enabled) {
 		this.levelFormatting = enabled;
@@ -112,6 +114,7 @@ public class OutlineItem extends RelativeLayout implements Checkable {
 	public void setup(OrgNode node, boolean expanded, DefaultTheme theme, ContentResolver resolver) {
 		this.node = node;
 		this.theme = theme;
+		this.repo = new OrgNodeRepository(resolver);
 		setupTags(node.tags, node.tags_inherited, theme);
 		
 		SpannableStringBuilder titleSpan = new SpannableStringBuilder(node.name);
@@ -139,7 +142,7 @@ public class OutlineItem extends RelativeLayout implements Checkable {
 	
 	public void setupChildrenIndicator(OrgNode node, ContentResolver resolver,
 			DefaultTheme theme, SpannableStringBuilder titleSpan) {
-		if (node.hasChildren(resolver)) {
+		if (repo.hasChildren(node.id)) {
 			titleSpan.append("...");
 			titleSpan.setSpan(new ForegroundColorSpan(theme.defaultForeground),
 					titleSpan.length() - "...".length(), titleSpan.length(), 0);

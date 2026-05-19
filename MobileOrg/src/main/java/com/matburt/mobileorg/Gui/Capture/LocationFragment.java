@@ -16,6 +16,7 @@ import androidx.fragment.app.Fragment;
 import com.matburt.mobileorg.R;
 import com.matburt.mobileorg.OrgData.OrgFile;
 import com.matburt.mobileorg.OrgData.OrgNode;
+import com.matburt.mobileorg.OrgData.OrgNodeRepository;
 import com.matburt.mobileorg.OrgData.OrgProviderUtils;
 import com.matburt.mobileorg.util.OrgNodeNotFoundException;
 
@@ -24,6 +25,7 @@ public class LocationFragment extends Fragment {
 	
 	private LinearLayout locationView;
 	private ContentResolver resolver;
+	private OrgNodeRepository repo;
 
 	private OrgNode node = null;
 	private ArrayList<LocationEntry> locations = new ArrayList<LocationEntry>();
@@ -42,6 +44,7 @@ public class LocationFragment extends Fragment {
 		super.onActivityCreated(savedInstanceState);
 
 		this.resolver = getActivity().getContentResolver();
+		this.repo = new OrgNodeRepository(resolver);
 		EditHost host = (EditHost) getActivity();
 
 		restoreFromBundle(savedInstanceState);
@@ -67,7 +70,7 @@ public class LocationFragment extends Fragment {
 			long nodeId = savedInstanceState.getLong(NODE_ID, -1);
 			if(nodeId >= 0) {
 				try {
-					this.node = new OrgNode(nodeId, resolver);
+					this.node = repo.getById(nodeId);
 				} catch (OrgNodeNotFoundException e) {}
 			}
 		}
@@ -89,18 +92,18 @@ public class LocationFragment extends Fragment {
 	private void setupLocation() {
 		if(this.node != null)
 			getLocationEntry(this.node,
-					this.node.getChildrenStringArray(resolver), "");
+					repo.getChildrenStringArray(this.node.id), "");
 		
 		OrgNode currentNode = this.node;
 		while(currentNode != null) {
 			OrgNode spinnerNode = null;
 			try {
-				spinnerNode = currentNode.getParent(resolver);
+				spinnerNode = repo.getParent(currentNode.id);
 			} catch (OrgNodeNotFoundException e) {}
 			String selection = currentNode.name;
 			
 			if (spinnerNode != null) {
-				ArrayList<String> data = currentNode.getSiblingsStringArray(resolver);
+				ArrayList<String> data = repo.getSiblingsStringArray(currentNode.id);
 				getLocationEntry(spinnerNode, data, selection);
 				currentNode = spinnerNode;
 			} else {
@@ -145,22 +148,22 @@ public class LocationFragment extends Fragment {
 		OrgNode childNode;
 		if (spinnerNode != null) {
 			try {
-				childNode = spinnerNode.getChild(spinnerSelection, resolver);
-				if(childNode.getChildren(resolver).size() == 0)
+				childNode = repo.getChild(spinnerNode.id, spinnerSelection);
+				if(repo.getChildren(childNode.id).size() == 0)
 					return;
 			} catch (OrgNodeNotFoundException e) {
 				return;
 			}
 		} else {
 			try {
-				childNode = OrgProviderUtils.getOrgNodeFromFileAlias(
+				childNode = repo.getOrgNodeFromFileAlias(
 						spinnerSelection, resolver);
 			} catch (OrgNodeNotFoundException e) {
 				return;
 			}
 		}
 
-		ArrayList<String> childData = childNode.getChildrenStringArray(resolver);
+		ArrayList<String> childData = repo.getChildrenStringArray(childNode.id);
 		
 		LocationEntry location = getLocationEntry(childNode, childData, "");
 		locationView.addView(location);
@@ -232,7 +235,7 @@ public class LocationFragment extends Fragment {
 		if (!TextUtils.isEmpty(selection)) {
 			OrgNode parent = locations.get(index).getOrgNode();
 			try {
-				OrgNode child = parent.getChild(selection, resolver);
+				OrgNode child = repo.getChild(parent.id, selection);
 				return child;
 			} catch (OrgNodeNotFoundException e) {
 				throw new IllegalStateException("Can't determine location");

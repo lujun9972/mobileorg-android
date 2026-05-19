@@ -9,6 +9,7 @@ import android.text.TextUtils;
 import com.matburt.mobileorg.OrgData.OrgFile;
 import com.matburt.mobileorg.OrgData.OrgNode;
 import com.matburt.mobileorg.OrgData.OrgNodePayload;
+import com.matburt.mobileorg.OrgData.OrgNodeRepository;
 import com.matburt.mobileorg.OrgData.OrgProviderUtils;
 
 public abstract class EditActivityController {
@@ -20,6 +21,7 @@ public abstract class EditActivityController {
 	public final static String ACTIONMODE_ADDCHILD = "add_child";
 	
 	protected ContentResolver resolver;
+	protected OrgNodeRepository repo;
 	
 	protected OrgNode node;
 	private OrgNodePayload editPayload;
@@ -44,6 +46,7 @@ public abstract class EditActivityController {
 				.getController(actionMode, node_id, olpLocation, intent,
 						resolver, defaultTodo);
 		controller.resolver = resolver;
+		controller.repo = new OrgNodeRepository(resolver);
 
 		return controller;
 	}
@@ -82,7 +85,7 @@ public abstract class EditActivityController {
 	
 	
 	public boolean isNodeEditable() {	
-		return getOrgNode().isNodeEditable(resolver);
+		return repo.isNodeEditable(getOrgNode());
 	}
 	
 	public boolean isPayloadEditable() {
@@ -95,6 +98,6 @@ public abstract class EditActivityController {
 	}
 	
 	public boolean isNodeRefilable() {
-		return getOrgNode().isNodeEditable(resolver);
+		return repo.isNodeEditable(getOrgNode());
 	}
 }

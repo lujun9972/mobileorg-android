@@ -32,7 +32,7 @@ public class EditActivityControllerCreate extends EditActivityController {
 	@Override
 	public void saveEdits(OrgNode newNode) {
 		newNode.level = 1;
-		newNode.write(resolver);		
+		repo.write(newNode);		
 	}
 
 	@Override

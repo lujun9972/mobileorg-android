@@ -20,6 +20,7 @@ import androidx.fragment.app.Fragment;
 import com.matburt.mobileorg.R;
 import com.matburt.mobileorg.Gui.Theme.DefaultTheme;
 import com.matburt.mobileorg.OrgData.OrgNode;
+import com.matburt.mobileorg.OrgData.OrgNodeRepository;
 import com.matburt.mobileorg.util.OrgFileNotFoundException;
 import com.matburt.mobileorg.util.OrgRenderer;
 import com.matburt.mobileorg.util.OrgUtils;
@@ -60,7 +61,7 @@ public class ViewFragment extends Fragment {
 
 	public void display(OrgNode node, int levelOfRecursion, ContentResolver resolver) {
 		OrgRenderer renderer = new OrgRenderer(resolver, getActivity());
-		this.currentFilename = node.getFilename(resolver);
+		this.currentFilename = new OrgNodeRepository(resolver).getFilename(node);
 		String html = renderer.toHTML(node, levelOfRecursion);
 		displayHtml(html);
 	}

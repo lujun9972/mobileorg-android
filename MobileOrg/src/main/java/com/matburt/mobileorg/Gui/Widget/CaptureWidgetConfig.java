@@ -14,6 +14,7 @@ import com.matburt.mobileorg.Gui.Capture.EditActivityController;
 import com.matburt.mobileorg.Gui.Capture.EditHost;
 import com.matburt.mobileorg.Gui.Capture.LocationFragment;
 import com.matburt.mobileorg.OrgData.OrgNode;
+import com.matburt.mobileorg.OrgData.OrgNodeRepository;
 
 public class CaptureWidgetConfig extends AppCompatActivity implements EditHost {
 
@@ -69,7 +70,7 @@ public class CaptureWidgetConfig extends AppCompatActivity implements EditHost {
 	
 	private void save() {
         OrgNode node = locationFragment.getLocationSelection();
-        String locationOlpId = node.getOlpId(getContentResolver());
+        String locationOlpId = new OrgNodeRepository(getContentResolver()).getOlpId(node);
         String title = titleView.getText().toString();
         
 		CaptureWidgetProvider.writeConfig(mAppWidgetId, this, locationOlpId, title);

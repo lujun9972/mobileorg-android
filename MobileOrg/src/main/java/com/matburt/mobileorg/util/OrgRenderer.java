@@ -5,6 +5,7 @@ import android.content.Context;
 
 import com.matburt.mobileorg.Gui.Theme.DefaultTheme;
 import com.matburt.mobileorg.OrgData.OrgNode;
+import com.matburt.mobileorg.OrgData.OrgNodeRepository;
 
 import java.util.regex.Pattern;
 
@@ -57,10 +58,12 @@ public class OrgRenderer {
 		"(?<!<a href=\")(?<!\">)(https?://[^\\s<]+)");
 
 	private final ContentResolver resolver;
+	private final OrgNodeRepository repo;
 	private final String fontColor;
 
 	public OrgRenderer(ContentResolver resolver, Context context) {
 		this.resolver = resolver;
+		this.repo = new OrgNodeRepository(resolver);
 		String color = DefaultTheme.getTheme(context).defaultFontColor;
 		// Convert named colors to hex for CSS compatibility
 		if ("white".equals(color)) {
@@ -481,12 +484,12 @@ public class OrgRenderer {
 		result.append(nodeToHTML(node, level));
 
 		if (level == 0) {
-			for (OrgNode child : node.getChildren(resolver)) {
+			for (OrgNode child : repo.getChildren(node.id)) {
 				result.append(nodeToHTMLRecursive(child, 0, depth + 1));
 			}
 		} else if (level > 0) {
 			level--;
-			for (OrgNode child : node.getChildren(resolver)) {
+			for (OrgNode child : repo.getChildren(node.id)) {
 				result.append(nodeToHTMLRecursive(child, level, depth + 1));
 			}
 		}

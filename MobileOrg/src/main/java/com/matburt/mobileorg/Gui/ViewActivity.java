@@ -10,6 +10,7 @@ import android.view.MenuItem;
 import android.view.SubMenu;
 import com.matburt.mobileorg.R;
 import com.matburt.mobileorg.OrgData.OrgNode;
+import com.matburt.mobileorg.OrgData.OrgNodeRepository;
 import com.matburt.mobileorg.util.OrgNodeNotFoundException;
 import com.matburt.mobileorg.util.OrgUtils;
 import com.matburt.mobileorg.util.PreferenceUtils;
@@ -53,7 +54,7 @@ public class ViewActivity extends AppCompatActivity {
 	public void viewNode(int levelOfRecursion) {
 		if(node != null) {
 			nodeViewFragment.display(node, levelOfRecursion, resolver);
-			String path = node.getOlpId(resolver);
+			String path = new OrgNodeRepository(resolver).getOlpId(node);
 			if(path.startsWith("olp:"))
 				path = path.substring("olp:".length());
 			getSupportActionBar().setTitle(path);

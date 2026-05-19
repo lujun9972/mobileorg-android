@@ -180,7 +180,7 @@ public class OrgFileParser {
 		String previousAgendaBlockTitle = "";
 		OrgNode previousBlockNode = null;
 		
-		for(OrgNode node: agendaFile.getChildren(resolver)) {
+		for(OrgNode node: new OrgNodeRepository(resolver).getChildren(agendaFile.id)) {
 			if(node.name.indexOf(">") == -1)
 				continue;
 			
@@ -199,7 +199,7 @@ public class OrgFileParser {
 					previousBlockNode.id = db.fastInsertNode(previousBlockNode);
 				}
 				
-				ArrayList<OrgNode> children = node.getChildren(resolver);
+				ArrayList<OrgNode> children = new OrgNodeRepository(resolver).getChildren(node.id);
 				if(blockEntryName.startsWith("Day-agenda") || blockEntryName.startsWith("Week-agenda")) {
 					for(OrgNode child: children)
 						cloneChildren(child, previousBlockNode, child.name);
@@ -219,7 +219,7 @@ public class OrgFileParser {
 		blockSeparator.level = parent.level + 1;
 		db.fastInsertNode(blockSeparator);
 		
-		for(OrgNode child: node.getChildren(resolver)) {
+		for(OrgNode child: new OrgNodeRepository(resolver).getChildren(node.id)) {
 			OrgNode clonedChild = new OrgNode(child);
 			clonedChild.parentId = parent.id;
 			clonedChild.fileId = parent.fileId;

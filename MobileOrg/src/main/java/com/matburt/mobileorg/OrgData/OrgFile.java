@@ -172,6 +172,6 @@ public class OrgFile {
 	}
 	
 	public String toString(ContentResolver resolver) {		
-		return OrgProviderUtils.nodesToString(nodeId, 0, resolver).toString();
+		return new OrgNodeRepository(resolver).nodesToString(nodeId, 0).toString();
 	}
 }

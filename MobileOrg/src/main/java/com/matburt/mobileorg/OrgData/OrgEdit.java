@@ -33,7 +33,7 @@ public class OrgEdit {
 	
 	public OrgEdit(OrgNode node, TYPE type, ContentResolver resolver) {
 		this.title = node.name;
-		this.nodeId = node.getNodeId(resolver);
+		this.nodeId = new OrgNodeRepository(resolver).getNodeId(node);
 		this.type = type;
 		
 		setOldValue(node);
@@ -41,7 +41,7 @@ public class OrgEdit {
 	
 	public OrgEdit(OrgNode node, TYPE type, String newValue, ContentResolver resolver) {
 		this.title = node.name;
-		this.nodeId = node.getNodeId(resolver);
+		this.nodeId = new OrgNodeRepository(resolver).getNodeId(node);
 		this.type = type;
 		this.newValue = newValue;
 		

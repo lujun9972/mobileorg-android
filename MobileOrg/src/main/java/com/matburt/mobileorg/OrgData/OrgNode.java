@@ -51,6 +51,8 @@ public class OrgNode {
 		setPayload(node.getPayload());
 	}
 	
+	/** @deprecated Use {@link OrgNodeRepository#getById(long)} */
+	@Deprecated
 	public OrgNode(long id, ContentResolver resolver) throws OrgNodeNotFoundException {
 		Cursor cursor = resolver.query(OrgData.buildIdUri(id),
 				OrgData.DEFAULT_COLUMNS, null, null, null);
@@ -89,6 +91,8 @@ public class OrgNode {
 		}	
 	}
 	
+	/** @deprecated Use {@link OrgNodeRepository#getFilename(OrgNode)} */
+	@Deprecated
 	public String getFilename(ContentResolver resolver) {
 		try {
 			OrgFile file = new OrgFile(fileId, resolver);
@@ -98,20 +102,26 @@ public class OrgNode {
 		}
 	}
 	
+	/** @deprecated Use {@link OrgNodeRepository#getOrgFile(OrgNode)} */
+	@Deprecated
 	public OrgFile getOrgFile(ContentResolver resolver) throws OrgFileNotFoundException {
 		return new OrgFile(fileId, resolver);
 	}
 	
+	/** @deprecated Use {@link OrgNodeRepository#setFilename(OrgNode, String)} */
+	@Deprecated
 	public void setFilename(String filename, ContentResolver resolver) throws OrgFileNotFoundException {
 		OrgFile file = new OrgFile(filename, resolver);
 		this.fileId = file.nodeId;
 	}
 	
-	private void preparePayload() {
+	void preparePayload() {
 		if(this.orgNodePayload == null)
 			this.orgNodePayload = new OrgNodePayload(this.payload);
 	}
 	
+	/** @deprecated Use {@link OrgNodeRepository#write(OrgNode)} */
+	@Deprecated
 	public void write(ContentResolver resolver) {
 		if(id < 0)
 			addNode(resolver);
@@ -129,6 +139,8 @@ public class OrgNode {
 		return resolver.update(OrgData.buildIdUri(id), getContentValues(), null, null);
 	}
 	
+	/** @deprecated Use {@link OrgNodeRepository#updateAllNodes(OrgNode)} */
+	@Deprecated
 	public void updateAllNodes(ContentResolver resolver) {
 		updateNode(resolver);
 		
@@ -140,6 +152,8 @@ public class OrgNode {
 		}
 	}
 	
+	/** @deprecated Use {@link OrgNodeRepository#findOriginalNode(OrgNode)} */
+	@Deprecated
 	public OrgNode findOriginalNode(ContentResolver resolver) {
 		if(parentId == -1)
 			return this;
@@ -226,10 +240,14 @@ public class OrgNode {
 		return result;
 	}
 	
+	/** @deprecated Use {@link OrgNodeRepository#getChildren(long)} */
+	@Deprecated
 	public ArrayList<OrgNode> getChildren(ContentResolver resolver) {
 		return OrgProviderUtils.getOrgNodeChildren(id, resolver);
 	}
 	
+	/** @deprecated Use {@link OrgNodeRepository#getChildrenStringArray(long)} */
+	@Deprecated
 	public ArrayList<String> getChildrenStringArray(ContentResolver resolver) {
 		ArrayList<String> result = new ArrayList<String>();
 		ArrayList<OrgNode> children = getChildren(resolver);
@@ -240,6 +258,8 @@ public class OrgNode {
 		return result;
 	}
 	
+	/** @deprecated Use {@link OrgNodeRepository#getChild(long, String)} */
+	@Deprecated
 	public OrgNode getChild(String name, ContentResolver resolver) throws OrgNodeNotFoundException {
 		ArrayList<OrgNode> children = getChildren(resolver);
 		
@@ -251,6 +271,8 @@ public class OrgNode {
 				+ this.name + " with name " + name);
 	}
 	
+	/** @deprecated Use {@link OrgNodeRepository#hasChildren(long)} */
+	@Deprecated
 	public boolean hasChildren(ContentResolver resolver) {
 		Cursor childCursor = resolver.query(OrgData.buildChildrenUri(id),
 				OrgData.DEFAULT_COLUMNS, null, null, null);
@@ -261,6 +283,8 @@ public class OrgNode {
 		return childCount > 0;
 	}
 	
+	/** @deprecated Use {@link OrgNodeRepository#hasChildren(long)} */
+	@Deprecated
 	public static boolean hasChildren (long node_id, ContentResolver resolver) {
 		try {
 			OrgNode node = new OrgNode(node_id, resolver);
@@ -271,12 +295,16 @@ public class OrgNode {
 		return false;
 	}
 	
+	/** @deprecated Use {@link OrgNodeRepository#getParent(long)} */
+	@Deprecated
 	public OrgNode getParent(ContentResolver resolver) throws OrgNodeNotFoundException {
 		Cursor cursor = resolver.query(OrgData.buildIdUri(this.parentId),
 				OrgData.DEFAULT_COLUMNS, null, null, null);
 		return new OrgNode(cursor);
 	}
 	
+	/** @deprecated Use {@link OrgNodeRepository#getSiblingsStringArray(long)} */
+	@Deprecated
 	public ArrayList<String> getSiblingsStringArray(ContentResolver resolver) {
 		try {
 			OrgNode parent = getParent(resolver);
@@ -287,11 +315,15 @@ public class OrgNode {
 		}
 	}
 	
+	/** @deprecated Use {@link OrgNodeRepository#getSibling(long, String)} */
+	@Deprecated
 	public OrgNode getSibling(String name, ContentResolver resolver) throws OrgNodeNotFoundException {
 		OrgNode parent = getParent(resolver);
 		return parent.getChild(name, resolver);
 	}
 	
+	/** @deprecated Use {@link OrgNodeRepository#isFilenode(OrgNode)} */
+	@Deprecated
 	public boolean isFilenode(ContentResolver resolver) {
 		try {
 			OrgFile file = new OrgFile(fileId, resolver);
@@ -302,6 +334,8 @@ public class OrgNode {
 		return false;
 	}
 	
+	/** @deprecated Use {@link OrgNodeRepository#isNodeEditable(OrgNode)} */
+	@Deprecated
 	public boolean isNodeEditable(ContentResolver resolver) {
 		if(id < 0) // Node is not in database
 			return true;
@@ -321,6 +355,8 @@ public class OrgNode {
 		return true;
 	}
 	
+	/** @deprecated Use {@link OrgNodeRepository#areChildrenEditable(OrgNode)} */
+	@Deprecated
 	public boolean areChildrenEditable(ContentResolver resolver) {
 		if(id < 0) // Node is not in database
 			return false;
@@ -351,6 +387,8 @@ public class OrgNode {
 	/**
 	 * @return The :ID:, :ORIGINAL_ID: or olp link of node.
 	 */
+	/** @deprecated Use {@link OrgNodeRepository#getNodeId(OrgNode)} */
+	@Deprecated
 	public String getNodeId(ContentResolver resolver) {
 		preparePayload();
 
@@ -361,6 +399,8 @@ public class OrgNode {
 			return getOlpId(resolver);
 	}
 	
+	/** @deprecated Use {@link OrgNodeRepository#getOlpId(OrgNode)} */
+	@Deprecated
 	public String getOlpId(ContentResolver resolver) {
 		StringBuilder result = new StringBuilder();
 		
@@ -427,10 +467,14 @@ public class OrgNode {
 		return this.orgNodePayload;
 	}
 	
+	/** @deprecated Use {@link OrgNodeRepository#createParentNewheading(OrgNode, String)} */
+	@Deprecated
 	public OrgEdit createParentNewheading(ContentResolver resolver) {
 		return createParentNewheading(resolver, "");
 	}
 	
+	/** @deprecated Use {@link OrgNodeRepository#createParentNewheading(OrgNode, String)} */
+	@Deprecated
 	public OrgEdit createParentNewheading(ContentResolver resolver, String olpPath) {
 		OrgNode parent = getParentSafe(olpPath, resolver);
 		this.level = parent.level + 1;
@@ -453,6 +497,8 @@ public class OrgNode {
 			return new OrgEdit();
 	}
 	
+	/** @deprecated Use {@link OrgNodeRepository#getParentSafe(OrgNode, String)} */
+	@Deprecated
 	public OrgNode getParentSafe(String olpPath, ContentResolver resolver) {
 		OrgNode parent;
 		try {
@@ -469,6 +515,8 @@ public class OrgNode {
 		return parent;
 	}
 	
+	/** @deprecated Use {@link OrgNodeRepository#generateApplyWriteEdits(OrgNode, OrgNode, String)} */
+	@Deprecated
 	public void generateApplyWriteEdits(OrgNode newNode, String olpPath,
 			ContentResolver resolver) {
 		ArrayList<OrgEdit> generateEditNodes = generateApplyEditNodes(newNode, olpPath, resolver);
@@ -479,10 +527,14 @@ public class OrgNode {
 				edit.write(resolver);
 	}
 	
+	/** @deprecated Use {@link OrgNodeRepository#generateApplyEditNodes(OrgNode, OrgNode, String)} */
+	@Deprecated
 	public ArrayList<OrgEdit> generateApplyEditNodes(OrgNode newNode, ContentResolver resolver) {
 		return generateApplyEditNodes(newNode, "", resolver);
 	}
 	
+	/** @deprecated Use {@link OrgNodeRepository#generateApplyEditNodes(OrgNode, OrgNode, String)} */
+	@Deprecated
 	public ArrayList<OrgEdit> generateApplyEditNodes(OrgNode newNode,
 			String olpPath, ContentResolver resolver) {
 		ArrayList<OrgEdit> edits = new ArrayList<OrgEdit>();
@@ -552,12 +604,16 @@ public class OrgNode {
 	}
 
 	
+	/** @deprecated Use {@link OrgNodeRepository#deleteNode(OrgNode)} */
+	@Deprecated
 	public void deleteNode(ContentResolver resolver) {
 		OrgEdit edit = new OrgEdit(this, OrgEdit.TYPE.DELETE, resolver);
 		edit.write(resolver);
 		resolver.delete(OrgData.buildIdUri(id), null, null);
 	}
 	
+	/** @deprecated Use {@link OrgNodeRepository#archiveNode(OrgNode)} */
+	@Deprecated
 	public OrgEdit archiveNode(ContentResolver resolver) {
 		OrgEdit edit = new OrgEdit(this, OrgEdit.TYPE.ARCHIVE, resolver);
 		edit.write(resolver);
@@ -565,6 +621,8 @@ public class OrgNode {
 		return edit;
 	}
 	
+	/** @deprecated Use {@link OrgNodeRepository#archiveNodeToSibling(OrgNode)} */
+	@Deprecated
 	public OrgEdit archiveNodeToSibling(ContentResolver resolver) {
 		OrgEdit edit = new OrgEdit(this, OrgEdit.TYPE.ARCHIVE_SIBLING, resolver);
 		edit.write(resolver);
@@ -595,6 +653,8 @@ public class OrgNode {
 		return edit;
 	}
 	
+	/** @deprecated Use {@link OrgNodeRepository#addLogbook(OrgNode, long, long, String)} */
+	@Deprecated
 	public void addLogbook(long startTime, long endTime, String elapsedTime, ContentResolver resolver) {
 		Log.d("MobileOrg", "[ClockIn] OrgNode.addLogbook: node.id=" + this.id
 				+ ", startTime=" + startTime + ", endTime=" + endTime
@@ -611,6 +671,8 @@ public class OrgNode {
 	/**
 	 * Append a file link (e.g. [[file:xxx.aac]]) to the node body.
 	 */
+	/** @deprecated Use {@link OrgNodeRepository#appendFileLink(OrgNode, String)} */
+	@Deprecated
 	public void appendFileLink(String filePath, ContentResolver resolver) {
 		String link = "[[file:" + filePath + "]]";
 		StringBuilder rawPayload = new StringBuilder(getPayload());

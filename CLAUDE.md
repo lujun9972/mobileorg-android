@@ -122,3 +122,17 @@ All guards use `Build.VERSION.SDK_INT >= Build.VERSION_CODES.O` pattern.
 - **Deleting a constant/field must grep entire repo including tests**: When removing a symbol from main source, search both `src/main/` and `src/androidTest/` for references. Tests often reference the same constants (`Synchronizer.CAPTURE_FILE`), and broken test imports cause CI failures that the build step alone won't catch.
 - **Constructor params should use base types for testability**: `Synchronizer` constructor took `SynchronizerNotification` (concrete subclass), but test stubs extend `SynchronizerNotificationCompat` (base class). Using the base class as the param type allows test stubs to be passed in without type errors.
 - **Never use `git add -A`**: It stages untracked files (`debug.sh`, `.superpowers/`, docs) that should not be committed. Always stage specific files with `git add <file>`, then use `git status` / `git diff --cached` to review before committing.
+
+## Agent skills
+
+### Issue tracker
+
+Issues and PRDs live as local markdown files under `.scratch/`. See `docs/agents/issue-tracker.md`.
+
+### Triage labels
+
+Five canonical roles use default names: `needs-triage`, `needs-info`, `ready-for-agent`, `ready-for-human`, `wontfix`. See `docs/agents/triage-labels.md`.
+
+### Domain docs
+
+Single-context layout: one `CONTEXT.md` at repo root + `docs/adr/`. See `docs/agents/domain.md`.

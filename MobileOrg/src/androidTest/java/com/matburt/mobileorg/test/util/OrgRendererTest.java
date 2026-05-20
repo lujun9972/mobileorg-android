@@ -9,6 +9,7 @@ import android.test.ProviderTestCase2;
 import com.matburt.mobileorg.OrgData.OrgDatabase;
 import com.matburt.mobileorg.OrgData.OrgFile;
 import com.matburt.mobileorg.OrgData.OrgNode;
+import com.matburt.mobileorg.OrgData.OrgNodeRepository;
 import com.matburt.mobileorg.OrgData.OrgProvider;
 import com.matburt.mobileorg.OrgData.OrgContract.Edits;
 import com.matburt.mobileorg.OrgData.OrgContract.Files;
@@ -29,6 +30,7 @@ import static org.junit.Assert.assertTrue;
 public class OrgRendererTest extends ProviderTestCase2<OrgProvider> {
 
     private MockContentResolver resolver;
+    private OrgNodeRepository repo;
     private OrgRenderer renderer;
     private OrgDatabase db;
 
@@ -41,6 +43,7 @@ public class OrgRendererTest extends ProviderTestCase2<OrgProvider> {
         setContext(ApplicationProvider.getApplicationContext());
         super.setUp();
         this.resolver = getMockContentResolver();
+        this.repo = new OrgNodeRepository(resolver);
         this.db = new OrgDatabase(getMockContext());
 
         // Wrap context for renderer (it needs getTheme)
@@ -70,9 +73,9 @@ public class OrgRendererTest extends ProviderTestCase2<OrgProvider> {
         file.write(resolver);
 
         OrgNode node = new OrgNode();
-        node.setFilename("test.org", resolver);
+        repo.setFilename(node, "test.org");
         node.setPayload(payload);
-        node.write(resolver);
+        repo.write(node);
 
         return node;
     }

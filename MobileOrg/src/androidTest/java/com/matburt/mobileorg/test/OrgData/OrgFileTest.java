@@ -16,6 +16,7 @@ import com.matburt.mobileorg.OrgData.OrgDatabase;
 import com.matburt.mobileorg.OrgData.OrgFile;
 import com.matburt.mobileorg.OrgData.OrgFileParser;
 import com.matburt.mobileorg.OrgData.OrgNode;
+import com.matburt.mobileorg.OrgData.OrgNodeRepository;
 import com.matburt.mobileorg.OrgData.OrgProvider;
 import com.matburt.mobileorg.OrgData.OrgProviderUtils;
 import com.matburt.mobileorg.test.util.OrgTestFiles.SimpleOrgFiles;
@@ -39,6 +40,7 @@ import static org.junit.Assert.fail;
 public class OrgFileTest extends ProviderTestCase2<OrgProvider> {
 
 	private MockContentResolver resolver;
+	private OrgNodeRepository repo;
 
 	public OrgFileTest() {
 		super(OrgProvider.class, OrgProvider.class.getName());
@@ -49,6 +51,7 @@ public class OrgFileTest extends ProviderTestCase2<OrgProvider> {
 		setContext(ApplicationProvider.getApplicationContext());
 		super.setUp();  // THIS IS CRITICAL - initializes ProviderTestCase2
 		this.resolver = getMockContentResolver();
+		this.repo = new OrgNodeRepository(resolver);
 		resolver.delete(Edits.CONTENT_URI, null, null);
 		resolver.delete(OrgData.CONTENT_URI, null, null);
 		resolver.delete(Files.CONTENT_URI, null, null);
@@ -69,7 +72,7 @@ public class OrgFileTest extends ProviderTestCase2<OrgProvider> {
 		assertEquals(insertedFile.id, orgFile.id);
 		assertEquals(insertedFile.nodeId, orgFile.nodeId);
 
-		OrgNode node = new OrgNode(orgFile.nodeId, resolver);
+		OrgNode node = repo.getById(orgFile.nodeId);
 		assertEquals(node.name, orgFile.name);
 		assertTrue(orgFile.id >= 0);
 		assertEquals(node.fileId, orgFile.id);
@@ -213,7 +216,7 @@ public class OrgFileTest extends ProviderTestCase2<OrgProvider> {
 		OrgFile file = OrgProviderUtils.getOrCreateFile("test file", "file name", resolver);
 		OrgNode fileNode = file.getOrgNode(resolver);
 
-		OrgNode node = OrgProviderUtils.getOrgNodeFromFilename(file.filename, resolver);
+		OrgNode node = repo.getOrgNodeFromFilename(file.filename);
 
 		assertEquals(fileNode.name, node.name);
 		assertEquals(fileNode.id, node.id);

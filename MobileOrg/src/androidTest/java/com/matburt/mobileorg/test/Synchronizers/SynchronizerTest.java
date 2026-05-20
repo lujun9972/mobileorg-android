@@ -15,6 +15,7 @@ import com.matburt.mobileorg.OrgData.OrgDatabase;
 import com.matburt.mobileorg.OrgData.OrgEdit;
 import com.matburt.mobileorg.OrgData.OrgFile;
 import com.matburt.mobileorg.OrgData.OrgNode;
+import com.matburt.mobileorg.OrgData.OrgNodeRepository;
 import com.matburt.mobileorg.OrgData.OrgProvider;
 import com.matburt.mobileorg.OrgData.OrgContract.Edits;
 import com.matburt.mobileorg.OrgData.OrgContract.Files;
@@ -43,6 +44,7 @@ import static org.junit.Assert.fail;
 public class SynchronizerTest extends ProviderTestCase2<OrgProvider> {
 
 	private MockContentResolver resolver;
+	private OrgNodeRepository repo;
 	private Synchronizer synchronizer;
 	private OrgFileParserStub parserStub;
 	private OrgDatabase db;
@@ -58,6 +60,7 @@ public class SynchronizerTest extends ProviderTestCase2<OrgProvider> {
 		setContext(ApplicationProvider.getApplicationContext());
 		super.setUp();  // THIS IS CRITICAL - initializes ProviderTestCase2
 		this.resolver = getMockContentResolver();
+		this.repo = new OrgNodeRepository(resolver);
 		this.db = new OrgDatabase(getMockContext());
 		this.parserStub = new OrgFileParserStub(db, resolver);
 		this.synchronizerStub = new SynchronizerStub();
@@ -141,8 +144,8 @@ public class SynchronizerTest extends ProviderTestCase2<OrgProvider> {
 		file.write(resolver);
 
 		OrgNode node = new OrgNode();
-		node.setFilename(FileUtils.CAPTURE_FILE, resolver);
-		node.write(resolver);
+		repo.setFilename(node, FileUtils.CAPTURE_FILE);
+		repo.write(node);
 		synchronizer.pushCaptures();
 
 		// TODO Make actual test out of this
@@ -156,8 +159,8 @@ public class SynchronizerTest extends ProviderTestCase2<OrgProvider> {
 		file.write(resolver);
 
 		OrgNode node = new OrgNode();
-		node.setFilename(FileUtils.CAPTURE_FILE, resolver);
-		node.write(resolver);
+		repo.setFilename(node, FileUtils.CAPTURE_FILE);
+		repo.write(node);
 
 		OrgEdit edit = new OrgEdit(node, OrgEdit.TYPE.ADDHEADING, resolver);
 		edit.write(resolver);

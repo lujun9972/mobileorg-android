@@ -9,6 +9,7 @@ import com.matburt.mobileorg.Gui.Capture.EditActivityController;
 import com.matburt.mobileorg.Gui.Capture.TagsFragment;
 import com.matburt.mobileorg.OrgData.OrgContract.OrgData;
 import com.matburt.mobileorg.OrgData.OrgNode;
+import com.matburt.mobileorg.OrgData.OrgNodeRepository;
 import com.matburt.mobileorg.test.util.OrgTestUtils;
 
 import org.junit.After;
@@ -31,12 +32,14 @@ public class TagsFragmentTest {
 	public ActivityTestRule<EditActivity> activityRule = new ActivityTestRule<>(EditActivity.class, true, false);
 
 	private ContentResolver resolver;
+	private OrgNodeRepository repo;
 	private OrgNode node;
 	private long nodeId;
 
 	@Before
 	public void setUp() throws Exception {
 		this.resolver = InstrumentationRegistry.getInstrumentation().getTargetContext().getContentResolver();
+		this.repo = new OrgNodeRepository(resolver);
 	}
 
 	@After
@@ -50,7 +53,7 @@ public class TagsFragmentTest {
 	private void prepareActivityWithTags(String tags) {
 		this.node = OrgTestUtils.getDefaultOrgNode();
 		this.node.tags = tags;
-		this.node.write(resolver);
+		this.repo.write(node);
 		this.nodeId = node.id;
 
 		Intent intent = new Intent();

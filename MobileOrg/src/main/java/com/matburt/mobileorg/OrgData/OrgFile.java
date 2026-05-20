@@ -91,7 +91,7 @@ public class OrgFile {
 	
 	public OrgNode getOrgNode(ContentResolver resolver) {
 		try {
-			return new OrgNode(this.nodeId, resolver);
+			return new OrgNodeRepository(resolver).getById(this.nodeId);
 		} catch (OrgNodeNotFoundException e) {
 			throw new IllegalStateException("Org node for file " + filename
 					+ " should exist");

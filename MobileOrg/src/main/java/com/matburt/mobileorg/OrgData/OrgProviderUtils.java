@@ -18,8 +18,8 @@ import com.matburt.mobileorg.OrgData.OrgContract.Priorities;
 import com.matburt.mobileorg.OrgData.OrgContract.Tags;
 import com.matburt.mobileorg.OrgData.OrgContract.Todos;
 import com.matburt.mobileorg.util.FileUtils;
-import com.matburt.mobileorg.util.OrgFileNotFoundException;
 import com.matburt.mobileorg.util.OrgNodeNotFoundException;
+import com.matburt.mobileorg.util.OrgFileNotFoundException;
 
 public class OrgProviderUtils {
 	
@@ -163,63 +163,15 @@ public class OrgProviderUtils {
 	}
 	
 	public static ArrayList<OrgNode> getOrgNodePathFromTopLevel(long node_id, ContentResolver resolver) {
-		ArrayList<OrgNode> nodes = new ArrayList<OrgNode>();
-		
-		long currentId = node_id;
-		while(currentId >= 0) {
-			try {
-				OrgNode node = new OrgNode(currentId, resolver);
-				nodes.add(node);
-				currentId = node.parentId;
-			} catch (OrgNodeNotFoundException e) {
-				throw new IllegalStateException("Couldn't build entire path to root from a given node");
-			}
-		}
-		
-		Collections.reverse(nodes);
-		return nodes;
+		return new OrgNodeRepository(resolver).getNodePathFromTopLevel(node_id);
 	}
 	
 	public static OrgNode getOrgNodeFromOlpPath(String olpPath, ContentResolver resolver) throws OrgNodeNotFoundException, OrgFileNotFoundException {
-		if(olpPath == null || olpPath.equals(""))
-			throw new IllegalArgumentException("Empty Olp path received");
-		
-		Matcher matcher = Pattern.compile("olp:([^:]+):?" + "(.*)").matcher(olpPath);
-		
-		String filename;
-		String[] nodes = new String[0];
-		if(matcher.find()) {
-			filename = matcher.group(1);
-			
-			if(matcher.group(2) != null && !matcher.group(2).trim().equals("")) {
-				nodes = matcher.group(2).split("/");
-			}
-		} else
-			throw new IllegalArgumentException("Olp path " + olpPath + " is not valid");
-
-		OrgNode node = new OrgFile(filename, resolver).getOrgNode(resolver);
-		
-		for(String nodeName: nodes)
-			node = node.getChild(nodeName, resolver);
-		
-		return node;
+		return new OrgNodeRepository(resolver).getOrgNodeFromOlpPath(olpPath);
 	}
 	
 	public static StringBuilder nodesToString(long node_id, long level, ContentResolver resolver) {
-		StringBuilder result = new StringBuilder();
-		
-		try {
-			OrgNode node = new OrgNode(node_id, resolver);
-			
-			if(level != 0) // Don't add top level file node heading
-				result.append(node.toString() + "\n");
-			
-			for (OrgNode child : node.getChildren(resolver))
-				result.append(nodesToString(child.id, level + 1, resolver));
-			
-		} catch (OrgNodeNotFoundException e) {}
-
-		return result;
+		return new OrgNodeRepository(resolver).nodesToString(node_id, level);
 	}
 	
 	public static void clearDB(ContentResolver resolver) {
@@ -230,13 +182,7 @@ public class OrgProviderUtils {
 	
 	
 	public static OrgNode getOrgNodeFromFilename(String filename, ContentResolver resolver) throws OrgFileNotFoundException {
-		OrgFile file = new OrgFile(filename, resolver);
-		try {
-			return new OrgNode(file.nodeId, resolver);
-		} catch (OrgNodeNotFoundException e) {
-			throw new IllegalStateException("OrgNode for file " + file.name
-					+ " should exist");
-		}
+		return new OrgNodeRepository(resolver).getOrgNodeFromFilename(filename);
 	}
 	
 	public static OrgFile getOrCreateCaptureFile (ContentResolver resolver) {
@@ -257,12 +203,7 @@ public class OrgProviderUtils {
 	}
 	
 	public static OrgNode getOrgNodeFromFileAlias(String fileAlias, ContentResolver resolver) throws OrgNodeNotFoundException {
-		Cursor cursor = resolver.query(OrgData.CONTENT_URI,
-				OrgData.DEFAULT_COLUMNS, OrgData.NAME + "=? AND " + OrgData.PARENT_ID + "=-1", new String[] {fileAlias}, null);
-		OrgNode node = new OrgNode();
-		node.set(cursor);
-		
-		return node;
+		return new OrgNodeRepository(resolver).getOrgNodeFromFileAlias(fileAlias);
 	}
 	
 	public static OrgFile getOrCreateFileFromAlias(String fileAlias, ContentResolver resolver) {
@@ -372,14 +313,7 @@ public class OrgProviderUtils {
 	}
 	
 	public static ArrayList<OrgNode> getOrgNodeChildren(long nodeId, ContentResolver resolver) {
-		
-		String sort = nodeId == -1 ? OrgData.NAME_SORT : null;
-		Cursor childCursor = resolver.query(OrgData.buildChildrenUri(nodeId),
-				OrgData.DEFAULT_COLUMNS, null, null, sort);
-		
-		ArrayList<OrgNode> result = orgDataCursorToArrayList(childCursor);
-		childCursor.close();
-		return result;
+		return new OrgNodeRepository(resolver).getChildren(nodeId);
 	}
 	
 	public static ArrayList<OrgNode> orgDataCursorToArrayList(Cursor cursor) {

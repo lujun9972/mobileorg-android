@@ -63,7 +63,7 @@ public class LocationFragmentTest {
 	@Test
 	public void testSetup() {
 		OrgNode node = OrgTestUtils.getDefaultOrgNode();
-		node.write(resolver);
+		repo.write(node);
 		this.nodeId = node.id;
 
 		prepareActivityWithNode(node, EditActivityController.ACTIONMODE_EDIT);

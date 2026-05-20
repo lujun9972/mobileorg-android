@@ -9,6 +9,7 @@ import android.test.ProviderTestCase2;
 import com.matburt.mobileorg.OrgData.OrgEdit;
 import com.matburt.mobileorg.OrgData.OrgFile;
 import com.matburt.mobileorg.OrgData.OrgNode;
+import com.matburt.mobileorg.OrgData.OrgNodeRepository;
 import com.matburt.mobileorg.OrgData.OrgProvider;
 import com.matburt.mobileorg.OrgData.OrgProviderUtils;
 import com.matburt.mobileorg.OrgData.OrgContract.Edits;
@@ -33,6 +34,7 @@ import static org.junit.Assert.fail;
 public class OrgEditTest extends ProviderTestCase2<OrgProvider> {
 
 	private MockContentResolver resolver;
+	private OrgNodeRepository repo;
 
 	public OrgEditTest() {
 		super(OrgProvider.class, OrgProvider.class.getName());
@@ -43,6 +45,7 @@ public class OrgEditTest extends ProviderTestCase2<OrgProvider> {
 		setContext(ApplicationProvider.getApplicationContext());
 		super.setUp();  // THIS IS CRITICAL - initializes ProviderTestCase2
 		this.resolver = getMockContentResolver();
+		this.repo = new OrgNodeRepository(resolver);
 		resolver.delete(Edits.CONTENT_URI, null, null);
 		resolver.delete(OrgData.CONTENT_URI, null, null);
 		resolver.delete(Files.CONTENT_URI, null, null);
@@ -82,8 +85,7 @@ public class OrgEditTest extends ProviderTestCase2<OrgProvider> {
 		editedNode.todo += "OO";
 		final int numberOfEdits = 2;
 
-		ArrayList<OrgEdit> generatedEdits = node.generateApplyEditNodes(editedNode,
-				resolver);
+		ArrayList<OrgEdit> generatedEdits = repo.generateApplyEditNodes(node, editedNode, "");
 		assertEquals(numberOfEdits, generatedEdits.size());
 	}
 
@@ -93,13 +95,13 @@ public class OrgEditTest extends ProviderTestCase2<OrgProvider> {
 		OrgFile file = OrgTestUtils.getDefaultOrgFile();
 		file.write(resolver);
 
-		OrgNode fileNode = new OrgNode(file.nodeId, resolver);
+		OrgNode fileNode = repo.getById(file.nodeId);
 
 		OrgNode node = OrgTestUtils.getDefaultOrgNode();
 		node.fileId = fileNode.fileId;
 		node.parentId = fileNode.id;
 
-		OrgEdit edit = node.createParentNewheading(resolver);
+		OrgEdit edit = repo.createParentNewheading(node, "");
 		assertEquals(OrgEdit.TYPE.ADDHEADING, edit.type);
 	}
 
@@ -114,7 +116,7 @@ public class OrgEditTest extends ProviderTestCase2<OrgProvider> {
 		node.fileId = capturefileNode.fileId;
 		node.parentId = capturefileNode.id;
 
-		OrgEdit edit = node.createParentNewheading(resolver);
+		OrgEdit edit = repo.createParentNewheading(node, "");
 		assertEquals(null, edit.type);
 	}
 
@@ -123,13 +125,13 @@ public class OrgEditTest extends ProviderTestCase2<OrgProvider> {
 	public void testEditsToStringSimple() throws OrgNodeNotFoundException {
 		OrgFile file = OrgTestUtils.getDefaultOrgFile();
 		file.write(resolver);
-		OrgNode fileNode = new OrgNode(file.nodeId, resolver);
+		OrgNode fileNode = repo.getById(file.nodeId);
 
 		OrgNode node = OrgTestUtils.getDefaultOrgNode();
 		node.fileId = fileNode.fileId;
 		node.parentId = fileNode.id;
 
-		node.createParentNewheading(resolver).write(resolver);
+		repo.createParentNewheading(node, "").write(resolver);
 
 		node.level = 0;
 		String correctEditString = new OrgEdit(fileNode,

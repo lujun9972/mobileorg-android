@@ -157,7 +157,7 @@ public class LocationFragment extends Fragment {
 		} else {
 			try {
 				childNode = repo.getOrgNodeFromFileAlias(
-						spinnerSelection, resolver);
+						spinnerSelection);
 			} catch (OrgNodeNotFoundException e) {
 				return;
 			}

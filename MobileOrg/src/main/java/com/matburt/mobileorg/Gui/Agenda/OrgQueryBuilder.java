@@ -15,6 +15,7 @@ import com.matburt.mobileorg.OrgData.OrgDatabase.Tables;
 import com.matburt.mobileorg.OrgData.OrgFile;
 import com.matburt.mobileorg.OrgData.OrgProviderUtils;
 import com.matburt.mobileorg.OrgData.OrgNode;
+import com.matburt.mobileorg.OrgData.OrgNodeRepository;
 import com.matburt.mobileorg.OrgData.OrgNodeDate;
 import com.matburt.mobileorg.OrgData.OrgNodePayload;
 import com.matburt.mobileorg.util.OrgFileNotFoundException;
@@ -92,7 +93,7 @@ public class OrgQueryBuilder implements Serializable {
 				while(!cursor.isAfterLast()) {
 					long id = cursor.getLong(cursor.getColumnIndex(OrgData.ID));
 					try {
-						OrgNode node = new OrgNode(id, resolver);
+						OrgNode node = new OrgNodeRepository(resolver).getById(id);
 
 						if ((OrgProviderUtils.isTodoActive(node.todo, resolver)
 						     && (hasDate(node, start, end, warn)

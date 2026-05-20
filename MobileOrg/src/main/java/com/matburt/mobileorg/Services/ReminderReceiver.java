@@ -11,6 +11,7 @@ import androidx.core.app.NotificationCompat;
 
 import com.matburt.mobileorg.Gui.ViewActivity;
 import com.matburt.mobileorg.OrgData.OrgNode;
+import com.matburt.mobileorg.OrgData.OrgNodeRepository;
 import com.matburt.mobileorg.OrgData.OrgProviderUtils;
 import com.matburt.mobileorg.R;
 import com.matburt.mobileorg.util.Compat;
@@ -39,7 +40,7 @@ public class ReminderReceiver extends BroadcastReceiver {
 
         // Re-check: skip if node is now in done state
         try {
-            OrgNode node = new OrgNode(nodeId, resolver);
+            OrgNode node = new OrgNodeRepository(resolver).getById(nodeId);
             HashSet<String> activeTodos = new HashSet<>(OrgProviderUtils.getActiveTodos(resolver));
             if (node.todo != null && !activeTodos.contains(node.todo)) {
                 Log.d(TAG, "ReminderReceiver: node " + nodeId + " is done, skipping");

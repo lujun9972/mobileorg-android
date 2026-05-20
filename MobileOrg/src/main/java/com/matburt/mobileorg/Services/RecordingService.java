@@ -119,7 +119,7 @@ public class RecordingService extends Service {
 
         ContentResolver resolver = getContentResolver();
         try {
-            node = new OrgNode(nodeId, resolver);
+            node = new OrgNodeRepository(resolver).getById(nodeId);
         } catch (OrgNodeNotFoundException e) {
             Log.e(TAG, "Node not found: " + nodeId);
             stopSelf();

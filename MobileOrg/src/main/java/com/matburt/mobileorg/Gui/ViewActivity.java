@@ -44,7 +44,7 @@ public class ViewActivity extends AppCompatActivity {
 				.findFragmentById(R.id.view_fragment));
 
 		try {
-			this.node = new OrgNode(nodeId, resolver);
+			this.node = new OrgNodeRepository(resolver).getById(nodeId);
 			viewNode(PreferenceUtils.getLevelOfRecursion());
 		} catch (OrgNodeNotFoundException e) {
 			nodeViewFragment.displayError();

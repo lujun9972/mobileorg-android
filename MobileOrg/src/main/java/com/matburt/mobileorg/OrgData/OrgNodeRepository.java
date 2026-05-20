@@ -10,6 +10,8 @@ import android.content.ContentValues;
 import android.database.Cursor;
 import android.net.Uri;
 
+import com.matburt.mobileorg.OrgData.OrgContract.Edits;
+import com.matburt.mobileorg.OrgData.OrgContract.Files;
 import com.matburt.mobileorg.OrgData.OrgContract.OrgData;
 import com.matburt.mobileorg.util.FileUtils;
 import com.matburt.mobileorg.util.OrgFileNotFoundException;
@@ -586,5 +588,12 @@ public class OrgNodeRepository {
     /** Strip brackets and special chars that break OLP paths. */
     private static String getStrippedNameForOlpPathLink(String name) {
         return name.replaceAll("\\[[^\\]]*\\]", "");
+    }
+
+    /** Clear all data from OrgData, Files, and Edits tables. */
+    public void clearDB() {
+        resolver.delete(OrgData.CONTENT_URI, null, null);
+        resolver.delete(Files.CONTENT_URI, null, null);
+        resolver.delete(Edits.CONTENT_URI, null, null);
     }
 }

@@ -19,6 +19,7 @@ import android.preference.PreferenceActivity;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 
+import com.matburt.mobileorg.OrgData.OrgNodeRepository;
 import com.matburt.mobileorg.OrgData.OrgProviderUtils;
 import com.matburt.mobileorg.R;
 import com.matburt.mobileorg.Services.CalendarSyncService;
@@ -329,8 +330,8 @@ public class SettingsActivity extends PreferenceActivity implements
 								@Override
 								public void onClick(DialogInterface dialog,
 										int which) {
-									OrgProviderUtils
-											.clearDB(getContentResolver());
+									new OrgNodeRepository(getContentResolver())
+											.clearDB();
 									OrgUtils.announceSyncDone(getApplicationContext());
 
 									Intent clearCalDBIntent = new Intent(getBaseContext(), CalendarSyncService.class);

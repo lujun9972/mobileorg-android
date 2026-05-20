@@ -107,7 +107,7 @@ public class OrgFileTest extends ProviderTestCase2<OrgProvider> {
 	@Test
 	public void testRemoveFileWithNodes() throws OrgFileNotFoundException {
 		OrgNode node = OrgTestUtils.setupParentScenario(resolver);
-		OrgFile orgFile = node.getOrgFile(resolver);
+		OrgFile orgFile = repo.getOrgFile(node);
 
 		orgFile.removeFile(resolver);
 

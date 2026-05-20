@@ -71,6 +71,12 @@ MobileOrg/src/main/java/com/matburt/mobileorg/
 
 ## Changelog
 
+### v2.7.0
+
+- **Repository pattern**: Separated OrgNode into pure domain model (185 lines) and OrgNodeRepository (590 lines) for all data access. ~60+ call sites across 20+ files migrated, all deprecated data-access methods removed from OrgNode.
+- **Test migration**: All 94 instrumentation tests migrated to use OrgNodeRepository, dead methods cleaned from OrgProviderUtils.
+- **Architecture**: Added ADR-0001 documenting the Repository pattern decision.
+
 ### v2.6.1
 
 - **Code simplification**: Removed 500+ lines of dead code across the codebase

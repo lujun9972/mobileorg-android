@@ -1,10 +1,7 @@
 package com.matburt.mobileorg.OrgData;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.HashMap;
-import java.util.regex.Matcher;
-import java.util.regex.Pattern;
 
 import android.content.ContentResolver;
 import android.content.ContentValues;
@@ -18,8 +15,8 @@ import com.matburt.mobileorg.OrgData.OrgContract.Priorities;
 import com.matburt.mobileorg.OrgData.OrgContract.Tags;
 import com.matburt.mobileorg.OrgData.OrgContract.Todos;
 import com.matburt.mobileorg.util.FileUtils;
-import com.matburt.mobileorg.util.OrgNodeNotFoundException;
 import com.matburt.mobileorg.util.OrgFileNotFoundException;
+import com.matburt.mobileorg.util.OrgNodeNotFoundException;
 
 public class OrgProviderUtils {
 	
@@ -174,12 +171,6 @@ public class OrgProviderUtils {
 		return new OrgNodeRepository(resolver).nodesToString(node_id, level);
 	}
 	
-	public static void clearDB(ContentResolver resolver) {
-		resolver.delete(OrgData.CONTENT_URI, null, null);
-		resolver.delete(Files.CONTENT_URI, null, null);
-		resolver.delete(Edits.CONTENT_URI, null, null);
-	}
-	
 	
 	public static OrgNode getOrgNodeFromFilename(String filename, ContentResolver resolver) throws OrgFileNotFoundException {
 		return new OrgNodeRepository(resolver).getOrgNodeFromFilename(filename);
@@ -200,10 +191,6 @@ public class OrgProviderUtils {
 			} catch (OrgFileNotFoundException e) {}
 		}
 		return file;
-	}
-	
-	public static OrgNode getOrgNodeFromFileAlias(String fileAlias, ContentResolver resolver) throws OrgNodeNotFoundException {
-		return new OrgNodeRepository(resolver).getOrgNodeFromFileAlias(fileAlias);
 	}
 	
 	public static OrgFile getOrCreateFileFromAlias(String fileAlias, ContentResolver resolver) {
@@ -311,11 +298,6 @@ public class OrgProviderUtils {
 		
 		return changes;
 	}
-	
-	public static ArrayList<OrgNode> getOrgNodeChildren(long nodeId, ContentResolver resolver) {
-		return new OrgNodeRepository(resolver).getChildren(nodeId);
-	}
-	
 	public static ArrayList<OrgNode> orgDataCursorToArrayList(Cursor cursor) {
 		ArrayList<OrgNode> result = new ArrayList<OrgNode>();
 		

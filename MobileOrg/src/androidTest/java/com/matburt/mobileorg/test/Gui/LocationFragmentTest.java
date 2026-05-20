@@ -9,6 +9,7 @@ import com.matburt.mobileorg.Gui.Capture.LocationFragment;
 import com.matburt.mobileorg.OrgData.OrgContract.OrgData;
 import com.matburt.mobileorg.OrgData.OrgFile;
 import com.matburt.mobileorg.OrgData.OrgNode;
+import com.matburt.mobileorg.OrgData.OrgNodeRepository;
 import com.matburt.mobileorg.OrgData.OrgProviderUtils;
 import com.matburt.mobileorg.test.util.OrgTestUtils;
 
@@ -32,12 +33,14 @@ public class LocationFragmentTest {
 	public ActivityTestRule<EditActivity> activityRule = new ActivityTestRule<>(EditActivity.class, true, false);
 
 	private ContentResolver resolver;
+	private OrgNodeRepository repo;
 	private LocationFragment locationFragment;
 	private long nodeId = -1;
 
 	@Before
 	public void setUp() throws Exception {
 		this.resolver = InstrumentationRegistry.getInstrumentation().getTargetContext().getContentResolver();
+		this.repo = new OrgNodeRepository(resolver);
 	}
 
 	@After

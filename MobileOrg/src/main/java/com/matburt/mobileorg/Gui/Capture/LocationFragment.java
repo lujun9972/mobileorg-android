@@ -103,7 +103,10 @@ public class LocationFragment extends Fragment {
 			String selection = currentNode.name;
 			
 			if (spinnerNode != null) {
-				ArrayList<String> data = repo.getSiblingsStringArray(currentNode.id);
+			ArrayList<String> data = new ArrayList<String>();
+			try {
+						data = repo.getSiblingsStringArray(currentNode.id);
+			} catch (OrgNodeNotFoundException e) {}
 				getLocationEntry(spinnerNode, data, selection);
 				currentNode = spinnerNode;
 			} else {

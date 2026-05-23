@@ -29,7 +29,7 @@
   <string name="ok">OK</string>
   <string name="empty_main">Willkommen bei MobileOrg</string>
   <string name="error_bad_url">Die URL %s ist fehlerhaft</string>
-  <string name="error_dialog_title">Fehler</string>
+
   <string name="prompt_node_edit">Wollen Sie die Änderungen wirklich verwerfen?</string>
   <string name="error_loading_node">Fehler beim Laden des Punktes</string>
   <string name="sync_not_configured">Synchronisierung ist nicht konfiguriert.</string>

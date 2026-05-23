@@ -25,7 +25,7 @@
   <string name="ok">OK</string>
   <string name="empty_main">您还没有已经同步的 Org 文件</string>
   <string name="error_bad_url">地址 %s 的格式不恰当</string>
-  <string name="error_dialog_title">错误</string>
+
   <string name="prompt_node_edit">您确定要丢弃变更吗？</string>
   <string name="error_loading_node">载入节点出错</string>
   <string name="sync_not_configured">同步未配置</string>

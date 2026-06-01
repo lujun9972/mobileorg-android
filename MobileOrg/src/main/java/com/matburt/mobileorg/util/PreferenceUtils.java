@@ -133,4 +133,10 @@ public class PreferenceUtils {
 	    
 	    return todos;
 	}
+
+	public static int getPomodoroDuration() {
+		Context context = MobileOrgApplication.getContext();
+		return Integer.parseInt(PreferenceManager.getDefaultSharedPreferences(context)
+				.getString("pomodoro_duration", "25"));
+	}
 }

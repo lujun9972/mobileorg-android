@@ -29,6 +29,11 @@
         app:showAsAction="ifRoom"
         android:title="@string/menu_clockin"/>
     <item
+        android:id="@+id/menu_pomodoro"
+        android:icon="@drawable/ic_menu_pomodoro"
+        app:showAsAction="ifRoom"
+        android:title="@string/menu_pomodoro"/>
+    <item
         android:id="@+id/menu_record"
         android:icon="@drawable/ic_menu_record"
         app:showAsAction="ifRoom"

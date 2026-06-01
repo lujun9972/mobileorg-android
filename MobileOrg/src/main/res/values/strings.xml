@@ -289,6 +289,13 @@
 <string name="reminder_days_later">%d 天后</string>
 <string name="reminder_tomorrow">明天</string>
 
+<!-- Pomodoro -->
+<string name="menu_pomodoro">Pomodoro</string>
+<string name="preference_pomodoro">Pomodoro</string>
+<string name="preference_pomodoro_duration">番茄钟时长</string>
+<string name="preference_pomodoro_duration_summary">默认倒计时时长（分钟）</string>
+<string name="pomodoro_duration_picker_title">设置番茄钟时长（分钟）</string>
+
 <!-- others -->
 
 </resources>

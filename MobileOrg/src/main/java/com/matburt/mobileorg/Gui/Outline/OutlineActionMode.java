@@ -5,8 +5,13 @@ import android.content.ContentResolver;
 import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
+import android.os.Build;
 import android.util.Log;
+import android.view.Gravity;
+import android.widget.LinearLayout;
 import android.widget.ListView;
+import android.widget.NumberPicker;
+import android.widget.TextView;
 
 import android.view.ActionMode;
 import android.view.Menu;
@@ -97,6 +102,8 @@ public class OutlineActionMode implements ActionMode.Callback {
 			runDeleteFileNode();
 		} else if (id == R.id.menu_clockin) {
 			runTimeClockingService();
+		} else if (id == R.id.menu_pomodoro) {
+			showPomodoroDurationPicker();
 		} else if (id == R.id.menu_record) {
 			runRecordingService();
 		} else if (id == R.id.menu_archive) {
@@ -230,18 +237,85 @@ public class OutlineActionMode implements ActionMode.Callback {
 	private void runTimeClockingService() {
 		Log.d("MobileOrg", "[ClockIn] OutlineActionMode.runTimeClockingService: node.id=" + node.id
 				+ ", name=" + node.name);
+
+		TimeclockService existing = TimeclockService.getInstance();
+		if (existing != null) {
+			Log.w("MobileOrg", "[ClockIn] Stopping existing TimeclockService, node_id="
+					+ existing.getNodeID());
+			existing.cancelNotification();
+		}
+
 		Intent intent = new Intent(context, TimeclockService.class);
 		intent.putExtra(TimeclockService.NODE_ID, node.id);
 
-		// Check if already clocking in
+		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+			context.startForegroundService(intent);
+		} else {
+			context.startService(intent);
+		}
+		Log.d("MobileOrg", "[ClockIn] startService intent sent for node_id=" + node.id);
+	}
+
+	private void showPomodoroDurationPicker() {
+		int defaultDuration = PreferenceUtils.getPomodoroDuration();
+
+		LinearLayout layout = new LinearLayout(context);
+		layout.setOrientation(LinearLayout.HORIZONTAL);
+		layout.setGravity(Gravity.CENTER);
+		int pad = (int) (24 * context.getResources().getDisplayMetrics().density);
+		layout.setPadding(pad, pad, pad, pad);
+
+		final NumberPicker minutePicker = new NumberPicker(context);
+		minutePicker.setMinValue(1);
+		minutePicker.setMaxValue(120);
+		minutePicker.setValue(defaultDuration);
+		minutePicker.setWrapSelectorWheel(true);
+		layout.addView(minutePicker);
+
+		TextView label = new TextView(context);
+		label.setText(" min");
+		label.setTextSize(18);
+		label.setGravity(Gravity.CENTER);
+		layout.addView(label);
+
+		new AlertDialog.Builder(((android.app.Activity) context))
+				.setTitle(R.string.pomodoro_duration_picker_title)
+				.setView(layout)
+				.setPositiveButton(android.R.string.ok, new DialogInterface.OnClickListener() {
+					@Override
+					public void onClick(DialogInterface dialog, int which) {
+						minutePicker.clearFocus();
+						int duration = minutePicker.getValue();
+						Log.d("MobileOrg", "[Pomodoro] User selected duration: " + duration + " min");
+						runPomodoroService(duration);
+					}
+				})
+				.setNegativeButton(android.R.string.cancel, null)
+				.show();
+	}
+
+	private void runPomodoroService(int durationMinutes) {
+		Log.d("MobileOrg", "[Pomodoro] runPomodoroService: node.id=" + node.id
+				+ ", duration=" + durationMinutes + " min");
+
 		TimeclockService existing = TimeclockService.getInstance();
 		if (existing != null) {
-			Log.w("MobileOrg", "[ClockIn] TimeclockService already running! node_id="
-					+ existing.getNodeID() + ", startTime=" + existing.getStartTime());
+			Log.w("MobileOrg", "[Pomodoro] Stopping existing TimeclockService, node_id="
+					+ existing.getNodeID());
+			existing.cancelNotification();
 		}
 
-		context.startService(intent);
-		Log.d("MobileOrg", "[ClockIn] startService intent sent for node_id=" + node.id);
+		Intent intent = new Intent(context, TimeclockService.class);
+		intent.putExtra(TimeclockService.NODE_ID, node.id);
+		intent.putExtra(TimeclockService.POMODORO_MODE, true);
+		intent.putExtra(TimeclockService.POMODORO_DURATION, durationMinutes);
+
+		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
+			context.startForegroundService(intent);
+		} else {
+			context.startService(intent);
+		}
+		Log.d("MobileOrg", "[Pomodoro] startService intent sent for node_id=" + node.id);
 	}
 
 	private void runRecordingService() {

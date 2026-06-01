@@ -20,7 +20,7 @@ APK output: `MobileOrg/build/outputs/apk/debug/`
 
 **注意**：不在本地构建。推送到远端由 CI 进行构建，用 `gh run list` / `gh run view` 检查 CI 结果即可。
 
-**测试设备**: 无线调试已开启，`adb connect 192.168.31.198:34217` 可连接。若需本地运行 instrumentation 测试，先连接设备再执行 `./gradlew connectedDebugAndroidTest`。
+**测试设备**: 无线调试已开启，`adb connect 192.168.31.198:<port>` 可连接。若需本地运行 instrumentation 测试，先连接设备再执行 `./gradlew connectedDebugAndroidTest`。
 
 **Remote/CI**: Git remote `git.zhlh6.cn` is a Gitea proxy that auto-syncs to GitHub. Pushing to it triggers GitHub Actions CI. Use `gh` CLI against the GitHub repo to check CI status (e.g. `gh run list`).
 
@@ -103,6 +103,10 @@ All guards use `Build.VERSION.SDK_INT >= Build.VERSION_CODES.O` pattern.
 2. **检查同类问题** — 全局搜索相同模式（如 `grep -r "android:showAsAction"`），避免只修一处遗漏其他
 3. **补充单元测试** — 为修复的场景编写测试，防止回归
 4. **更新博文** — 将新坑补充到 `~/github/lujun9972.github.com/编程之旅/MobileOrg-Android-从API-17迁移到API-34的实战记录.org`
+
+## Operational Notes
+
+- **Rate limit recovery**: When encountering API 429 rate limit errors (e.g. `"已达到 5 小时的使用上限"`), use `CronCreate` to schedule a one-shot task at the reset time to resume unfinished work. Do not poll or retry immediately.
 
 ## Known Pitfalls
 

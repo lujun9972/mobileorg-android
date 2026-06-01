@@ -28,6 +28,8 @@ import com.matburt.mobileorg.util.OrgNodeNotFoundException;
 
 public class TimeclockService extends Service {
 	public static final String NODE_ID = "node_id";
+	public static final String POMODORO_MODE = "pomodoro_mode";
+	public static final String POMODORO_DURATION = "pomodoro_duration";
 	public static final String TIMECLOCK_UPDATE = "timeclock_update";
 	public static final String TIMECLOCK_TIMEOUT = "timeclock_timeout";
 	private static final String CHANNEL_ID = "mobileorg_timeclock";
@@ -49,6 +51,8 @@ public class TimeclockService extends Service {
 	private PendingIntent updateIntent;
 	private PendingIntent timeoutIntent;
 	private boolean hasTimedOut = false;
+	private boolean pomodoroMode = false;
+	private int pomodoroDurationMinutes = 25;
 
 	public static TimeclockService getInstance() {
 		return sInstance;
@@ -95,12 +99,25 @@ public class TimeclockService extends Service {
 			Log.d("MobileOrg", "[ClockIn] startTime=" + startTime
 					+ " (" + new java.text.SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new java.util.Date(startTime)) + ")");
 
-			getEstimated();
+			this.pomodoroMode = intent.getBooleanExtra(POMODORO_MODE, false);
+			this.pomodoroDurationMinutes = intent.getIntExtra(POMODORO_DURATION, 25);
+			Log.d("MobileOrg", "[Pomodoro] pomodoroMode=" + pomodoroMode
+					+ ", duration=" + pomodoroDurationMinutes + " min");
+
+			if (pomodoroMode) {
+				// 不修改 estimatedHour/estimatedMinute，保持 Effort 语义
+			} else {
+				getEstimated();
+			}
 			Log.d("MobileOrg", "[ClockIn] estimatedHour=" + this.estimatedHour
 					+ ", estimatedMinute=" + this.estimatedMinute);
 			showNotification(node_id);
 			setUpdateAlarm();
-			setTimeoutAlarm(this.estimatedHour, this.estimatedMinute);
+			if (pomodoroMode) {
+				setTimeoutAlarm(pomodoroDurationMinutes / 60, pomodoroDurationMinutes % 60);
+			} else {
+				setTimeoutAlarm(this.estimatedHour, this.estimatedMinute);
+			}
 		}
 		else if(action.equals(TIMECLOCK_UPDATE)) {
 			Log.d("MobileOrg", "[ClockIn] Update tick: notification=" + (notification != null));
@@ -145,7 +162,7 @@ public class TimeclockService extends Service {
 
 		Builder builder = new NotificationCompat.Builder(this, CHANNEL_ID);
 		builder.setSmallIcon(R.drawable.timeclock_icon);
-		builder.setContentTitle(node.name);
+		builder.setContentTitle(pomodoroMode ? "\uD83C\uDF45 " + node.name : node.name);
 		builder.setContentIntent(contentIntent);
 		builder.setOngoing(true);
 
@@ -157,7 +174,7 @@ public class TimeclockService extends Service {
 		notification.contentView.setImageViewResource(R.id.timeclock_notification_icon,
 				R.drawable.timeclock_icon);
 		notification.contentView.setTextViewText(R.id.timeclock_notification_text,
-				node.name);
+				pomodoroMode ? "\uD83C\uDF45 " + node.name : node.name);
 
 		updateTime();
 
@@ -218,17 +235,38 @@ public class TimeclockService extends Service {
 	private void updateTime() {
 		if (notification == null)
 			return;
-		SpannableStringBuilder itemText = new SpannableStringBuilder(getElapsedTimeString());
+		SpannableStringBuilder itemText;
 
-		if(this.hasTimedOut)
-			itemText.setSpan(new ForegroundColorSpan(Color.RED), 0,
-					itemText.length(), 0);
-
-		itemText.append(getEstimatedTimeString());
+		if (pomodoroMode) {
+			long now = System.currentTimeMillis();
+			if (!hasTimedOut) {
+				long remaining = (pomodoroDurationMinutes * 60L * 1000L) - (now - startTime);
+				if (remaining < 0) remaining = 0;
+				itemText = new SpannableStringBuilder("\uD83C\uDF45 " + formatMillisAsTime(remaining));
+			} else {
+				long overtime = now - (startTime + pomodoroDurationMinutes * 60L * 1000L);
+				itemText = new SpannableStringBuilder("\uD83C\uDF45 +" + formatMillisAsTime(overtime));
+				itemText.setSpan(new ForegroundColorSpan(Color.RED), 0,
+						itemText.length(), 0);
+			}
+		} else {
+			itemText = new SpannableStringBuilder(getElapsedTimeString());
+			if(this.hasTimedOut)
+				itemText.setSpan(new ForegroundColorSpan(Color.RED), 0,
+						itemText.length(), 0);
+			itemText.append(getEstimatedTimeString());
+		}
 
 		notification.contentView.setTextViewText(
 				R.id.timeclock_notification_time, itemText);
 		mNM.notify(notificationID, notification);
+	}
+
+	private String formatMillisAsTime(long millis) {
+		long totalMinutes = millis / (60 * 1000);
+		long hours = totalMinutes / 60;
+		long minutes = totalMinutes % 60;
+		return String.format("%d:%02d", hours, minutes);
 	}
 
 	public String getElapsedTimeString() {
@@ -236,10 +274,7 @@ public class TimeclockService extends Service {
 		Log.d("MobileOrg", "[ClockIn] getElapsedTimeString: startTime=" + startTime
 				+ ", now=" + System.currentTimeMillis() + ", diff=" + difference + "ms");
 		if(difference >= 0) {
-			String elapsed = String.format("%d:%02d",
-					(int) ((difference / (1000 * 60 * 60)) % 24),
-					(int) ((difference / (1000 * 60)) % 60));
-			return elapsed;
+			return formatMillisAsTime(difference);
 		}
 		else
 			return "0:00";

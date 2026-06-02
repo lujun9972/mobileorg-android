@@ -87,7 +87,12 @@ public class OutlineActionMode implements ActionMode.Callback {
 	
 	@Override
 	public boolean onPrepareActionMode(ActionMode mode, Menu menu) {
-		return false;
+		MenuItem pomoItem = menu.findItem(R.id.menu_pomodoro);
+		if (pomoItem != null) {
+			TimeclockService service = TimeclockService.getInstance();
+			pomoItem.setVisible(service == null || !service.isPomodoroRunning());
+		}
+		return true;
 	}
 
 	@Override
@@ -238,15 +243,10 @@ public class OutlineActionMode implements ActionMode.Callback {
 		Log.d("MobileOrg", "[ClockIn] OutlineActionMode.runTimeClockingService: node.id=" + node.id
 				+ ", name=" + node.name);
 
-		TimeclockService existing = TimeclockService.getInstance();
-		if (existing != null) {
-			Log.w("MobileOrg", "[ClockIn] Stopping existing TimeclockService, node_id="
-					+ existing.getNodeID());
-			existing.cancelNotification();
-		}
-
 		Intent intent = new Intent(context, TimeclockService.class);
+		intent.setAction(TimeclockService.ACTION_CLOCK_IN);
 		intent.putExtra(TimeclockService.NODE_ID, node.id);
+		// 不杀已有 service，由 service 内部处理已 clock in 的情况
 
 		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
 			context.startForegroundService(intent);
@@ -295,27 +295,19 @@ public class OutlineActionMode implements ActionMode.Callback {
 	}
 
 	private void runPomodoroService(int durationMinutes) {
-		Log.d("MobileOrg", "[Pomodoro] runPomodoroService: node.id=" + node.id
-				+ ", duration=" + durationMinutes + " min");
-
-		TimeclockService existing = TimeclockService.getInstance();
-		if (existing != null) {
-			Log.w("MobileOrg", "[Pomodoro] Stopping existing TimeclockService, node_id="
-					+ existing.getNodeID());
-			existing.cancelNotification();
-		}
+		Log.d("MobileOrg", "[Pomodoro] runPomodoroService: duration=" + durationMinutes + " min");
 
 		Intent intent = new Intent(context, TimeclockService.class);
-		intent.putExtra(TimeclockService.NODE_ID, node.id);
-		intent.putExtra(TimeclockService.POMODORO_MODE, true);
+		intent.setAction(TimeclockService.ACTION_POMODORO_START);
 		intent.putExtra(TimeclockService.POMODORO_DURATION, durationMinutes);
+		// 不传 NODE_ID，不杀已有 service
 
 		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
 			context.startForegroundService(intent);
 		} else {
 			context.startService(intent);
 		}
-		Log.d("MobileOrg", "[Pomodoro] startService intent sent for node_id=" + node.id);
+		Log.d("MobileOrg", "[Pomodoro] startService intent sent for duration=" + durationMinutes);
 	}
 
 	private void runRecordingService() {

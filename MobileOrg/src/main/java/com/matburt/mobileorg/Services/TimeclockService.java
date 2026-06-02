@@ -249,6 +249,13 @@ public class TimeclockService extends Service {
 					R.drawable.ic_media_stop, "Stop", stopPendingIntent).build();
 			builder.addAction(stopAction);
 			this.notification = builder.build();
+			// builder.build() creates a new notification without our custom contentView;
+			// re-attach it so updateTime() can use notification.contentView
+			notification.contentView = new RemoteViews(this.getPackageName(),
+					R.layout.timeclock_notification);
+			notification.contentView.setImageViewResource(R.id.timeclock_notification_icon,
+					R.drawable.timeclock_icon);
+			notification.contentView.setTextViewText(R.id.timeclock_notification_text, title);
 		}
 
 		updateTime();
@@ -301,7 +308,7 @@ public class TimeclockService extends Service {
 	}
 
 	private void updateTime() {
-		if (notification == null) return;
+		if (notification == null || notification.contentView == null) return;
 
 		SpannableStringBuilder itemText;
 		long now = System.currentTimeMillis();

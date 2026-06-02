@@ -201,7 +201,7 @@ public class TimeclockDialog extends FragmentActivity {
 						intent.setAction(TimeclockService.ACTION_CLOCK_OUT);
 						intent.putExtra(TimeclockService.CLOCK_DURATION, h * 60 + m);
 						getActivity().startService(intent);
-						activity.maybeFinish();
+						activity.finish();
 					})
 					.setNegativeButton("Cancel", null)
 					.create();

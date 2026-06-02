@@ -291,6 +291,7 @@
 
 <!-- Pomodoro -->
 <string name="menu_pomodoro">Pomodoro</string>
+    <string name="menu_pomodoro_stop">Stop 🍅</string>
 <string name="preference_pomodoro">Pomodoro</string>
 <string name="preference_pomodoro_duration">番茄钟时长</string>
 <string name="preference_pomodoro_duration_summary">默认倒计时时长（分钟）</string>

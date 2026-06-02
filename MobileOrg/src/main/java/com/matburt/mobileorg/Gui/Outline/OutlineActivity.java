@@ -11,6 +11,7 @@ import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
+import android.view.Gravity;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
@@ -19,6 +20,7 @@ import android.view.animation.Animation;
 import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
+import android.widget.NumberPicker;
 import android.widget.TextView;
 import android.widget.Toast;
 import android.widget.ToggleButton;
@@ -32,6 +34,7 @@ import com.matburt.mobileorg.Gui.Wizard.WizardActivity;
 import com.matburt.mobileorg.OrgData.MobileOrgApplication;
 import com.matburt.mobileorg.OrgData.OrgProviderUtils;
 import com.matburt.mobileorg.Services.RecordingService;
+import com.matburt.mobileorg.Services.TimeclockService;
 import com.matburt.mobileorg.Services.SyncService;
 import com.matburt.mobileorg.Settings.SettingsActivity;
 import com.matburt.mobileorg.Synchronizers.Synchronizer;
@@ -152,6 +155,7 @@ public class OutlineActivity extends AppCompatActivity {
 		}
 		refreshTitle();
 		setupFilterBar();
+		invalidateOptionsMenu();
 	}
 
 	@Override
@@ -372,6 +376,18 @@ public class OutlineActivity extends AppCompatActivity {
 	}
 
 	@Override
+	public boolean onPrepareOptionsMenu(Menu menu) {
+		MenuItem pomoItem = menu.findItem(R.id.menu_pomodoro);
+		if (pomoItem != null) {
+			TimeclockService service = TimeclockService.getInstance();
+			boolean running = service != null && service.isPomodoroRunning();
+			pomoItem.setTitle(running ? getString(R.string.menu_pomodoro_stop) : getString(R.string.menu_pomodoro));
+			pomoItem.setIcon(running ? R.drawable.ic_media_stop : R.drawable.ic_menu_pomodoro);
+		}
+		return super.onPrepareOptionsMenu(menu);
+	}
+
+	@Override
 	public boolean onOptionsItemSelected(MenuItem item) {
 		int id = item.getItemId();
 		if (id == android.R.id.home) {
@@ -401,6 +417,16 @@ public class OutlineActivity extends AppCompatActivity {
 			long checkedNodeId = listView.getCheckedNodeId();
 			if (checkedNodeId >= 0) {
 				tryStartRecording(checkedNodeId);
+			}
+			return true;
+		} else if (id == R.id.menu_pomodoro) {
+			TimeclockService service = TimeclockService.getInstance();
+			if (service != null && service.isPomodoroRunning()) {
+				Intent intent = new Intent(this, TimeclockService.class);
+				intent.setAction(TimeclockService.ACTION_POMODORO_STOP);
+				Compat.startService(this, intent);
+			} else {
+				showPomodoroDurationPicker();
 			}
 			return true;
 		}
@@ -555,6 +581,46 @@ public class OutlineActivity extends AppCompatActivity {
 				pendingRecordNodeId = -1;
 			}
 		}
+	}
+
+	private void showPomodoroDurationPicker() {
+		int defaultDuration = PreferenceUtils.getPomodoroDuration();
+
+		LinearLayout layout = new LinearLayout(this);
+		layout.setOrientation(LinearLayout.HORIZONTAL);
+		layout.setGravity(Gravity.CENTER);
+		int pad = (int) (24 * getResources().getDisplayMetrics().density);
+		layout.setPadding(pad, pad, pad, pad);
+
+		final NumberPicker minutePicker = new NumberPicker(this);
+		minutePicker.setMinValue(1);
+		minutePicker.setMaxValue(120);
+		minutePicker.setValue(defaultDuration);
+		minutePicker.setWrapSelectorWheel(true);
+		layout.addView(minutePicker);
+
+		TextView label = new TextView(this);
+		label.setText(" min");
+		label.setTextSize(18);
+		label.setGravity(Gravity.CENTER);
+		layout.addView(label);
+
+		new AlertDialog.Builder(this)
+				.setTitle(R.string.pomodoro_duration_picker_title)
+				.setView(layout)
+				.setPositiveButton(android.R.string.ok, new DialogInterface.OnClickListener() {
+					@Override
+					public void onClick(DialogInterface dialog, int which) {
+						minutePicker.clearFocus();
+						int duration = minutePicker.getValue();
+						Intent intent = new Intent(OutlineActivity.this, TimeclockService.class);
+						intent.setAction(TimeclockService.ACTION_POMODORO_START);
+						intent.putExtra(TimeclockService.POMODORO_DURATION, duration);
+						Compat.startService(OutlineActivity.this, intent);
+					}
+				})
+				.setNegativeButton(android.R.string.cancel, null)
+				.show();
 	}
 
 	private class SynchServiceReceiver extends BroadcastReceiver {

@@ -108,7 +108,7 @@ public class TimeclockDialog extends FragmentActivity {
 			Intent intent = new Intent(TimeclockDialog.this, TimeclockService.class);
 			intent.setAction(TimeclockService.ACTION_CLOCK_CANCEL);
 			startService(intent);
-			maybeFinish();
+			finish();
 		}
 	};
 
@@ -119,7 +119,7 @@ public class TimeclockDialog extends FragmentActivity {
 			intent.setAction(TimeclockService.ACTION_CLOCK_OUT);
 			intent.putExtra(TimeclockService.CLOCK_DURATION, hour * 60 + minute);
 			startService(intent);
-			maybeFinish();
+			finish();
 		}
 	};
 

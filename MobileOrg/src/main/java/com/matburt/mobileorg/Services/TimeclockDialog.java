@@ -102,6 +102,15 @@ public class TimeclockDialog extends FragmentActivity {
 		}
 	}
 
+	void updateDuration(int h, int m) {
+		this.hour = h;
+		this.minute = m;
+		String name = (node != null) ? node.name : "(unknown)";
+		String elapsed = String.format("%d:%02d", h, m);
+		TextView textView = findViewById(R.id.timeclock_text);
+		textView.setText(name + " @ " + elapsed);
+	}
+
 	private View.OnClickListener cancelListener = new View.OnClickListener() {
 		public void onClick(View v) {
 			Log.d("MobileOrg", "[TimeclockDialog] CANCEL button clicked");
@@ -197,11 +206,7 @@ public class TimeclockDialog extends FragmentActivity {
 						int h = hourPicker.getValue();
 						int m = minutePicker.getValue();
 						Log.d("MobileOrg", "[TimeclockDialog] DurationPicker OK: picked hour=" + h + ", minute=" + m);
-						Intent intent = new Intent(getActivity(), TimeclockService.class);
-						intent.setAction(TimeclockService.ACTION_CLOCK_OUT);
-						intent.putExtra(TimeclockService.CLOCK_DURATION, h * 60 + m);
-						getActivity().startService(intent);
-						activity.finish();
+						activity.updateDuration(h, m);
 					})
 					.setNegativeButton("Cancel", null)
 					.create();

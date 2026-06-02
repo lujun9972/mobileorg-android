@@ -2,6 +2,8 @@ package com.matburt.mobileorg.Services;
 
 import android.app.AlertDialog;
 import android.app.Dialog;
+import android.content.Intent;
+import android.graphics.Color;
 import android.os.Bundle;
 import android.view.Gravity;
 import android.view.View;
@@ -50,30 +52,43 @@ public class TimeclockDialog extends FragmentActivity {
 		super.onStart();
 
 		TimeclockService service = TimeclockService.getInstance();
-		Log.d("MobileOrg", "[ClockIn] TimeclockDialog.onStart: service=" + (service != null ? "alive" : "NULL"));
-
-		String elapsedTime = (service != null) ? service.getElapsedTimeString() : "0:00";
-		parseElapsedTime(elapsedTime);
-		Log.d("MobileOrg", "[ClockIn] TimeclockDialog.onStart: elapsedTime=" + elapsedTime
-				+ ", parsed hour=" + this.hour + ", minute=" + this.minute);
+		Log.d("MobileOrg", "[TimeclockDialog] onStart: service=" + (service != null ? "alive" : "NULL"));
 
 		setTitle("MobileOrg Timeclock");
-		TextView textView = (TextView) findViewById(R.id.timeclock_text);
 
-		long node_id = (service != null) ? service.getNodeID() : -1;
-		Log.d("MobileOrg", "[ClockIn] TimeclockDialog.onStart: node_id from service=" + node_id);
-
-		try {
-			this.node = new OrgNodeRepository(getContentResolver()).getById(node_id);
-			Log.d("MobileOrg", "[ClockIn] TimeclockDialog.onStart: node loaded, name=" + node.name);
-		} catch (OrgNodeNotFoundException e) {
-			Log.e("MobileOrg", "[ClockIn] TimeclockDialog.onStart: node not found! node_id=" + node_id, e);
-			this.node = null;
+		// Pomodoro section
+		LinearLayout pomoSection = findViewById(R.id.pomodoro_section);
+		if (service != null && service.isPomodoroRunning()) {
+			pomoSection.setVisibility(View.VISIBLE);
+			TextView pomoTime = findViewById(R.id.pomodoro_time);
+			String remaining = service.getPomodoroRemainingString();
+			pomoTime.setText("\uD83C\uDF45 " + remaining);
+			if (service.isPomodoroTimedOut()) {
+				pomoTime.setTextColor(Color.RED);
+			}
+			Button stopBtn = findViewById(R.id.pomodoro_stop_button);
+			stopBtn.setOnClickListener(v -> {
+				sendServiceAction(TimeclockService.ACTION_POMODORO_STOP);
+				pomoSection.setVisibility(View.GONE);
+				maybeFinish();
+			});
+		} else {
+			pomoSection.setVisibility(View.GONE);
 		}
 
-		if (textView != null) {
-			String name = (node != null) ? node.name : "(unknown)";
-			textView.setText(name + "@" + elapsedTime);
+		// Clock section
+		LinearLayout clockSection = findViewById(R.id.clock_section);
+		if (service != null && service.isClockedIn()) {
+			clockSection.setVisibility(View.VISIBLE);
+			OrgNode clockNode = service.getClockNode();
+			this.node = clockNode;
+			String name = (clockNode != null) ? clockNode.name : "(unknown)";
+			String elapsed = service.getClockElapsedString();
+			parseElapsedTime(elapsed);
+			TextView textView = findViewById(R.id.timeclock_text);
+			textView.setText(name + " @ " + elapsed);
+		} else {
+			clockSection.setVisibility(View.GONE);
 		}
 	}
 
@@ -87,59 +102,30 @@ public class TimeclockDialog extends FragmentActivity {
 		}
 	}
 
-	private void saveClock(int hour, int minute) {
-		Log.d("MobileOrg", "[ClockIn] saveClock called: hour=" + hour + ", minute=" + minute
-				+ ", node=" + (node != null ? "id=" + node.id + " name=" + node.name : "NULL"));
-		if (node == null) {
-			Log.e("MobileOrg", "[ClockIn] saveClock ABORTED: node is null!");
-			return;
-		}
-		long endTime = System.currentTimeMillis();
-		long durationMillis = (hour * 3600L + minute * 60L) * 1000L;
-		long startTime = endTime - durationMillis;
-		String elapsedTime = String.format("%d:%02d", hour, minute);
-
-		java.text.SimpleDateFormat sdf = new java.text.SimpleDateFormat("yyyy-MM-dd HH:mm:ss");
-		Log.d("MobileOrg", "[ClockIn] saveClock: duration=" + elapsedTime
-				+ ", startTime=" + startTime + " (" + sdf.format(new java.util.Date(startTime)) + ")"
-				+ ", endTime=" + endTime + " (" + sdf.format(new java.util.Date(endTime)) + ")"
-				+ ", durationMillis=" + durationMillis);
-
-		Log.d("MobileOrg", "[ClockIn] saveClock: payload BEFORE = [" + node.getPayload() + "]");
-		new OrgNodeRepository(getContentResolver()).addLogbook(node, startTime, endTime, elapsedTime);
-		Log.d("MobileOrg", "[ClockIn] saveClock: payload AFTER  = [" + node.getPayload() + "]");
-	}
-
-	private void endTimeclock() {
-		Log.d("MobileOrg", "[ClockIn] endTimeclock called");
-		TimeclockService service = TimeclockService.getInstance();
-		if (service != null) {
-			Log.d("MobileOrg", "[ClockIn] endTimeclock: service alive, calling cancelNotification");
-			service.cancelNotification();
-		} else {
-			Log.w("MobileOrg", "[ClockIn] endTimeclock: service is NULL!");
-		}
-		finish();
-	}
-
 	private View.OnClickListener cancelListener = new View.OnClickListener() {
 		public void onClick(View v) {
-			Log.d("MobileOrg", "[ClockIn] CANCEL button clicked");
-			endTimeclock();
+			Log.d("MobileOrg", "[TimeclockDialog] CANCEL button clicked");
+			Intent intent = new Intent(TimeclockDialog.this, TimeclockService.class);
+			intent.setAction(TimeclockService.ACTION_CLOCK_CANCEL);
+			startService(intent);
+			maybeFinish();
 		}
 	};
 
 	private View.OnClickListener saveListener = new View.OnClickListener() {
 		public void onClick(View v) {
-			Log.d("MobileOrg", "[ClockIn] SAVE button clicked: hour=" + hour + ", minute=" + minute);
-			saveClock(hour, minute);
-			endTimeclock();
+			Log.d("MobileOrg", "[TimeclockDialog] SAVE button clicked: hour=" + hour + ", minute=" + minute);
+			Intent intent = new Intent(TimeclockDialog.this, TimeclockService.class);
+			intent.setAction(TimeclockService.ACTION_CLOCK_OUT);
+			intent.putExtra(TimeclockService.CLOCK_DURATION, hour * 60 + minute);
+			startService(intent);
+			maybeFinish();
 		}
 	};
 
 	private View.OnClickListener editListener = new View.OnClickListener() {
 		public void onClick(View v) {
-			Log.d("MobileOrg", "[ClockIn] EDIT button clicked: current hour=" + hour + ", minute=" + minute);
+			Log.d("MobileOrg", "[TimeclockDialog] EDIT button clicked: current hour=" + hour + ", minute=" + minute);
 			FragmentTransaction ft = getSupportFragmentManager()
 					.beginTransaction();
 			DialogFragment newFragment = DurationPickerFragment.newInstance(hour, minute);
@@ -168,7 +154,7 @@ public class TimeclockDialog extends FragmentActivity {
 		public Dialog onCreateDialog(Bundle savedInstanceState) {
 			int initHour = getArguments().getInt("hour", 0);
 			int initMinute = getArguments().getInt("minute", 0);
-			Log.d("MobileOrg", "[ClockIn] DurationPicker.onCreateDialog: initHour=" + initHour + ", initMinute=" + initMinute);
+			Log.d("MobileOrg", "[TimeclockDialog] DurationPicker.onCreateDialog: initHour=" + initHour + ", initMinute=" + initMinute);
 			TimeclockDialog activity = (TimeclockDialog) getActivity();
 
 			// Build layout with two NumberPickers
@@ -210,12 +196,28 @@ public class TimeclockDialog extends FragmentActivity {
 						minutePicker.clearFocus();
 						int h = hourPicker.getValue();
 						int m = minutePicker.getValue();
-						Log.d("MobileOrg", "[ClockIn] DurationPicker OK: picked hour=" + h + ", minute=" + m);
-						activity.saveClock(h, m);
-						activity.endTimeclock();
+						Log.d("MobileOrg", "[TimeclockDialog] DurationPicker OK: picked hour=" + h + ", minute=" + m);
+						Intent intent = new Intent(getActivity(), TimeclockService.class);
+						intent.setAction(TimeclockService.ACTION_CLOCK_OUT);
+						intent.putExtra(TimeclockService.CLOCK_DURATION, h * 60 + m);
+						getActivity().startService(intent);
+						activity.maybeFinish();
 					})
 					.setNegativeButton("Cancel", null)
 					.create();
 		}
+	}
+
+	private void maybeFinish() {
+		TimeclockService service = TimeclockService.getInstance();
+		if (service == null || (!service.isPomodoroRunning() && !service.isClockedIn())) {
+			finish();
+		}
+	}
+
+	private void sendServiceAction(String action) {
+		Intent intent = new Intent(this, TimeclockService.class);
+		intent.setAction(action);
+		startService(intent);
 	}
 }

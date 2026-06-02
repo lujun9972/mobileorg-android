@@ -4,23 +4,51 @@
     android:layout_height="match_parent"
     android:orientation="vertical" >
 
-    <TextView
-        xmlns:android="http://schemas.android.com/apk/res/android"
-        android:id="@+id/timeclock_text"
+    <LinearLayout
+        android:id="@+id/pomodoro_section"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:gravity="center_vertical|center_horizontal"
-        android:text=""
-        android:textAppearance="?android:attr/textAppearanceMedium"
-        android:paddingBottom="20dp"
-         />
+        android:orientation="vertical"
+        android:layout_alignParentTop="true"
+        android:gravity="center"
+        android:paddingBottom="12dp" >
+        <TextView
+            android:id="@+id/pomodoro_time"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:textAppearance="?android:attr/textAppearanceLarge"
+            android:text="" />
+        <Button
+            android:id="@+id/pomodoro_stop_button"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Stop Pomodoro" />
+    </LinearLayout>
 
     <LinearLayout
+        android:id="@+id/clock_section"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:layout_below="@id/timeclock_text"
-        android:gravity="center" >
+        android:orientation="vertical"
+        android:layout_below="@id/pomodoro_section" >
+
+        <TextView
+            xmlns:android="http://schemas.android.com/apk/res/android"
+            android:id="@+id/timeclock_text"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center_vertical|center_horizontal"
+            android:text=""
+            android:textAppearance="?android:attr/textAppearanceMedium"
+            android:paddingBottom="20dp"
+             />
+
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:layout_below="@id/timeclock_text"
+            android:gravity="center" >
 
         <Button
             android:id="@+id/timeclock_save"
@@ -36,10 +64,11 @@
             android:paddingRight="10dp"
             android:text="Edit" />
 
-        <Button
-            android:id="@+id/timeclock_cancel"
-            android:layout_width="70dp"
-            android:layout_height="wrap_content"
-            android:text="Stop" />
+            <Button
+                android:id="@+id/timeclock_cancel"
+                android:layout_width="70dp"
+                android:layout_height="wrap_content"
+                android:text="Stop" />
+        </LinearLayout>
     </LinearLayout>
 </RelativeLayout>

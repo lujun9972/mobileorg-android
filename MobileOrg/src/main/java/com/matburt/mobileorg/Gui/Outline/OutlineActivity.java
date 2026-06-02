@@ -11,6 +11,7 @@ import android.content.pm.PackageManager;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.Gravity;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -118,6 +119,7 @@ public class OutlineActivity extends AppCompatActivity {
 		} else {
 			registerReceiver(this.syncReceiver, syncFilter);
 		}
+		Log.d("MobileOrg", "[SyncUI] SynchServiceReceiver registered, isSyncRunning=" + SyncService.isSyncRunning);
 
 		recordingReceiver = new BroadcastReceiver() {
 			@Override
@@ -170,6 +172,7 @@ public class OutlineActivity extends AppCompatActivity {
 	@Override
 	protected void onDestroy() {
 		MobileOrgApplication.log("OutlineActivity.onDestroy()");
+		Log.d("MobileOrg", "[SyncUI] onDestroy: unregistering syncReceiver, isSyncRunning=" + SyncService.isSyncRunning);
 		unregisterReceiver(this.syncReceiver);
 		if (recordingReceiver != null) {
 			unregisterReceiver(recordingReceiver);
@@ -384,6 +387,41 @@ public class OutlineActivity extends AppCompatActivity {
 			pomoItem.setTitle(running ? getString(R.string.menu_pomodoro_stop) : getString(R.string.menu_pomodoro));
 			pomoItem.setIcon(running ? R.drawable.ic_media_stop : R.drawable.ic_menu_pomodoro);
 		}
+
+		// Self-heal sync animation on every menu invalidation (e.g. onResume)
+		MenuItem syncItem = menu.findItem(R.id.menu_sync);
+		if (syncItem != null) {
+			View actionView = syncItem.getActionView();
+			if (SyncService.isSyncRunning) {
+				// Sync running but menu rebuilt — restore spinning animation
+				if (actionView == null) {
+					Log.d("MobileOrg", "[SyncUI] onPrepareOptionsMenu: sync running but no actionView, restoring animation");
+					final ImageView refreshView = new ImageView(this);
+					refreshView.setImageResource(R.drawable.ic_menu_refresh);
+					syncItem.setActionView(refreshView);
+					final Animation rotate = new android.view.animation.RotateAnimation(0, 360,
+							android.view.animation.Animation.RELATIVE_TO_SELF, 0.5f,
+							android.view.animation.Animation.RELATIVE_TO_SELF, 0.5f);
+					rotate.setDuration(1000);
+					rotate.setRepeatCount(android.view.animation.Animation.INFINITE);
+					rotate.setInterpolator(new android.view.animation.LinearInterpolator());
+					refreshView.post(new Runnable() {
+						@Override
+						public void run() {
+							refreshView.startAnimation(rotate);
+						}
+					});
+				}
+			} else {
+				// Sync not running — ensure animation is stopped
+				if (actionView != null) {
+					Log.d("MobileOrg", "[SyncUI] onPrepareOptionsMenu: sync NOT running but actionView exists, clearing animation");
+					actionView.clearAnimation();
+				}
+				syncItem.setActionView(null);
+			}
+		}
+
 		return super.onPrepareOptionsMenu(menu);
 	}
 
@@ -632,8 +670,10 @@ public class OutlineActivity extends AppCompatActivity {
 			int progress = intent.getIntExtra(Synchronizer.SYNC_PROGRESS_UPDATE, -1);
 
 			MobileOrgApplication.log("SyncReceiver: start=" + syncStart + " done=" + syncDone + " progress=" + progress);
+			Log.d("MobileOrg", "[SyncUI] onReceive: start=" + syncStart + " done=" + syncDone + " progress=" + progress);
 
 			if(syncStart) {
+				Log.d("MobileOrg", "[SyncUI] SYNC_START: starting rotation animation on synchronizerMenuItem=" + synchronizerMenuItem);
 				final ImageView refreshView = new ImageView(OutlineActivity.this);
 				refreshView.setImageResource(R.drawable.ic_menu_refresh);
 				synchronizerMenuItem.setActionView(refreshView);
@@ -647,14 +687,18 @@ public class OutlineActivity extends AppCompatActivity {
 					@Override
 					public void run() {
 						refreshView.startAnimation(rotate);
+						Log.d("MobileOrg", "[SyncUI] rotation animation started");
 					}
 				});
 			} else if (syncDone) {
-				android.view.View actionView = synchronizerMenuItem.getActionView();
+				android.view.View actionView = synchronizerMenuItem != null ? synchronizerMenuItem.getActionView() : null;
+				Log.d("MobileOrg", "[SyncUI] SYNC_DONE: synchronizerMenuItem=" + synchronizerMenuItem + " actionView=" + actionView);
 				if (actionView != null) {
 					actionView.clearAnimation();
 				}
-				synchronizerMenuItem.setActionView(null);
+				if (synchronizerMenuItem != null) {
+					synchronizerMenuItem.setActionView(null);
+				}
 				refreshDisplay();
 				setupFilterBar();
 

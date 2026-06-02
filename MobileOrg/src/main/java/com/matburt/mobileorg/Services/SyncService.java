@@ -45,6 +45,9 @@ public class SyncService extends Service implements
 
 	private boolean syncRunning;
 
+	/** Static flag so UI can check sync state without service reference. */
+	public static volatile boolean isSyncRunning = false;
+
 	@Override
 	public void onCreate() {
 		super.onCreate();
@@ -97,8 +100,11 @@ public class SyncService extends Service implements
 			stopForegroundAndSelf();
 		} else if(!this.syncRunning) {
 			this.syncRunning = true;
+			isSyncRunning = true;
+			Log.d("MobileOrg", "[Sync] Starting sync thread, isSyncRunning=true");
 			runSynchronizer();
 		} else {
+			Log.w("MobileOrg", "[Sync] onStartCommand: sync already running, ignoring");
 			// sync already running, just return
 		}
 		return START_NOT_STICKY;
@@ -163,6 +169,8 @@ public class SyncService extends Service implements
 					db.close();
 				} finally {
 					syncRunning = false;
+					isSyncRunning = false;
+					Log.d("MobileOrg", "[Sync] Sync thread finished, isSyncRunning=false");
 
 					// Schedule reminder alarms after sync
 					try {

@@ -39,6 +39,8 @@ public class TimeclockService extends Service {
 	public static final String TIMECLOCK_UPDATE = "timeclock_update";
 	public static final String TIMECLOCK_TIMEOUT = "timeclock_timeout";
 	private static final String CHANNEL_ID = "mobileorg_timeclock";
+	private static final String TIMEOUT_CHANNEL_ID = "mobileorg_timeclock_timeout";
+	private static final int TIMEOUT_NOTIFICATION_ID = 1338;
 
 	private final int notificationID = 1337;
 	private NotificationManager mNM;
@@ -182,22 +184,44 @@ public class TimeclockService extends Service {
 	}
 
 	private void handlePomodoroStop() {
+		Log.d("MobileOrg", "[Pomodoro] Stopping, cancelling timeout notification");
 		unsetPomodoroAlarms();
 		this.pomodoroRunning = false;
 		this.pomodoroTimedOut = false;
+		mNM.cancel(TIMEOUT_NOTIFICATION_ID);
 		checkStopSelf();
 		showOrRefreshNotification();
 	}
 
 	private void handlePomodoroTimeout() {
-		if (!pomodoroRunning) return;
-		this.pomodoroTimedOut = true;
-		// 震动/铃声提醒（保持现有逻辑）
-		if (notification != null) {
-			notification.defaults = Notification.DEFAULT_ALL;
-			mNM.notify(notificationID, notification);
-			notification.defaults = 0;
+		if (!pomodoroRunning) {
+			Log.w("MobileOrg", "[Pomodoro] Timeout received but pomodoro not running, ignoring");
+			return;
 		}
+		this.pomodoroTimedOut = true;
+		Log.d("MobileOrg", "[Pomodoro] Timeout! duration=" + pomodoroDurationMins + "min, sending alert notification on channel " + TIMEOUT_CHANNEL_ID);
+
+		// Create HIGH importance channel for timeout alert (sound + vibration + heads-up)
+		Compat.createNotificationChannelHigh(this, TIMEOUT_CHANNEL_ID,
+				"Pomodoro Timer Alert", "Alerts when pomodoro timer completes");
+
+		// Build a separate timeout notification (not the foreground notification)
+		PendingIntent contentIntent = PendingIntent.getActivity(this, 1,
+				new Intent(this, TimeclockDialog.class), Compat.FLAG_IMMUTABLE);
+
+		NotificationCompat.Builder timeoutBuilder = new NotificationCompat.Builder(this, TIMEOUT_CHANNEL_ID)
+				.setSmallIcon(R.drawable.timeclock_icon)
+				.setContentTitle("\uD83C\uDF45 番茄钟时间到！")
+				.setContentText(pomodoroDurationMins + " 分钟番茄钟已完成")
+				.setPriority(NotificationCompat.PRIORITY_HIGH)
+				.setCategory(NotificationCompat.CATEGORY_ALARM)
+				.setAutoCancel(true)
+				.setContentIntent(contentIntent);
+
+		mNM.notify(TIMEOUT_NOTIFICATION_ID, timeoutBuilder.build());
+		Log.d("MobileOrg", "[Pomodoro] Alert notification posted, id=" + TIMEOUT_NOTIFICATION_ID);
+
+		// Update foreground notification to show overtime status
 		updateTime();
 	}
 
@@ -370,6 +394,7 @@ public class TimeclockService extends Service {
 	public void cancelNotification() {
 		unsetPomodoroAlarms();
 		unsetUpdateAlarm();
+		mNM.cancel(TIMEOUT_NOTIFICATION_ID);
 		mNM.cancel(notificationID);
 		if (Compat.isAtLeastO()) stopForeground(true);
 		notification = null;

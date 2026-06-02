@@ -97,6 +97,7 @@ public class Synchronizer {
 			syncDiag += "\nERROR: " + e.getClass().getSimpleName() + ": " + e.getMessage();
 			showErrorNotification(e);
 			Log.e("Synchronizer", "Error synchronizing", e);
+			Log.d("MobileOrg", "[Sync] sync FAILED, sending SYNC_DONE broadcast from catch block");
 			OrgUtils.announceSyncDone(context);
 			showToast("Sync FAILED\n" + syncDiag);
 				writeDebugLog("Sync FAILED\n" + syncDiag);
@@ -318,6 +319,7 @@ public class Synchronizer {
 
 
 	private void announceStartSync() {
+		Log.d("MobileOrg", "[Sync] announceStartSync: sending SYNC_START broadcast");
 		notify.setupNotification();
 		OrgUtils.announceSyncStart(context);
 	}
@@ -355,6 +357,7 @@ public class Synchronizer {
 	private void announceSyncDone() {
 		announceProgressUpdate(100, "Done synchronizing");
 		notify.finalizeNotification();
+		Log.d("MobileOrg", "[Sync] announceSyncDone: sending SYNC_DONE broadcast");
 		OrgUtils.announceSyncDone(context);
 	}
 

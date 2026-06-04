@@ -2,12 +2,14 @@ package com.matburt.mobileorg.Services;
 
 import android.app.AlarmManager;
 import android.app.Notification;
+import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.Color;
+import android.media.MediaPlayer;
 import android.os.IBinder;
 import androidx.core.app.NotificationCompat;
 import androidx.core.app.NotificationCompat.Builder;
@@ -40,13 +42,14 @@ public class TimeclockService extends Service {
 	public static final String TIMECLOCK_TIMEOUT = "timeclock_timeout";
 	public static final String BROADCAST_STATE_CHANGED = "com.matburt.mobileorg.TIMECLOCK_STATE_CHANGED";
 	private static final String CHANNEL_ID = "mobileorg_timeclock";
-	private static final String TIMEOUT_CHANNEL_ID = "mobileorg_timeclock_timeout";
+	private static final String TIMEOUT_CHANNEL_ID = "mobileorg_timeclock_alarm";
 	private static final int TIMEOUT_NOTIFICATION_ID = 1338;
 
 	private final int notificationID = 1337;
 	private NotificationManager mNM;
 	private AlarmManager alarmManager;
 	private Notification notification;
+	private MediaPlayer alarmMediaPlayer;
 
 	private long node_id;
 	private OrgNode node;
@@ -186,6 +189,7 @@ public class TimeclockService extends Service {
 	}
 
 	private void handlePomodoroStop() {
+		stopAndReleaseAlarmSound();
 		Log.d("MobileOrg", "[Pomodoro] Stopping, cancelling timeout notification");
 		unsetPomodoroAlarms();
 		this.pomodoroRunning = false;
@@ -204,9 +208,16 @@ public class TimeclockService extends Service {
 		this.pomodoroTimedOut = true;
 		Log.d("MobileOrg", "[Pomodoro] Timeout! duration=" + pomodoroDurationMins + "min, sending alert notification on channel " + TIMEOUT_CHANNEL_ID);
 
-		// Create HIGH importance channel for timeout alert (sound + vibration + heads-up)
-		Compat.createNotificationChannelHigh(this, TIMEOUT_CHANNEL_ID,
-				"Pomodoro Timer Alert", "Alerts when pomodoro timer completes");
+		// Create HIGH importance channel with no sound (MediaPlayer handles audio via alarm stream)
+		if (Compat.isAtLeastO()) {
+			NotificationChannel timeoutChannel = new NotificationChannel(
+					TIMEOUT_CHANNEL_ID, "Pomodoro Timer Alert", NotificationManager.IMPORTANCE_HIGH);
+			timeoutChannel.setDescription("Alerts when pomodoro timer completes");
+			timeoutChannel.setSound(null, null);
+			timeoutChannel.enableVibration(true);
+			timeoutChannel.setCategory(Notification.CATEGORY_ALARM);
+			mNM.createNotificationChannel(timeoutChannel);
+		}
 
 		// Build a separate timeout notification (not the foreground notification)
 		PendingIntent contentIntent = PendingIntent.getActivity(this, 1,
@@ -226,6 +237,9 @@ public class TimeclockService extends Service {
 
 		// Update foreground notification to show overtime status
 		updateTime();
+
+		stopAndReleaseAlarmSound();
+		alarmMediaPlayer = Compat.playAlarmSound(this);
 	}
 
 	private void checkStopSelf() {
@@ -401,6 +415,7 @@ public class TimeclockService extends Service {
 	}
 
 	public void cancelNotification() {
+		stopAndReleaseAlarmSound();
 		notifyStateChanged();
 		unsetPomodoroAlarms();
 		unsetUpdateAlarm();
@@ -409,6 +424,17 @@ public class TimeclockService extends Service {
 		if (Compat.isAtLeastO()) stopForeground(true);
 		notification = null;
 		stopSelf();
+	}
+
+	private void stopAndReleaseAlarmSound() {
+		if (alarmMediaPlayer != null) {
+			try {
+				if (alarmMediaPlayer.isPlaying()) alarmMediaPlayer.stop();
+			} catch (IllegalStateException e) {
+			}
+			alarmMediaPlayer.release();
+			alarmMediaPlayer = null;
+		}
 	}
 
 	@Override

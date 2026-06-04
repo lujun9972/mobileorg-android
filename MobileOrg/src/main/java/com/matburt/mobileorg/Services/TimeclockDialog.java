@@ -2,8 +2,12 @@ package com.matburt.mobileorg.Services;
 
 import android.app.AlertDialog;
 import android.app.Dialog;
+import android.content.BroadcastReceiver;
+import android.content.Context;
 import android.content.Intent;
+import android.content.IntentFilter;
 import android.graphics.Color;
+import android.os.Build;
 import android.os.Bundle;
 import android.view.Gravity;
 import android.view.View;
@@ -28,6 +32,7 @@ public class TimeclockDialog extends FragmentActivity {
 	private OrgNode node;
 	private int hour = 0;
 	private int minute = 0;
+	private BroadcastReceiver stateReceiver;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -70,7 +75,9 @@ public class TimeclockDialog extends FragmentActivity {
 			stopBtn.setOnClickListener(v -> {
 				sendServiceAction(TimeclockService.ACTION_POMODORO_STOP);
 				pomoSection.setVisibility(View.GONE);
-				maybeFinish();
+				if (clockSection.getVisibility() != View.VISIBLE) {
+					finish();
+				}
 			});
 		} else {
 			pomoSection.setVisibility(View.GONE);
@@ -89,6 +96,32 @@ public class TimeclockDialog extends FragmentActivity {
 			textView.setText(name + " @ " + elapsed);
 		} else {
 			clockSection.setVisibility(View.GONE);
+		}
+
+		// Register for service state changes (external stop/clock-out)
+		stateReceiver = new BroadcastReceiver() {
+			@Override
+			public void onReceive(Context context, Intent intent) {
+				maybeFinish();
+			}
+		};
+		IntentFilter stateFilter = new IntentFilter(TimeclockService.BROADCAST_STATE_CHANGED);
+		if (Build.VERSION.SDK_INT >= 33) {
+			registerReceiver(stateReceiver, stateFilter, Context.RECEIVER_NOT_EXPORTED);
+		} else {
+			registerReceiver(stateReceiver, stateFilter);
+		}
+
+		// Auto-close if service already stopped everything
+		maybeFinish();
+	}
+
+	@Override
+	protected void onStop() {
+		super.onStop();
+		if (stateReceiver != null) {
+			unregisterReceiver(stateReceiver);
+			stateReceiver = null;
 		}
 	}
 

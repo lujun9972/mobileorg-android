@@ -38,6 +38,7 @@ public class TimeclockService extends Service {
 	public static final String CLOCK_DURATION = "clock_duration";
 	public static final String TIMECLOCK_UPDATE = "timeclock_update";
 	public static final String TIMECLOCK_TIMEOUT = "timeclock_timeout";
+	public static final String BROADCAST_STATE_CHANGED = "com.matburt.mobileorg.TIMECLOCK_STATE_CHANGED";
 	private static final String CHANNEL_ID = "mobileorg_timeclock";
 	private static final String TIMEOUT_CHANNEL_ID = "mobileorg_timeclock_timeout";
 	private static final int TIMEOUT_NOTIFICATION_ID = 1338;
@@ -179,6 +180,7 @@ public class TimeclockService extends Service {
 		this.node = null;
 		this.clockStartTime = 0;
 		this.clockedIn = false;
+		notifyStateChanged();
 		checkStopSelf();
 		showOrRefreshNotification();
 	}
@@ -189,6 +191,7 @@ public class TimeclockService extends Service {
 		this.pomodoroRunning = false;
 		this.pomodoroTimedOut = false;
 		mNM.cancel(TIMEOUT_NOTIFICATION_ID);
+		notifyStateChanged();
 		checkStopSelf();
 		showOrRefreshNotification();
 	}
@@ -391,7 +394,14 @@ public class TimeclockService extends Service {
 	public long getClockStartTime() { return clockStartTime; }
 	public long getNodeID() { return node_id; }
 
+	private void notifyStateChanged() {
+		Intent intent = new Intent(BROADCAST_STATE_CHANGED);
+		intent.setPackage(getPackageName());
+		sendBroadcast(intent);
+	}
+
 	public void cancelNotification() {
+		notifyStateChanged();
 		unsetPomodoroAlarms();
 		unsetUpdateAlarm();
 		mNM.cancel(TIMEOUT_NOTIFICATION_ID);

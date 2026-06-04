@@ -61,6 +61,9 @@ public class TimeclockDialog extends FragmentActivity {
 
 		setTitle("MobileOrg Timeclock");
 
+		// Clock section (resolved early for pomodoro stop button check)
+		LinearLayout clockSection = findViewById(R.id.clock_section);
+
 		// Pomodoro section
 		LinearLayout pomoSection = findViewById(R.id.pomodoro_section);
 		if (service != null && service.isPomodoroRunning()) {
@@ -83,8 +86,6 @@ public class TimeclockDialog extends FragmentActivity {
 			pomoSection.setVisibility(View.GONE);
 		}
 
-		// Clock section
-		LinearLayout clockSection = findViewById(R.id.clock_section);
 		if (service != null && service.isClockedIn()) {
 			clockSection.setVisibility(View.VISIBLE);
 			OrgNode clockNode = service.getClockNode();

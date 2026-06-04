@@ -215,7 +215,6 @@ public class TimeclockService extends Service {
 			timeoutChannel.setDescription("Alerts when pomodoro timer completes");
 			timeoutChannel.setSound(null, null);
 			timeoutChannel.enableVibration(true);
-			timeoutChannel.setCategory(Notification.CATEGORY_ALARM);
 			mNM.createNotificationChannel(timeoutChannel);
 		}
 

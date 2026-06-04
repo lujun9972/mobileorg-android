@@ -7,7 +7,13 @@ import android.app.PendingIntent;
 import android.app.Service;
 import android.content.Context;
 import android.content.Intent;
+import android.media.AudioAttributes;
+import android.media.AudioManager;
+import android.media.MediaPlayer;
+import android.net.Uri;
 import android.os.Build;
+import android.provider.Settings;
+import android.util.Log;
 
 import androidx.core.content.ContextCompat;
 
@@ -91,6 +97,48 @@ public class Compat {
             service.startForeground(id, notification, serviceType);
         } else {
             service.startForeground(id, notification);
+        }
+    }
+
+    public static final int SDK_LOLLIPOP = 21;
+
+    /** Play system alarm sound on the alarm audio stream. Returns MediaPlayer for caller lifecycle management, or null on failure. OnCompletion/OnError auto-release. */
+    public static MediaPlayer playAlarmSound(Context context) {
+        Uri alarmSound = Settings.System.DEFAULT_ALARM_ALERT_URI;
+        if (alarmSound == null) {
+            Log.w("MobileOrg", "[AlarmSound] No default alarm sound URI, skipping");
+            return null;
+        }
+        try {
+            MediaPlayer mp = new MediaPlayer();
+            if (Build.VERSION.SDK_INT >= SDK_LOLLIPOP) {
+                mp.setAudioAttributes(new AudioAttributes.Builder()
+                        .setUsage(AudioAttributes.USAGE_ALARM)
+                        .setContentType(AudioAttributes.CONTENT_TYPE_SONIFICATION)
+                        .build());
+            } else {
+                mp.setAudioStreamType(AudioManager.STREAM_ALARM);
+            }
+            mp.setDataSource(context, alarmSound);
+            mp.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
+                @Override
+                public void onCompletion(MediaPlayer mp) {
+                    mp.release();
+                }
+            });
+            mp.setOnErrorListener(new MediaPlayer.OnErrorListener() {
+                @Override
+                public boolean onError(MediaPlayer mp, int what, int extra) {
+                    mp.release();
+                    return true;
+                }
+            });
+            mp.prepare();
+            mp.start();
+            return mp;
+        } catch (Exception e) {
+            Log.e("MobileOrg", "[AlarmSound] Failed to play alarm sound", e);
+            return null;
         }
     }
 }

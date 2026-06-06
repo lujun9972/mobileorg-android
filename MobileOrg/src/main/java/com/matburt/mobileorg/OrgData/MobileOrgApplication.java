@@ -1,6 +1,7 @@
 package com.matburt.mobileorg.OrgData;
 
 import android.app.Application;
+import android.app.NotificationManager;
 import android.content.Context;
 import android.util.Log;
 
@@ -50,6 +51,12 @@ public class MobileOrgApplication extends Application {
 				getString(R.string.reminder_notification_channel),
 				getString(R.string.reminder_notification_channel_desc));
 			log("MobileOrgApplication.onCreate() reminder notification channel created");
+
+			// Delete stale notification channel from when TIMEOUT_CHANNEL_ID was "mobileorg_timeclock_timeout"
+			if (Compat.isAtLeastO()) {
+				NotificationManager nm = (NotificationManager) getApplicationContext().getSystemService(Context.NOTIFICATION_SERVICE);
+				if (nm != null) nm.deleteNotificationChannel("mobileorg_timeclock_timeout");
+			}
 
 			// Register daily overview alarm on app start
 			ReminderScheduler.scheduleDailyOverview(getApplicationContext());

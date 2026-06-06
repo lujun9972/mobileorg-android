@@ -10,7 +10,7 @@ import com.matburt.mobileorg.OrgData.OrgContract.OrgData;
 
 public class OrgDatabase extends SQLiteOpenHelper {
 	private static final String DATABASE_NAME = "MobileOrg.db";
-	private static final int DATABASE_VERSION = 5;
+	private static final int DATABASE_VERSION = 6;
 
 	private int orgdata_nameColumn;
 	private int orgdata_todoColumn;
@@ -31,6 +31,7 @@ public class OrgDatabase extends SQLiteOpenHelper {
 		String TAGS = "tags";
 		String TODOS = "todos";
 		String ORGDATA = "orgdata";
+		String POMODORO_SESSIONS = "pomodoro_sessions";
 	}
 	
 	public OrgDatabase(Context context) {
@@ -76,6 +77,13 @@ public class OrgDatabase extends SQLiteOpenHelper {
 				+ "tags_inherited text,"
 				+ "payload text,"
 				+ "name text)");
+		db.execSQL("CREATE TABLE IF NOT EXISTS pomodoro_sessions("
+				+ "_id INTEGER PRIMARY KEY AUTOINCREMENT,"
+				+ "started_at INTEGER NOT NULL,"
+				+ "duration_min INTEGER NOT NULL,"
+				+ "completed_at INTEGER NOT NULL)");
+		db.execSQL("CREATE INDEX IF NOT EXISTS idx_pomodoro_completed "
+				+ "ON pomodoro_sessions(completed_at)");
 	}
 	
 	@Override
@@ -91,6 +99,15 @@ public class OrgDatabase extends SQLiteOpenHelper {
 			
 		case 5:
 			db.execSQL("alter table orgdata add tags_inherited text");
+			break;
+		case 6:
+			db.execSQL("CREATE TABLE IF NOT EXISTS pomodoro_sessions("
+					+ "_id INTEGER PRIMARY KEY AUTOINCREMENT,"
+					+ "started_at INTEGER NOT NULL,"
+					+ "duration_min INTEGER NOT NULL,"
+					+ "completed_at INTEGER NOT NULL)");
+			db.execSQL("CREATE INDEX IF NOT EXISTS idx_pomodoro_completed "
+					+ "ON pomodoro_sessions(completed_at)");
 			break;
 		}
 		onCreate(db);

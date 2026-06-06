@@ -297,6 +297,24 @@
 <string name="preference_pomodoro_duration_summary">默认倒计时时长（分钟）</string>
 <string name="pomodoro_duration_picker_title">设置番茄钟时长（分钟）</string>
 
+<!-- Pomodoro Statistics -->
+<string name="menu_statistics">番茄统计</string>
+<string name="statistics_title">番茄统计</string>
+<string name="statistics_tab_overview">概览</string>
+<string name="statistics_tab_trend">趋势</string>
+<string name="statistics_streak_format">🔥 连续 %d 天</string>
+<string name="statistics_streak_empty">开始你的第一个番茄吧！</string>
+<string name="statistics_streak_subtitle">每天至少完成 1 个番茄</string>
+<string name="statistics_summary_day_format">今天: %d 个 | %s</string>
+<string name="statistics_summary_week_format">本周: %d 个 | %s | 日均 %.1f</string>
+<string name="statistics_summary_month_format">本月: %d 个 | %s | 日均 %.1f</string>
+<string name="statistics_no_data">暂无数据</string>
+<string name="preference_week_start_day">一周起始日</string>
+<string name="preference_week_start_day_summary">选择统计页面的一周起始日</string>
+<string name="monday">周一</string>
+<string name="sunday">周日</string>
+<string name="duration_minutes_format">%d 分钟</string>
+
 <!-- others -->
 
 </resources>

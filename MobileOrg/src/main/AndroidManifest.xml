@@ -215,6 +215,10 @@
         <activity android:name=".Gui.Agenda.AgendaActivity" >
         </activity>
 
+        <activity
+            android:name=".Gui.Statistics.StatisticsActivity"
+            android:parentActivityName=".Gui.Outline.OutlineActivity" />
+
         <receiver android:name=".Gui.Widget.CaptureWidgetProvider"
             android:exported="true"
             android:label="MobileOrg Capture" >

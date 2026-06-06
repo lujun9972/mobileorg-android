@@ -150,7 +150,7 @@ public class OverviewFragment extends Fragment {
         BarData barData = new BarData(dataSet);
         barChart.setData(barData);
 
-        barChart.getXAxis().setValueConverter(new com.github.mikephil.charting.formatter.ValueFormatter() {
+        barChart.getXAxis().setValueFormatter(new com.github.mikephil.charting.formatter.ValueFormatter() {
             @Override
             public String getFormattedValue(float value) {
                 int idx = (int) value;

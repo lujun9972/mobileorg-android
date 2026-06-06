@@ -98,7 +98,7 @@ public class TrendFragment extends Fragment {
         dataSet.setCircleColor(config.lineColor);
         dataSet.setDrawValues(true);
 
-        lineChart.getXAxis().setValueConverter(new com.github.mikephil.charting.formatter.ValueFormatter() {
+        lineChart.getXAxis().setValueFormatter(new com.github.mikephil.charting.formatter.ValueFormatter() {
             @Override
             public String getFormattedValue(float value) {
                 int idx = (int) value;

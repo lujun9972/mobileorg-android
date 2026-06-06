@@ -40,6 +40,7 @@ public class TimeclockService extends Service {
 	public static final String CLOCK_DURATION = "clock_duration";
 	public static final String TIMECLOCK_UPDATE = "timeclock_update";
 	public static final String TIMECLOCK_TIMEOUT = "timeclock_timeout";
+	public static final String ACTION_ALARM_DISMISS = "alarm_dismiss";
 	public static final String BROADCAST_STATE_CHANGED = "com.matburt.mobileorg.TIMECLOCK_STATE_CHANGED";
 	private static final String CHANNEL_ID = "mobileorg_timeclock";
 	private static final String TIMEOUT_CHANNEL_ID = "mobileorg_timeclock_alarm";
@@ -111,9 +112,12 @@ public class TimeclockService extends Service {
 			case TIMECLOCK_UPDATE:
 				updateTime();
 				break;
-			case TIMECLOCK_TIMEOUT:
-				handlePomodoroTimeout();
-				break;
+		case TIMECLOCK_TIMEOUT:
+			handlePomodoroTimeout();
+			break;
+		case ACTION_ALARM_DISMISS:
+			handleAlarmDismiss();
+			break;
 			default:
 				Log.w("MobileOrg", "[ClockIn] Unknown action: " + action);
 				break;
@@ -228,8 +232,15 @@ public class TimeclockService extends Service {
 				.setContentText(pomodoroDurationMins + " 分钟番茄钟已完成")
 				.setPriority(NotificationCompat.PRIORITY_HIGH)
 				.setCategory(NotificationCompat.CATEGORY_ALARM)
-				.setAutoCancel(true)
+				.setAutoCancel(false)
 				.setContentIntent(contentIntent);
+
+		Intent dismissIntent = new Intent(this, TimeclockService.class);
+		dismissIntent.setAction(ACTION_ALARM_DISMISS);
+		PendingIntent dismissPI = PendingIntent.getService(this, 4, dismissIntent, Compat.FLAG_IMMUTABLE);
+		timeoutBuilder.setDeleteIntent(dismissPI);
+		timeoutBuilder.addAction(new NotificationCompat.Action.Builder(
+				R.drawable.ic_media_stop, "关闭闹铃", dismissPI).build());
 
 		mNM.notify(TIMEOUT_NOTIFICATION_ID, timeoutBuilder.build());
 		Log.d("MobileOrg", "[Pomodoro] Alert notification posted, id=" + TIMEOUT_NOTIFICATION_ID);
@@ -239,6 +250,11 @@ public class TimeclockService extends Service {
 
 		stopAndReleaseAlarmSound();
 		alarmMediaPlayer = Compat.playAlarmSound(this);
+	}
+
+	private void handleAlarmDismiss() {
+		stopAndReleaseAlarmSound();
+		mNM.cancel(TIMEOUT_NOTIFICATION_ID);
 	}
 
 	private void checkStopSelf() {
@@ -429,9 +445,10 @@ public class TimeclockService extends Service {
 		if (alarmMediaPlayer != null) {
 			try {
 				if (alarmMediaPlayer.isPlaying()) alarmMediaPlayer.stop();
+				alarmMediaPlayer.release();
 			} catch (IllegalStateException e) {
+				// MediaPlayer already released by OnCompletionListener
 			}
-			alarmMediaPlayer.release();
 			alarmMediaPlayer = null;
 		}
 	}

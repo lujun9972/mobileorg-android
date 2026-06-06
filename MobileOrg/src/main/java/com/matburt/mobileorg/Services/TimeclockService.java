@@ -19,8 +19,12 @@ import android.text.style.ForegroundColorSpan;
 import android.util.Log;
 import android.widget.RemoteViews;
 
+import android.content.ContentValues;
+import android.database.sqlite.SQLiteDatabase;
+
 import com.matburt.mobileorg.R;
 import com.matburt.mobileorg.OrgData.MobileOrgApplication;
+import com.matburt.mobileorg.OrgData.OrgDatabase;
 import com.matburt.mobileorg.OrgData.OrgNode;
 import com.matburt.mobileorg.OrgData.OrgNodeRepository;
 import com.matburt.mobileorg.util.Compat;
@@ -210,6 +214,8 @@ public class TimeclockService extends Service {
 			return;
 		}
 		this.pomodoroTimedOut = true;
+		// 记录番茄钟完成到统计表
+		writePomodoroSession();
 		Log.d("MobileOrg", "[Pomodoro] Timeout! duration=" + pomodoroDurationMins + "min, sending alert notification on channel " + TIMEOUT_CHANNEL_ID);
 
 		// Create HIGH importance channel with no sound (MediaPlayer handles audio via alarm stream)
@@ -255,6 +261,16 @@ public class TimeclockService extends Service {
 	private void handleAlarmDismiss() {
 		stopAndReleaseAlarmSound();
 		mNM.cancel(TIMEOUT_NOTIFICATION_ID);
+	}
+
+	private void writePomodoroSession() {
+		SQLiteDatabase db = new OrgDatabase(this).getWritableDatabase();
+		ContentValues values = new ContentValues();
+		values.put("started_at", pomodoroStartTime);
+		values.put("duration_min", pomodoroDurationMins);
+		values.put("completed_at", System.currentTimeMillis());
+		db.insert(OrgDatabase.Tables.POMODORO_SESSIONS, null, values);
+		db.close();
 	}
 
 	private void checkStopSelf() {

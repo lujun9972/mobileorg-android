@@ -104,6 +104,13 @@
                     android:entryValues="@array/pomodoro_duration_values"
                     android:defaultValue="25"
                     android:summary="@string/preference_pomodoro_duration_summary" />
+                <ListPreference
+                    android:key="week_start_day"
+                    android:title="@string/preference_week_start_day"
+                    android:entries="@array/week_start_entries"
+                    android:entryValues="@array/week_start_values"
+                    android:defaultValue="monday"
+                    android:summary="@string/preference_week_start_day_summary" />
             </PreferenceCategory>
         </PreferenceScreen>
     </PreferenceCategory>

@@ -6,9 +6,11 @@ import android.database.sqlite.SQLiteDatabase;
 
 import com.matburt.mobileorg.OrgData.OrgDatabase;
 
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.List;
+import java.util.Locale;
 
 public class PomodoroStatisticsRepository {
     private final Context context;
@@ -45,37 +47,30 @@ public class PomodoroStatisticsRepository {
         List<TrendPoint> result = new ArrayList<>();
         SQLiteDatabase db = getDb();
         try {
-            Calendar cal = Calendar.getInstance();
             for (int i = count - 1; i >= 0; i--) {
+                Calendar base = Calendar.getInstance();
                 long start, end;
                 String label;
                 if ("day".equals(granularity)) {
-                    cal.add(Calendar.DAY_OF_MONTH, -i);
-                    start = dayStart(cal).getTimeInMillis();
-                    cal.add(Calendar.DAY_OF_MONTH, 1);
-                    end = cal.getTimeInMillis();
-                    cal.add(Calendar.DAY_OF_MONTH, -1);
-                    label = String.format("%d/%d", cal.get(Calendar.MONTH) + 1, cal.get(Calendar.DAY_OF_MONTH));
-                    cal.add(Calendar.DAY_OF_MONTH, 1);
+                    base.add(Calendar.DAY_OF_MONTH, -i);
+                    start = dayStart(base).getTimeInMillis();
+                    label = formatMonthDay(base);
+                    base.add(Calendar.DAY_OF_MONTH, 1);
+                    end = dayStart(base).getTimeInMillis();
                 } else if ("week".equals(granularity)) {
-                    cal.add(Calendar.WEEK_OF_YEAR, -i);
-                    start = weekStart(cal).getTimeInMillis();
-                    cal.add(Calendar.DAY_OF_MONTH, 7);
-                    end = cal.getTimeInMillis();
-                    label = String.format("%d/%d",
-                        cal.get(Calendar.MONTH) + 1,
-                        cal.get(Calendar.DAY_OF_MONTH));
-                    cal.add(Calendar.DAY_OF_MONTH, -7);
-                    cal.add(Calendar.WEEK_OF_YEAR, 1);
+                    base.add(Calendar.WEEK_OF_YEAR, -i);
+                    Calendar ws = weekStart(base);
+                    start = ws.getTimeInMillis();
+                    label = formatMonthDay(ws);
+                    ws.add(Calendar.DAY_OF_MONTH, 7);
+                    end = ws.getTimeInMillis();
                 } else {
-                    cal.add(Calendar.MONTH, -i);
-                    cal.set(Calendar.DAY_OF_MONTH, 1);
-                    start = dayStart(cal).getTimeInMillis();
-                    cal.add(Calendar.MONTH, 1);
-                    end = cal.getTimeInMillis();
-                    label = String.format("%d月", cal.get(Calendar.MONTH) + 1);
-                    cal.add(Calendar.MONTH, -1);
-                    cal.add(Calendar.MONTH, 1);
+                    base.add(Calendar.MONTH, -i);
+                    base.set(Calendar.DAY_OF_MONTH, 1);
+                    start = dayStart(base).getTimeInMillis();
+                    label = String.format(Locale.getDefault(), "%d月", base.get(Calendar.MONTH) + 1);
+                    base.add(Calendar.MONTH, 1);
+                    end = dayStart(base).getTimeInMillis();
                 }
                 int cnt = countInRange(db, start, end);
                 result.add(new TrendPoint(label, cnt));
@@ -176,16 +171,21 @@ public class PomodoroStatisticsRepository {
 
     private Calendar weekStart(Calendar cal) {
         Calendar copy = dayStart(cal);
-        String weekStart = android.preference.PreferenceManager
+        String weekStartPref = android.preference.PreferenceManager
             .getDefaultSharedPreferences(context)
             .getString("week_start_day", "monday");
-        int firstDay = "sunday".equals(weekStart)
+        int firstDay = "sunday".equals(weekStartPref)
             ? Calendar.SUNDAY : Calendar.MONDAY;
         copy.set(Calendar.DAY_OF_WEEK, firstDay);
         if (copy.getTimeInMillis() > cal.getTimeInMillis()) {
             copy.add(Calendar.WEEK_OF_YEAR, -1);
         }
         return copy;
+    }
+
+    private String formatMonthDay(Calendar cal) {
+        return String.format(Locale.getDefault(), "%d/%d",
+            cal.get(Calendar.MONTH) + 1, cal.get(Calendar.DAY_OF_MONTH));
     }
 
     public static class DailyCount {

@@ -82,11 +82,17 @@ public class OverviewFragment extends Fragment {
             public void onValueSelected(Entry e, Highlight h) {
                 StatisticsViewModel.TimeRange range = viewModel.getTimeRange().getValue();
                 if (range == null) return;
+                long baseStart;
+                if (range.granularity == StatisticsViewModel.Granularity.DAY) {
+                    baseStart = range.rangeStart - 6L * 86400000L;
+                } else {
+                    baseStart = range.rangeStart;
+                }
                 Calendar cal = Calendar.getInstance();
-                cal.setTimeInMillis(range.rangeStart);
+                cal.setTimeInMillis(baseStart);
                 cal.add(Calendar.DAY_OF_MONTH, (int) e.getX());
                 long dayStart = dayStartMillis(cal);
-                new DayDetailBottomSheet().newInstance(dayStart)
+                DayDetailBottomSheet.newInstance(dayStart)
                         .show(getChildFragmentManager(), "day_detail");
             }
 

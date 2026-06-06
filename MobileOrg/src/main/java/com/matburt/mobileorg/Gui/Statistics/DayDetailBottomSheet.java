@@ -25,7 +25,7 @@ public class DayDetailBottomSheet extends BottomSheetDialogFragment {
 
     private static final String ARG_DAY_START = "day_start_millis";
 
-    public DayDetailBottomSheet newInstance(long dayStartMillis) {
+    public static DayDetailBottomSheet newInstance(long dayStartMillis) {
         DayDetailBottomSheet sheet = new DayDetailBottomSheet();
         Bundle args = new Bundle();
         args.putLong(ARG_DAY_START, dayStartMillis);

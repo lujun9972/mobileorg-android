@@ -31,6 +31,7 @@ import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 import com.matburt.mobileorg.R;
 import com.matburt.mobileorg.Gui.Agenda.AgendasActivity;
+import com.matburt.mobileorg.Gui.Statistics.StatisticsActivity;
 import com.matburt.mobileorg.Gui.Wizard.WizardActivity;
 import com.matburt.mobileorg.OrgData.MobileOrgApplication;
 import com.matburt.mobileorg.OrgData.OrgProviderUtils;
@@ -466,6 +467,9 @@ public class OutlineActivity extends AppCompatActivity {
 			} else {
 				showPomodoroDurationPicker();
 			}
+			return true;
+		} else if (id == R.id.menu_statistics) {
+			startActivity(new Intent(this, StatisticsActivity.class));
 			return true;
 		}
 		return false;

@@ -1,20 +1,19 @@
 package com.matburt.mobileorg.Services;
 
-import android.app.AlarmManager;
 import android.app.Notification;
 import android.app.NotificationChannel;
 import android.app.NotificationManager;
 import android.app.PendingIntent;
 import android.app.Service;
-import android.content.Context;
 import android.content.Intent;
 import android.graphics.Color;
 import android.media.MediaPlayer;
+import android.os.Handler;
 import android.os.IBinder;
+import android.os.Looper;
 import androidx.core.app.NotificationCompat;
 import androidx.core.app.NotificationCompat.Builder;
 import android.text.SpannableStringBuilder;
-import android.text.format.DateUtils;
 import android.text.style.ForegroundColorSpan;
 import android.util.Log;
 import android.widget.RemoteViews;
@@ -30,6 +29,14 @@ import com.matburt.mobileorg.OrgData.OrgNodeRepository;
 import com.matburt.mobileorg.util.Compat;
 import com.matburt.mobileorg.util.OrgNodeNotFoundException;
 
+/**
+ * Foreground service for timeclock and pomodoro timer.
+ *
+ * Uses Handler-based timing instead of AlarmManager for reliable background operation.
+ * AlarmManager is inexact from API 19+ and restricted by Doze/App Standby on modern Android,
+ * causing missed timeouts and stale notification displays. Since this is a foreground service
+ * (always alive while timer runs), Handler.postDelayed() is both simpler and more reliable.
+ */
 public class TimeclockService extends Service {
 	// Action constants
 	public static final String ACTION_CLOCK_IN = "clock_in";
@@ -38,21 +45,19 @@ public class TimeclockService extends Service {
 	public static final String ACTION_POMODORO_START = "pomodoro_start";
 	public static final String ACTION_POMODORO_STOP = "pomodoro_stop";
 
-	// Existing extras
+	// Extras
 	public static final String NODE_ID = "node_id";
 	public static final String POMODORO_DURATION = "pomodoro_duration";
 	public static final String CLOCK_DURATION = "clock_duration";
-	public static final String TIMECLOCK_UPDATE = "timeclock_update";
-	public static final String TIMECLOCK_TIMEOUT = "timeclock_timeout";
 	public static final String ACTION_ALARM_DISMISS = "alarm_dismiss";
 	public static final String BROADCAST_STATE_CHANGED = "com.matburt.mobileorg.TIMECLOCK_STATE_CHANGED";
 	private static final String CHANNEL_ID = "mobileorg_timeclock";
 	private static final String TIMEOUT_CHANNEL_ID = "mobileorg_timeclock_alarm";
 	private static final int TIMEOUT_NOTIFICATION_ID = 1338;
+	private static final long UPDATE_INTERVAL_MS = 60L * 1000L; // 1 minute
 
 	private final int notificationID = 1337;
 	private NotificationManager mNM;
-	private AlarmManager alarmManager;
 	private Notification notification;
 	private MediaPlayer alarmMediaPlayer;
 
@@ -61,14 +66,17 @@ public class TimeclockService extends Service {
 	private MobileOrgApplication appInst;
 
 	private static TimeclockService sInstance;
-	private long pomodoroStartTime;   // 番茄钟启动时间
-	private long clockStartTime;      // 当前 clock in 启动时间
+	private long pomodoroStartTime;
+	private long clockStartTime;
 	private boolean pomodoroRunning = false;
 	private boolean pomodoroTimedOut = false;
 	private boolean clockedIn = false;
 	private int pomodoroDurationMins = 25;
-	private PendingIntent updateIntent;
-	private PendingIntent timeoutIntent;
+
+	// Handler-based timing (replaces AlarmManager)
+	private final Handler timerHandler = new Handler(Looper.getMainLooper());
+	private Runnable updateRunnable;
+	private Runnable timeoutRunnable;
 
 	public static TimeclockService getInstance() {
 		return sInstance;
@@ -79,7 +87,6 @@ public class TimeclockService extends Service {
 		super.onCreate();
 		sInstance = this;
 		this.mNM = (NotificationManager) getSystemService(NOTIFICATION_SERVICE);
-		this.alarmManager = (AlarmManager) getSystemService(Context.ALARM_SERVICE);
 		this.appInst = (MobileOrgApplication) getApplication();
 		Log.d("MobileOrg", "[ClockIn] TimeclockService.onCreate: sInstance set");
 	}
@@ -113,15 +120,9 @@ public class TimeclockService extends Service {
 			case ACTION_CLOCK_CANCEL:
 				doClockOut(false, -1);
 				break;
-			case TIMECLOCK_UPDATE:
-				updateTime();
+			case ACTION_ALARM_DISMISS:
+				handleAlarmDismiss();
 				break;
-		case TIMECLOCK_TIMEOUT:
-			handlePomodoroTimeout();
-			break;
-		case ACTION_ALARM_DISMISS:
-			handleAlarmDismiss();
-			break;
 			default:
 				Log.w("MobileOrg", "[ClockIn] Unknown action: " + action);
 				break;
@@ -141,18 +142,41 @@ public class TimeclockService extends Service {
 		this.pomodoroStartTime = System.currentTimeMillis();
 		this.pomodoroRunning = true;
 		this.pomodoroTimedOut = false;
-		unsetPomodoroAlarms();
-		setTimeoutAlarm(duration / 60, duration % 60);
-		setUpdateAlarm();
+
+		// Cancel any previous timers
+		cancelTimers();
+
+		// Schedule periodic notification updates (every minute)
+		updateRunnable = new Runnable() {
+			@Override
+			public void run() {
+				if (!pomodoroRunning && !clockedIn) return;
+				updateTime();
+				timerHandler.postDelayed(this, UPDATE_INTERVAL_MS);
+			}
+		};
+		timerHandler.postDelayed(updateRunnable, UPDATE_INTERVAL_MS);
+
+		// Schedule exact timeout via Handler
+		final long timeoutDelay = duration * 60L * 1000L;
+		timeoutRunnable = new Runnable() {
+			@Override
+			public void run() {
+				timeoutRunnable = null;
+				handlePomodoroTimeout();
+			}
+		};
+		timerHandler.postDelayed(timeoutRunnable, timeoutDelay);
+
+		Log.d("MobileOrg", "[Pomodoro] Started: " + duration + "min, timeout in " + timeoutDelay + "ms");
 		showOrRefreshNotification();
 	}
 
 	private void handleClockIn(Intent intent) {
 		long newNodeId = intent.getLongExtra(NODE_ID, -1);
 		if (newNodeId < 0) return;
-		// 若已 clock in，先保存旧任务
 		if (clockedIn) {
-			doClockOut(true, -1); // 用实际时间
+			doClockOut(true, -1);
 		}
 		try {
 			this.node_id = newNodeId;
@@ -163,7 +187,10 @@ public class TimeclockService extends Service {
 		}
 		this.clockStartTime = System.currentTimeMillis();
 		this.clockedIn = true;
-		setUpdateAlarm();
+
+		// Start periodic updates if not already running
+		startUpdateIfNeeded();
+
 		showOrRefreshNotification();
 	}
 
@@ -186,7 +213,6 @@ public class TimeclockService extends Service {
 			}
 			new OrgNodeRepository(getContentResolver()).addLogbook(node, startTime, endTime, elapsedTime);
 		}
-		// 清 clock 状态
 		this.node_id = -1;
 		this.node = null;
 		this.clockStartTime = 0;
@@ -199,7 +225,7 @@ public class TimeclockService extends Service {
 	private void handlePomodoroStop() {
 		stopAndReleaseAlarmSound();
 		Log.d("MobileOrg", "[Pomodoro] Stopping, cancelling timeout notification");
-		unsetPomodoroAlarms();
+		cancelTimers();
 		this.pomodoroRunning = false;
 		this.pomodoroTimedOut = false;
 		mNM.cancel(TIMEOUT_NOTIFICATION_ID);
@@ -214,7 +240,6 @@ public class TimeclockService extends Service {
 			return;
 		}
 		this.pomodoroTimedOut = true;
-		// 记录番茄钟完成到统计表
 		writePomodoroSession();
 		Log.d("MobileOrg", "[Pomodoro] Timeout! duration=" + pomodoroDurationMins + "min, sending alert notification on channel " + TIMEOUT_CHANNEL_ID);
 
@@ -273,9 +298,37 @@ public class TimeclockService extends Service {
 		db.close();
 	}
 
+	/**
+	 * Start periodic notification updates if not already running.
+	 * Called from handleClockIn when there's no pomodoro running the update loop.
+	 */
+	private void startUpdateIfNeeded() {
+		if (updateRunnable != null) return; // Already running (pomodoro or previous clock-in)
+		updateRunnable = new Runnable() {
+			@Override
+			public void run() {
+				if (!pomodoroRunning && !clockedIn) return;
+				updateTime();
+				timerHandler.postDelayed(this, UPDATE_INTERVAL_MS);
+			}
+		};
+		timerHandler.postDelayed(updateRunnable, UPDATE_INTERVAL_MS);
+	}
+
+	private void cancelTimers() {
+		if (updateRunnable != null) {
+			timerHandler.removeCallbacks(updateRunnable);
+			updateRunnable = null;
+		}
+		if (timeoutRunnable != null) {
+			timerHandler.removeCallbacks(timeoutRunnable);
+			timeoutRunnable = null;
+		}
+	}
+
 	private void checkStopSelf() {
 		if (!pomodoroRunning && !clockedIn) {
-			cancelNotification(); // 停前台 + stopSelf
+			cancelNotification();
 		}
 	}
 
@@ -337,45 +390,6 @@ public class TimeclockService extends Service {
 					android.content.pm.ServiceInfo.FOREGROUND_SERVICE_TYPE_SPECIAL_USE);
 		} else {
 			mNM.notify(notificationID, notification);
-		}
-	}
-
-	private void setUpdateAlarm() {
-		if (this.updateIntent != null) return; // Already set
-		Intent intent = new Intent(this, TimeclockService.class);
-		intent.setAction(TIMECLOCK_UPDATE);
-		this.updateIntent = PendingIntent.getService(appInst, 1,
-				intent, Compat.FLAG_IMMUTABLE);
-		alarmManager.setRepeating(AlarmManager.RTC, System.currentTimeMillis()
-				+ DateUtils.MINUTE_IN_MILLIS, DateUtils.MINUTE_IN_MILLIS, updateIntent);
-	}
-
-	private void setTimeoutAlarm(int hour, int minute) {
-		if(hour <= 0 && minute <= 0)
-			return;
-
-		long time = (hour * DateUtils.HOUR_IN_MILLIS)
-				+ (minute * DateUtils.MINUTE_IN_MILLIS);
-
-		Intent intent = new Intent(this, TimeclockService.class);
-		intent.setAction(TIMECLOCK_TIMEOUT);
-		this.timeoutIntent = PendingIntent.getService(appInst, 2,
-				intent, Compat.FLAG_IMMUTABLE);
-		alarmManager.set(AlarmManager.RTC_WAKEUP, System.currentTimeMillis()
-				+ time, timeoutIntent);
-	}
-
-	private void unsetPomodoroAlarms() {
-		if(this.timeoutIntent != null) {
-			alarmManager.cancel(this.timeoutIntent);
-			this.timeoutIntent = null;
-		}
-	}
-
-	private void unsetUpdateAlarm() {
-		if(this.updateIntent != null) {
-			alarmManager.cancel(this.updateIntent);
-			this.updateIntent = null;
 		}
 	}
 
@@ -448,8 +462,7 @@ public class TimeclockService extends Service {
 	public void cancelNotification() {
 		stopAndReleaseAlarmSound();
 		notifyStateChanged();
-		unsetPomodoroAlarms();
-		unsetUpdateAlarm();
+		cancelTimers();
 		mNM.cancel(TIMEOUT_NOTIFICATION_ID);
 		mNM.cancel(notificationID);
 		if (Compat.isAtLeastO()) stopForeground(true);

@@ -160,5 +160,8 @@ public class DailyOverviewReceiver extends BroadcastReceiver {
 
         nm.notify(OVERVIEW_NOTIFY_ID, builder.build());
         Log.d(TAG, "DailyOverview: " + total + " items (" + scheduledItems.size() + " scheduled, " + deadlineItems.size() + " deadline)");
+
+        // Reschedule tomorrow's daily overview (one-shot alarm, not repeating)
+        ReminderScheduler.scheduleDailyOverview(context);
     }
 }

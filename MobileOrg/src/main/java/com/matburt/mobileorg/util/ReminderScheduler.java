@@ -8,6 +8,7 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.net.Uri;
+import android.os.Build;
 import android.preference.PreferenceManager;
 import android.text.TextUtils;
 import android.util.Log;
@@ -22,6 +23,18 @@ import java.util.Set;
 import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
+/**
+ * Schedules DEADLINE/SCHEDULED reminders and daily overview notifications.
+ *
+ * On Android 12+ (API 31+), uses setExactAndAllowWhileIdle() for precise timing.
+ * The SCHEDULE_EXACT_ALARM permission is declared in manifest; the system grants it
+ * by default for pre-installed / existing apps. Falls back to setWindow() with a
+ * 10-minute window if permission is not available.
+ *
+ * Daily overview uses setExact() (one-shot) instead of setRepeating() because
+ * setRepeating() has been inexact since API 19. The DailyOverviewReceiver reschedules
+ * the next alarm after each fire.
+ */
 public class ReminderScheduler {
     private static final String TAG = "MobileOrg";
     private static final String ACTION_REMINDER = "com.matburt.mobileorg.REMINDER";
@@ -67,7 +80,6 @@ public class ReminderScheduler {
         try {
             while (cursor.moveToNext()) {
                 String todo = cursor.getString(cursor.getColumnIndex(OrgData.TODO));
-                // Include: no TODO state OR active TODO
                 if (todo != null && !activeTodos.contains(todo)) continue;
 
                 long nodeId = cursor.getLong(cursor.getColumnIndex(OrgData.ID));
@@ -113,7 +125,6 @@ public class ReminderScheduler {
     public static void cancelAll(ContentResolver resolver, Context context) {
         AlarmManager alarmManager = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
 
-        // Query DB to rebuild PendingIntents and cancel them
         Cursor cursor = resolver.query(
             OrgData.CONTENT_URI,
             new String[]{OrgData.ID, OrgData.PAYLOAD},
@@ -150,7 +161,6 @@ public class ReminderScheduler {
     public static void scheduleDailyOverview(Context context) {
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(context);
         if (!prefs.getBoolean("key_reminderEnabled", true)) {
-            // Cancel existing daily overview
             AlarmManager alarmManager = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
             Intent intent = new Intent(ACTION_DAILY_OVERVIEW);
             intent.setPackage(context.getPackageName());
@@ -171,7 +181,6 @@ public class ReminderScheduler {
         triggerAt.set(Calendar.SECOND, 0);
         triggerAt.set(Calendar.MILLISECOND, 0);
 
-        // If today's time has passed, schedule for tomorrow
         if (triggerAt.getTimeInMillis() <= System.currentTimeMillis()) {
             triggerAt.add(Calendar.DAY_OF_YEAR, 1);
         }
@@ -182,8 +191,16 @@ public class ReminderScheduler {
         PendingIntent pi = PendingIntent.getBroadcast(context, 0, intent,
             Compat.FLAG_IMMUTABLE);
 
-        alarmManager.setRepeating(AlarmManager.RTC_WAKEUP,
-            triggerAt.getTimeInMillis(), AlarmManager.INTERVAL_DAY, pi);
+        // Use setExactAndAllowWhileIdle() on API 31+ for precise daily timing.
+        // One-shot alarm; DailyOverviewReceiver reschedules after each fire.
+        if (Build.VERSION.SDK_INT >= 31 && alarmManager.canScheduleExactAlarms()) {
+            alarmManager.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP,
+                triggerAt.getTimeInMillis(), pi);
+        } else {
+            // Fallback: setWindow with 10-minute window (Android 12+ enforces minimum)
+            alarmManager.setWindow(AlarmManager.RTC_WAKEUP,
+                triggerAt.getTimeInMillis(), 600_000L, pi);
+        }
 
         Log.d(TAG, "ReminderScheduler: daily overview scheduled at " + triggerAt.getTime());
     }
@@ -199,9 +216,21 @@ public class ReminderScheduler {
 
         PendingIntent pi = PendingIntent.getBroadcast(context, 0, intent,
             Compat.FLAG_IMMUTABLE);
-        // Use setWindow with 1-minute window for battery optimization
-        alarmManager.setWindow(AlarmManager.RTC_WAKEUP,
-            triggerAtMillis, 60000, pi);
+
+        // On API 31+, use setExactAndAllowWhileIdle() for precise reminder timing.
+        // setWindow() with 1-minute window is elongated to 10 minutes by Android 12+,
+        // causing reminders to fire up to 10 minutes late.
+        if (Build.VERSION.SDK_INT >= 31 && alarmManager.canScheduleExactAlarms()) {
+            alarmManager.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP,
+                triggerAtMillis, pi);
+        } else if (Build.VERSION.SDK_INT >= 23) {
+            // API 23-30: setExactAndAllowWhileIdle works without special permission
+            alarmManager.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP,
+                triggerAtMillis, pi);
+        } else {
+            // Pre-API 23: setExact is sufficient
+            alarmManager.setExact(AlarmManager.RTC_WAKEUP, triggerAtMillis, pi);
+        }
     }
 
     private static void cancelAlarm(AlarmManager alarmManager, Context context,

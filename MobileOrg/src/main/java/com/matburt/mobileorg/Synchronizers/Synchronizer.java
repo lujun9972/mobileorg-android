@@ -17,6 +17,7 @@ import com.matburt.mobileorg.OrgData.MobileOrgApplication;
 import com.matburt.mobileorg.OrgData.OrgEdit;
 import com.matburt.mobileorg.OrgData.OrgFile;
 import com.matburt.mobileorg.OrgData.OrgFileParser;
+import com.matburt.mobileorg.OrgData.OrgIndexParser;
 import com.matburt.mobileorg.OrgData.OrgFileRepository;
 import com.matburt.mobileorg.R;
 import com.matburt.mobileorg.util.FileUtils;
@@ -231,12 +232,12 @@ public class Synchronizer {
 		Log.i("MobileOrg", "Sync: index.org length=" + remoteIndexContents.length()
 				+ ", preview=" + remoteIndexContents.substring(0, Math.min(200, remoteIndexContents.length())));
 		new OrgFileRepository(resolver).setTodos(
-				OrgFileParser.getTodosFromIndex(remoteIndexContents));
+				OrgIndexParser.getTodosFromIndex(remoteIndexContents));
 		new OrgFileRepository(resolver).setPriorities(
-				OrgFileParser.getPrioritiesFromIndex(remoteIndexContents));
+				OrgIndexParser.getPrioritiesFromIndex(remoteIndexContents));
 		new OrgFileRepository(resolver).setTags(
-				OrgFileParser.getTagsFromIndex(remoteIndexContents));
-		HashMap<String, String> filenameMap = OrgFileParser
+				OrgIndexParser.getTagsFromIndex(remoteIndexContents));
+		HashMap<String, String> filenameMap = OrgIndexParser
 				.getFilesFromIndex(remoteIndexContents);
 		return filenameMap;
 	}
@@ -247,7 +248,7 @@ public class Synchronizer {
 		Log.i("MobileOrg", "Sync: checksums.dat length=" + remoteChecksumContents.length()
 				+ ", content=" + remoteChecksumContents.substring(0, Math.min(500, remoteChecksumContents.length())));
 
-		HashMap<String, String> remoteChecksums = OrgFileParser
+		HashMap<String, String> remoteChecksums = OrgIndexParser
 				.getChecksums(remoteChecksumContents);
 		return remoteChecksums;
 	}

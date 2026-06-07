@@ -17,6 +17,7 @@ import com.matburt.mobileorg.OrgData.OrgContract.Files;
 import com.matburt.mobileorg.OrgData.OrgContract.OrgData;
 import com.matburt.mobileorg.OrgData.OrgFile;
 import com.matburt.mobileorg.OrgData.OrgFileParser;
+import com.matburt.mobileorg.OrgData.OrgIndexParser;
 import com.matburt.mobileorg.OrgData.OrgNode;
 import com.matburt.mobileorg.OrgData.OrgProvider;
 import com.matburt.mobileorg.test.util.OrgTestFiles;
@@ -128,7 +129,7 @@ public class OrgFileParserTest extends ProviderTestCase2<OrgProvider> {
 
 	@Test
 	public void testGetFilesFromIndex() {
-		HashMap<String,String> files = OrgFileParser.getFilesFromIndex(SimpleOrgFiles.indexFile);
+		HashMap<String,String> files = OrgIndexParser.getFilesFromIndex(SimpleOrgFiles.indexFile);
 
 		for(String file: SimpleOrgFiles.files) {
 			if(files.get(file) == null)
@@ -140,7 +141,7 @@ public class OrgFileParserTest extends ProviderTestCase2<OrgProvider> {
 	public void testGetFilesFromIndexWithSpaces() {
 		final String filename = OrgIndexWithFileDirectorySpaces.filename;
 		final String fileAlias = OrgIndexWithFileDirectorySpaces.fileAlias;
-		HashMap<String,String> files = OrgFileParser.getFilesFromIndex(OrgIndexWithFileDirectorySpaces.indexFile);
+		HashMap<String,String> files = OrgIndexParser.getFilesFromIndex(OrgIndexWithFileDirectorySpaces.indexFile);
 
 		assertTrue(files.containsKey(filename));
 		String retrievedFileAlias = files.get(filename);
@@ -153,7 +154,7 @@ public class OrgFileParserTest extends ProviderTestCase2<OrgProvider> {
 	@Test
 	public void testGetFilesFromIndexWithSpacesWithoutAlias() {
 		final String filename = OrgIndexWithFileDirectorySpaces.filenameWithoutAlias;
-		HashMap<String,String> files = OrgFileParser.getFilesFromIndex(OrgIndexWithFileDirectorySpaces.indexFile);
+		HashMap<String,String> files = OrgIndexParser.getFilesFromIndex(OrgIndexWithFileDirectorySpaces.indexFile);
 
 		assertTrue(files.containsKey(filename));
 		String retrievedFileAlias = files.get(filename);
@@ -162,7 +163,7 @@ public class OrgFileParserTest extends ProviderTestCase2<OrgProvider> {
 
 	@Test
 	public void testGetTodosFromIndex() {
-		ArrayList<String> tagsFromIndex = OrgFileParser.getTagsFromIndex(SimpleOrgFiles.indexFile);
+		ArrayList<String> tagsFromIndex = OrgIndexParser.getTagsFromIndex(SimpleOrgFiles.indexFile);
 
 		for(String tag: SimpleOrgFiles.tags) {
 			if(tagsFromIndex.contains(tag) == false)
@@ -172,7 +173,7 @@ public class OrgFileParserTest extends ProviderTestCase2<OrgProvider> {
 
 	@Test
 	public void testGetPrioritiesFromIndex() {
-		ArrayList<String> prioritiesFromIndex = OrgFileParser.getPrioritiesFromIndex(SimpleOrgFiles.indexFile);
+		ArrayList<String> prioritiesFromIndex = OrgIndexParser.getPrioritiesFromIndex(SimpleOrgFiles.indexFile);
 
 		for(String priorities: SimpleOrgFiles.priorities) {
 			if(prioritiesFromIndex.contains(priorities) == false)
@@ -182,7 +183,7 @@ public class OrgFileParserTest extends ProviderTestCase2<OrgProvider> {
 
 	@Test
 	public void testGetTagsFromIndex() {
-		ArrayList<String> tagsFromIndex = OrgFileParser.getTagsFromIndex(SimpleOrgFiles.indexFile);
+		ArrayList<String> tagsFromIndex = OrgIndexParser.getTagsFromIndex(SimpleOrgFiles.indexFile);
 
 		for(String tag: SimpleOrgFiles.tags) {
 			if(tagsFromIndex.contains(tag) == false)
@@ -192,7 +193,7 @@ public class OrgFileParserTest extends ProviderTestCase2<OrgProvider> {
 
 	@Test
 	public void testGetTagsFromIndexEmptyTags() {
-		ArrayList<String> tagsFromIndex = OrgFileParser.getTagsFromIndex(OrgTestFiles.indexFileWithEmptyDrawers);
+		ArrayList<String> tagsFromIndex = OrgIndexParser.getTagsFromIndex(OrgTestFiles.indexFileWithEmptyDrawers);
 		assertEquals(0, tagsFromIndex.size());
 	}
 

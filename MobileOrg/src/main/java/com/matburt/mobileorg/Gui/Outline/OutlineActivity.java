@@ -395,6 +395,10 @@ public class OutlineActivity extends AppCompatActivity {
 		timeclockController.onRequestPermissionsResult(requestCode, permissions, grantResults);
 	}
 
+	public void tryStartRecording(long nodeId) {
+		timeclockController.tryStartRecording(nodeId);
+	}
+
 	public void runHelp(View view) {
 		Intent intent = new Intent(Intent.ACTION_VIEW,
 				Uri.parse("https://github.com/matburt/mobileorg-android/wiki"));

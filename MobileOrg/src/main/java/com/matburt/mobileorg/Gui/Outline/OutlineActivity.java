@@ -1,55 +1,36 @@
 package com.matburt.mobileorg.Gui.Outline;
 
-import android.Manifest;
 import android.app.AlertDialog;
-import android.content.BroadcastReceiver;
-import android.content.Context;
 import android.content.DialogInterface;
 import android.content.Intent;
-import android.content.IntentFilter;
-import android.content.pm.PackageManager;
 import android.net.Uri;
-import android.os.Build;
 import android.os.Bundle;
-import android.util.Log;
-import android.view.Gravity;
 import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
-import android.view.animation.Animation;
-import android.widget.ImageButton;
-import android.widget.ImageView;
-import android.widget.LinearLayout;
-import android.widget.NumberPicker;
 import android.widget.TextView;
-import android.widget.Toast;
-import android.widget.ToggleButton;
 
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.core.app.ActivityCompat;
-import androidx.core.content.ContextCompat;
+
 import com.matburt.mobileorg.R;
 import com.matburt.mobileorg.Gui.Agenda.AgendasActivity;
 import com.matburt.mobileorg.Gui.Statistics.StatisticsActivity;
 import com.matburt.mobileorg.Gui.Wizard.WizardActivity;
 import com.matburt.mobileorg.OrgData.MobileOrgApplication;
 import com.matburt.mobileorg.OrgData.OrgFileRepository;
-import com.matburt.mobileorg.Services.RecordingService;
 import com.matburt.mobileorg.Services.TimeclockService;
-import com.matburt.mobileorg.Services.SyncService;
 import com.matburt.mobileorg.Settings.SettingsActivity;
-import com.matburt.mobileorg.Synchronizers.Synchronizer;
 import com.matburt.mobileorg.util.Compat;
 import com.matburt.mobileorg.util.OrgUtils;
 import com.matburt.mobileorg.util.PreferenceUtils;
 
 import java.util.ArrayList;
 import java.util.HashSet;
-import java.util.Locale;
 
 import com.google.android.material.chip.Chip;
 import com.google.android.material.chip.ChipGroup;
+import android.widget.ToggleButton;
 
 public class OutlineActivity extends AppCompatActivity {
 
@@ -57,7 +38,6 @@ public class OutlineActivity extends AppCompatActivity {
 	private final static String OUTLINE_NODES = "nodes";
 	private final static String OUTLINE_CHECKED_POS = "selection";
 	private final static String OUTLINE_SCROLL_POS = "scrollPosition";
-	private static final int REQUEST_POST_NOTIFICATIONS = 1001;
 
     public final static String SYNC_FAILED = "com.matburt.mobileorg.SYNC_FAILED";
 
@@ -65,11 +45,8 @@ public class OutlineActivity extends AppCompatActivity {
 
 	private OutlineListView listView;
 
-	private SynchServiceReceiver syncReceiver;
-	private MenuItem synchronizerMenuItem;
-	private View recordingBar;
-	private BroadcastReceiver recordingReceiver;
-	private long pendingRecordNodeId = -1;
+	private OutlineSyncController syncController;
+	private OutlineTimeclockController timeclockController;
 
 	private OutlineTagFilter tagFilter = new OutlineTagFilter();
 	private boolean programmaticChipChange = false;
@@ -113,35 +90,11 @@ public class OutlineActivity extends AppCompatActivity {
 
 		setupList();
 
-		this.syncReceiver = new SynchServiceReceiver();
-		IntentFilter syncFilter = new IntentFilter(Synchronizer.SYNC_UPDATE);
-		if (Build.VERSION.SDK_INT >= 33) {
-			registerReceiver(this.syncReceiver, syncFilter, Context.RECEIVER_NOT_EXPORTED);
-		} else {
-			registerReceiver(this.syncReceiver, syncFilter);
-		}
-		Log.d("MobileOrg", "[SyncUI] SynchServiceReceiver registered, isSyncRunning=" + SyncService.isSyncRunning);
+		syncController = new OutlineSyncController(this, this::refreshDisplay, this::setupFilterBar);
+		syncController.onCreate();
 
-		recordingReceiver = new BroadcastReceiver() {
-			@Override
-			public void onReceive(Context context, Intent intent) {
-				String action = intent.getAction();
-				if (RecordingService.BROADCAST_UPDATE.equals(action)) {
-					long elapsed = intent.getLongExtra(RecordingService.EXTRA_ELAPSED_SECONDS, 0);
-					showOrUpdateRecordingBar(elapsed);
-				} else if (RecordingService.BROADCAST_STOPPED.equals(action)) {
-					removeRecordingBar();
-				}
-			}
-		};
-
-		IntentFilter recordingFilter = new IntentFilter(RecordingService.BROADCAST_UPDATE);
-		recordingFilter.addAction(RecordingService.BROADCAST_STOPPED);
-		if (Build.VERSION.SDK_INT >= 33) {
-			registerReceiver(recordingReceiver, recordingFilter, Context.RECEIVER_NOT_EXPORTED);
-		} else {
-			registerReceiver(recordingReceiver, recordingFilter);
-		}
+		timeclockController = new OutlineTimeclockController(this);
+		timeclockController.onCreate();
 
 		refreshDisplay();
 	}
@@ -173,11 +126,8 @@ public class OutlineActivity extends AppCompatActivity {
 	@Override
 	protected void onDestroy() {
 		MobileOrgApplication.log("OutlineActivity.onDestroy()");
-		Log.d("MobileOrg", "[SyncUI] onDestroy: unregistering syncReceiver, isSyncRunning=" + SyncService.isSyncRunning);
-		unregisterReceiver(this.syncReceiver);
-		if (recordingReceiver != null) {
-			unregisterReceiver(recordingReceiver);
-		}
+		syncController.onDestroy();
+		timeclockController.onDestroy();
 		super.onDestroy();
 	}
 
@@ -373,9 +323,7 @@ public class OutlineActivity extends AppCompatActivity {
 	public boolean onCreateOptionsMenu(Menu menu) {
 		MenuInflater inflater = getMenuInflater();
 	    inflater.inflate(R.menu.outline_menu, menu);
-
-	    synchronizerMenuItem = menu.findItem(R.id.menu_sync);
-
+	    syncController.onCreateOptionsMenu(menu);
 		return true;
 	}
 
@@ -388,41 +336,7 @@ public class OutlineActivity extends AppCompatActivity {
 			pomoItem.setTitle(running ? getString(R.string.menu_pomodoro_stop) : getString(R.string.menu_pomodoro));
 			pomoItem.setIcon(running ? R.drawable.ic_media_stop : R.drawable.ic_menu_pomodoro);
 		}
-
-		// Self-heal sync animation on every menu invalidation (e.g. onResume)
-		MenuItem syncItem = menu.findItem(R.id.menu_sync);
-		if (syncItem != null) {
-			View actionView = syncItem.getActionView();
-			if (SyncService.isSyncRunning) {
-				// Sync running but menu rebuilt — restore spinning animation
-				if (actionView == null) {
-					Log.d("MobileOrg", "[SyncUI] onPrepareOptionsMenu: sync running but no actionView, restoring animation");
-					final ImageView refreshView = new ImageView(this);
-					refreshView.setImageResource(R.drawable.ic_menu_refresh);
-					syncItem.setActionView(refreshView);
-					final Animation rotate = new android.view.animation.RotateAnimation(0, 360,
-							android.view.animation.Animation.RELATIVE_TO_SELF, 0.5f,
-							android.view.animation.Animation.RELATIVE_TO_SELF, 0.5f);
-					rotate.setDuration(1000);
-					rotate.setRepeatCount(android.view.animation.Animation.INFINITE);
-					rotate.setInterpolator(new android.view.animation.LinearInterpolator());
-					refreshView.post(new Runnable() {
-						@Override
-						public void run() {
-							refreshView.startAnimation(rotate);
-						}
-					});
-				}
-			} else {
-				// Sync not running — ensure animation is stopped
-				if (actionView != null) {
-					Log.d("MobileOrg", "[SyncUI] onPrepareOptionsMenu: sync NOT running but actionView exists, clearing animation");
-					actionView.clearAnimation();
-				}
-				syncItem.setActionView(null);
-			}
-		}
-
+		syncController.onPrepareOptionsMenu(menu);
 		return super.onPrepareOptionsMenu(menu);
 	}
 
@@ -433,7 +347,7 @@ public class OutlineActivity extends AppCompatActivity {
 			listView.collapseCurrent();
 			return true;
 		} else if (id == R.id.menu_sync) {
-			runSynchronize(null);
+			syncController.runSynchronize();
 			return true;
 		} else if (id == R.id.menu_settings) {
 			runShowSettings(null);
@@ -455,7 +369,7 @@ public class OutlineActivity extends AppCompatActivity {
 		} else if (id == R.id.menu_record) {
 			long checkedNodeId = listView.getCheckedNodeId();
 			if (checkedNodeId >= 0) {
-				tryStartRecording(checkedNodeId);
+				timeclockController.tryStartRecording(checkedNodeId);
 			}
 			return true;
 		} else if (id == R.id.menu_pomodoro) {
@@ -465,7 +379,7 @@ public class OutlineActivity extends AppCompatActivity {
 				intent.setAction(TimeclockService.ACTION_POMODORO_STOP);
 				Compat.startService(this, intent);
 			} else {
-				showPomodoroDurationPicker();
+				timeclockController.showPomodoroDurationPicker();
 			}
 			return true;
 		} else if (id == R.id.menu_statistics) {
@@ -475,6 +389,12 @@ public class OutlineActivity extends AppCompatActivity {
 		return false;
 	}
 
+	@Override
+	public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
+		super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+		timeclockController.onRequestPermissionsResult(requestCode, permissions, grantResults);
+	}
+
 	public void runHelp(View view) {
 		Intent intent = new Intent(Intent.ACTION_VIEW,
 				Uri.parse("https://github.com/matburt/mobileorg-android/wiki"));
@@ -482,13 +402,7 @@ public class OutlineActivity extends AppCompatActivity {
     }
 
     public void runSynchronize(View view) {
-		if (Build.VERSION.SDK_INT >= 33 && !Compat.hasNotificationPermission(this)) {
-			ActivityCompat.requestPermissions(this,
-					new String[]{"android.permission.POST_NOTIFICATIONS"},
-					REQUEST_POST_NOTIFICATIONS);
-		}
-		Intent intent = new Intent(this, SyncService.class);
-		Compat.startService(this, intent);
+		syncController.runSynchronize();
     }
 
 	public void runShowSettings(View view) {
@@ -543,176 +457,5 @@ public class OutlineActivity extends AppCompatActivity {
 					}
 				});
 		builder.create().show();
-	}
-
-
-	private void showOrUpdateRecordingBar(long elapsedSeconds) {
-		if (recordingBar == null) {
-			recordingBar = getLayoutInflater().inflate(R.layout.recording_bar, null);
-			LinearLayout rootLayout = findViewById(R.id.outline_root);
-			rootLayout.addView(recordingBar, 0);
-
-			ImageButton pauseBtn = recordingBar.findViewById(R.id.recording_pause_btn);
-			pauseBtn.setOnClickListener(v -> {
-				RecordingService instance = RecordingService.getInstance();
-				if (instance != null) {
-					Intent intent = new Intent(this, RecordingService.class);
-					intent.putExtra(RecordingService.ACTION_NAME,
-							instance.isPaused() ? RecordingService.ACTION_RESUME : RecordingService.ACTION_PAUSE);
-					startService(intent);
-				}
-			});
-
-			ImageButton stopBtn = recordingBar.findViewById(R.id.recording_stop_btn);
-			stopBtn.setOnClickListener(v -> {
-				Intent intent = new Intent(this, RecordingService.class);
-				intent.putExtra(RecordingService.ACTION_NAME, RecordingService.ACTION_STOP);
-				startService(intent);
-			});
-		}
-
-		TextView elapsedView = recordingBar.findViewById(R.id.recording_elapsed);
-		long minutes = elapsedSeconds / 60;
-		long seconds = elapsedSeconds % 60;
-		elapsedView.setText(String.format(Locale.getDefault(), "%d:%02d", minutes, seconds));
-
-		ImageButton pauseBtn = recordingBar.findViewById(R.id.recording_pause_btn);
-		RecordingService instance = RecordingService.getInstance();
-		if (instance != null && instance.isPaused()) {
-			pauseBtn.setImageResource(R.drawable.ic_media_play);
-		} else {
-			pauseBtn.setImageResource(R.drawable.ic_media_pause);
-		}
-	}
-
-	private void removeRecordingBar() {
-		if (recordingBar != null) {
-			LinearLayout rootLayout = findViewById(R.id.outline_root);
-			rootLayout.removeView(recordingBar);
-			recordingBar = null;
-		}
-	}
-
-	void tryStartRecording(long nodeId) {
-		if (RecordingService.isRecording()) {
-			return;
-		}
-		if (ContextCompat.checkSelfPermission(this, Manifest.permission.RECORD_AUDIO)
-				== PackageManager.PERMISSION_GRANTED) {
-			startRecordingService(nodeId);
-		} else {
-			pendingRecordNodeId = nodeId;
-			ActivityCompat.requestPermissions(this,
-					new String[]{Manifest.permission.RECORD_AUDIO}, 0);
-		}
-	}
-
-	private void startRecordingService(long nodeId) {
-		Intent intent = new Intent(this, RecordingService.class);
-		intent.putExtra(RecordingService.ACTION_NAME, RecordingService.ACTION_START);
-		intent.putExtra(RecordingService.NODE_ID, nodeId);
-		Compat.startService(this, intent);
-	}
-
-	@Override
-	public void onRequestPermissionsResult(int requestCode, String[] permissions, int[] grantResults) {
-		super.onRequestPermissionsResult(requestCode, permissions, grantResults);
-		if (grantResults.length > 0 && grantResults[0] == PackageManager.PERMISSION_GRANTED) {
-			if (pendingRecordNodeId != -1) {
-				startRecordingService(pendingRecordNodeId);
-				pendingRecordNodeId = -1;
-			}
-		}
-	}
-
-	private void showPomodoroDurationPicker() {
-		int defaultDuration = PreferenceUtils.getPomodoroDuration();
-
-		LinearLayout layout = new LinearLayout(this);
-		layout.setOrientation(LinearLayout.HORIZONTAL);
-		layout.setGravity(Gravity.CENTER);
-		int pad = (int) (24 * getResources().getDisplayMetrics().density);
-		layout.setPadding(pad, pad, pad, pad);
-
-		final NumberPicker minutePicker = new NumberPicker(this);
-		minutePicker.setMinValue(1);
-		minutePicker.setMaxValue(120);
-		minutePicker.setValue(defaultDuration);
-		minutePicker.setWrapSelectorWheel(true);
-		layout.addView(minutePicker);
-
-		TextView label = new TextView(this);
-		label.setText(" min");
-		label.setTextSize(18);
-		label.setGravity(Gravity.CENTER);
-		layout.addView(label);
-
-		new AlertDialog.Builder(this)
-				.setTitle(R.string.pomodoro_duration_picker_title)
-				.setView(layout)
-				.setPositiveButton(android.R.string.ok, new DialogInterface.OnClickListener() {
-					@Override
-					public void onClick(DialogInterface dialog, int which) {
-						minutePicker.clearFocus();
-						int duration = minutePicker.getValue();
-						Intent intent = new Intent(OutlineActivity.this, TimeclockService.class);
-						intent.setAction(TimeclockService.ACTION_POMODORO_START);
-						intent.putExtra(TimeclockService.POMODORO_DURATION, duration);
-						Compat.startService(OutlineActivity.this, intent);
-					}
-				})
-				.setNegativeButton(android.R.string.cancel, null)
-				.show();
-	}
-
-	private class SynchServiceReceiver extends BroadcastReceiver {
-		@Override
-		public void onReceive(Context context, Intent intent) {
-			boolean syncStart = intent.getBooleanExtra(Synchronizer.SYNC_START, false);
-			boolean syncDone = intent.getBooleanExtra(Synchronizer.SYNC_DONE, false);
-			boolean showToast = intent.getBooleanExtra(Synchronizer.SYNC_SHOW_TOAST, false);
-			int progress = intent.getIntExtra(Synchronizer.SYNC_PROGRESS_UPDATE, -1);
-
-			MobileOrgApplication.log("SyncReceiver: start=" + syncStart + " done=" + syncDone + " progress=" + progress);
-			Log.d("MobileOrg", "[SyncUI] onReceive: start=" + syncStart + " done=" + syncDone + " progress=" + progress);
-
-			if(syncStart) {
-				Log.d("MobileOrg", "[SyncUI] SYNC_START: starting rotation animation on synchronizerMenuItem=" + synchronizerMenuItem);
-				final ImageView refreshView = new ImageView(OutlineActivity.this);
-				refreshView.setImageResource(R.drawable.ic_menu_refresh);
-				synchronizerMenuItem.setActionView(refreshView);
-				final Animation rotate = new android.view.animation.RotateAnimation(0, 360,
-						android.view.animation.Animation.RELATIVE_TO_SELF, 0.5f,
-						android.view.animation.Animation.RELATIVE_TO_SELF, 0.5f);
-				rotate.setDuration(1000);
-				rotate.setRepeatCount(android.view.animation.Animation.INFINITE);
-				rotate.setInterpolator(new android.view.animation.LinearInterpolator());
-				refreshView.post(new Runnable() {
-					@Override
-					public void run() {
-						refreshView.startAnimation(rotate);
-						Log.d("MobileOrg", "[SyncUI] rotation animation started");
-					}
-				});
-			} else if (syncDone) {
-				android.view.View actionView = synchronizerMenuItem != null ? synchronizerMenuItem.getActionView() : null;
-				Log.d("MobileOrg", "[SyncUI] SYNC_DONE: synchronizerMenuItem=" + synchronizerMenuItem + " actionView=" + actionView);
-				if (actionView != null) {
-					actionView.clearAnimation();
-				}
-				if (synchronizerMenuItem != null) {
-					synchronizerMenuItem.setActionView(null);
-				}
-				refreshDisplay();
-				setupFilterBar();
-
-				if (showToast)
-					Toast.makeText(context,
-							R.string.sync_successful,
-							Toast.LENGTH_SHORT).show();
-			} else if (progress >= 0 && progress <= 100) {
-				refreshDisplay();
-			}
-		}
 	}
 }

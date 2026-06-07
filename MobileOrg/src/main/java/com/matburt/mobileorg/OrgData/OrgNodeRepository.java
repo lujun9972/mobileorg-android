@@ -676,7 +676,7 @@ public class OrgNodeRepository {
             new String[]{"%DEADLINE:%", "%SCHEDULED:%"},
             null
         );
-        List<OrgNode> result = new ArrayList<>();
+        ArrayList<OrgNode> result = new ArrayList<>();
         if (cursor == null) return result;
         try {
             while (cursor.moveToNext()) {

@@ -15,3 +15,8 @@ These terms come from Org-mode (the Emacs outliner/PIM system this app is a clie
 ## Architectural Decisions
 
 See `docs/adr/` for formal records.
+
+## App Features
+
+- **Pomodoro** (番茄钟) — A countdown timer (default 25 min) that runs independently of any OrgNode. Managed by `TimeclockService`. Records completion when the timer expires (timeout). Does NOT write CLOCK entries to OrgNode payloads.
+- **Clock** (计时) — A task timer that records worked time on a specific OrgNode. Writes `CLOCK:` entries into the node's `:LOGBOOK:` drawer on clock-out. Can run simultaneously with a Pomodoro session.

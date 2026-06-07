@@ -397,29 +397,45 @@ public class TimeclockService extends Service {
 		if (notification == null || notification.contentView == null) return;
 
 		SpannableStringBuilder itemText;
+		String titleText;
 		long now = System.currentTimeMillis();
 
 		if (pomodoroRunning) {
 			if (!pomodoroTimedOut) {
 				long remaining = (pomodoroDurationMins * 60L * 1000L) - (now - pomodoroStartTime);
 				if (remaining < 0) remaining = 0;
-				itemText = new SpannableStringBuilder(formatMillisAsTime(remaining));
+				String remainingStr = formatMillisAsTime(remaining);
+				itemText = new SpannableStringBuilder(remainingStr);
+				titleText = buildPomodoroTitle(remainingStr);
 			} else {
 				long overtime = now - (pomodoroStartTime + pomodoroDurationMins * 60L * 1000L);
-				itemText = new SpannableStringBuilder("+" + formatMillisAsTime(overtime));
+				String overtimeStr = "+" + formatMillisAsTime(overtime);
+				itemText = new SpannableStringBuilder(overtimeStr);
 				itemText.setSpan(new ForegroundColorSpan(Color.RED), 0,
 						itemText.length(), 0);
+				titleText = buildPomodoroTitle(overtimeStr);
 			}
 		} else if (clockedIn) {
 			long elapsed = now - clockStartTime;
 			itemText = new SpannableStringBuilder(formatMillisAsTime(elapsed));
+			titleText = (node != null) ? node.name : "Timeclock";
 		} else {
 			itemText = new SpannableStringBuilder("");
+			titleText = "Timeclock";
 		}
 
 		notification.contentView.setTextViewText(
+				R.id.timeclock_notification_text, titleText);
+		notification.contentView.setTextViewText(
 				R.id.timeclock_notification_time, itemText);
 		mNM.notify(notificationID, notification);
+	}
+
+	private String buildPomodoroTitle(String timeStr) {
+		if (clockedIn && node != null) {
+			return "\uD83C\uDF45 " + timeStr + " | " + node.name;
+		}
+		return "\uD83C\uDF45 " + timeStr;
 	}
 
 	private String formatMillisAsTime(long millis) {

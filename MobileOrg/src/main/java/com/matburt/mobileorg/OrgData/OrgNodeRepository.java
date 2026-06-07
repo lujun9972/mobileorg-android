@@ -596,9 +596,6 @@ public class OrgNodeRepository {
         resolver.delete(Files.CONTENT_URI, null, null);
         resolver.delete(Edits.CONTENT_URI, null, null);
     }
-}
-
-    // =====================================================================
     // Node lookup (moved from OrgUtils)
     // =====================================================================
 
@@ -654,3 +651,5 @@ public class OrgNodeRepository {
         }
         throw new OrgNodeNotFoundException("Node with ID \"" + id + "\" not found");
     }
+
+}

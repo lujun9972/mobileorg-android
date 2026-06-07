@@ -400,7 +400,20 @@ public class TimeclockService extends Service {
 		String titleText;
 		long now = System.currentTimeMillis();
 
-		if (pomodoroRunning) {
+		if (pomodoroRunning && clockedIn) {
+			// Title shows pomodoro time; big time shows clock elapsed
+			if (!pomodoroTimedOut) {
+				long remaining = (pomodoroDurationMins * 60L * 1000L) - (now - pomodoroStartTime);
+				if (remaining < 0) remaining = 0;
+				titleText = buildPomodoroTitle(formatMillisAsTime(remaining));
+			} else {
+				long overtime = now - (pomodoroStartTime + pomodoroDurationMins * 60L * 1000L);
+				String overtimeStr = "+" + formatMillisAsTime(overtime);
+				titleText = buildPomodoroTitle(overtimeStr);
+			}
+			long elapsed = now - clockStartTime;
+			itemText = new SpannableStringBuilder(formatMillisAsTime(elapsed));
+		} else if (pomodoroRunning) {
 			if (!pomodoroTimedOut) {
 				long remaining = (pomodoroDurationMins * 60L * 1000L) - (now - pomodoroStartTime);
 				if (remaining < 0) remaining = 0;

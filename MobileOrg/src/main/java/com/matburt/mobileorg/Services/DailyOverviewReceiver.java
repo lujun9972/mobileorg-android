@@ -6,7 +6,6 @@ import android.content.ContentResolver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.database.Cursor;
 import android.preference.PreferenceManager;
 import android.text.TextUtils;
 import android.util.Log;
@@ -14,8 +13,8 @@ import android.util.Log;
 import androidx.core.app.NotificationCompat;
 
 import com.matburt.mobileorg.Gui.Outline.OutlineActivity;
-import com.matburt.mobileorg.OrgData.OrgContract.OrgData;
 import com.matburt.mobileorg.OrgData.OrgNodePayload;
+import com.matburt.mobileorg.OrgData.OrgNode;
 import com.matburt.mobileorg.OrgData.OrgFileRepository;
 import com.matburt.mobileorg.R;
 import com.matburt.mobileorg.util.Compat;
@@ -56,58 +55,41 @@ public class DailyOverviewReceiver extends BroadcastReceiver {
         long tomorrowMs = todayMs + 86400000;
         long deadlineWindowMs = todayMs + deadlineAdvance;
 
-        Cursor cursor = resolver.query(
-            OrgData.CONTENT_URI,
-            OrgData.DEFAULT_COLUMNS,
-            OrgData.PAYLOAD + " LIKE ? OR " + OrgData.PAYLOAD + " LIKE ?",
-            new String[]{"%DEADLINE:%", "%SCHEDULED:%"},
-            null
-        );
+        ArrayList<OrgNode> nodes = new OrgNodeRepository(resolver).getReminderEligibleNodes();
 
-        if (cursor == null) return;
+        for (OrgNode node : nodes) {
+            if (node.todo != null && !activeTodos.contains(node.todo)) continue;
 
-        try {
-            while (cursor.moveToNext()) {
-                String todo = cursor.getString(cursor.getColumnIndex(OrgData.TODO));
-                if (todo != null && !activeTodos.contains(todo)) continue;
+            OrgNodePayload nodePayload = new OrgNodePayload(node.getPayload());
 
-                String name = cursor.getString(cursor.getColumnIndex(OrgData.NAME));
-                String payload = cursor.getString(cursor.getColumnIndex(OrgData.PAYLOAD));
-                OrgNodePayload nodePayload = new OrgNodePayload(payload);
-
-                // Check SCHEDULED today
-                String scheduledStr = nodePayload.getScheduled();
-                if (!TextUtils.isEmpty(scheduledStr)) {
-                    Calendar scheduledCal = ReminderScheduler.parseDateToCalendar(scheduledStr);
-                    if (scheduledCal != null) {
-                        long ms = scheduledCal.getTimeInMillis();
-                        if (ms >= todayMs && ms < tomorrowMs) {
-                            scheduledItems.add(name);
-                        }
+            String scheduledStr = nodePayload.getScheduled();
+            if (!TextUtils.isEmpty(scheduledStr)) {
+                Calendar scheduledCal = ReminderScheduler.parseDateToCalendar(scheduledStr);
+                if (scheduledCal != null) {
+                    long ms = scheduledCal.getTimeInMillis();
+                    if (ms >= todayMs && ms < tomorrowMs) {
+                        scheduledItems.add(node.name);
                     }
                 }
+            }
 
-                // Check DEADLINE within advance window
-                String deadlineStr = nodePayload.getDeadline();
-                if (!TextUtils.isEmpty(deadlineStr)) {
-                    Calendar deadlineCal = ReminderScheduler.parseDateToCalendar(deadlineStr);
-                    if (deadlineCal != null) {
-                        long ms = deadlineCal.getTimeInMillis();
-                        if (ms >= todayMs && ms < deadlineWindowMs) {
-                            long daysDiff = (ms - todayMs) / 86400000;
-                            if (daysDiff == 0) {
-                                deadlineItems.add(name);
-                            } else if (daysDiff == 1) {
-                                deadlineItems.add(name + " (明天)");
-                            } else {
-                                deadlineItems.add(name + " (" + daysDiff + "天后)");
-                            }
+            String deadlineStr = nodePayload.getDeadline();
+            if (!TextUtils.isEmpty(deadlineStr)) {
+                Calendar deadlineCal = ReminderScheduler.parseDateToCalendar(deadlineStr);
+                if (deadlineCal != null) {
+                    long ms = deadlineCal.getTimeInMillis();
+                    if (ms >= todayMs && ms < deadlineWindowMs) {
+                        long daysDiff = (ms - todayMs) / 86400000;
+                        if (daysDiff == 0) {
+                            deadlineItems.add(node.name);
+                        } else if (daysDiff == 1) {
+                            deadlineItems.add(node.name + " (明天)");
+                        } else {
+                            deadlineItems.add(node.name + " (" + daysDiff + "天后)");
                         }
                     }
                 }
             }
-        } finally {
-            cursor.close();
         }
 
         NotificationManager nm = (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);

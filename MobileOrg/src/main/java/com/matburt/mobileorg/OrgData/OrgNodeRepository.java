@@ -662,4 +662,46 @@ public class OrgNodeRepository {
         resolver.insert(OrgContract.PomodoroSessions.CONTENT_URI, values);
     }
 
+    /**
+     * Returns all nodes that have DEADLINE or SCHEDULED in their payload.
+     * Each entry is a plist with :id, :todo, :name, :payload.
+     * Used by ReminderScheduler and DailyOverviewReceiver.
+     */
+    public ArrayList<OrgNode> getReminderEligibleNodes() {
+        Cursor cursor = resolver.query(
+            OrgData.CONTENT_URI,
+            OrgData.DEFAULT_COLUMNS,
+            OrgData.PAYLOAD + " LIKE ? OR " + OrgData.PAYLOAD + " LIKE ?",
+            new String[]{"%DEADLINE:%", "%SCHEDULED:%"},
+            null
+        );
+        List<OrgNode> result = new ArrayList<>();
+        if (cursor == null) return result;
+        try {
+            while (cursor.moveToNext()) {
+                OrgNode node = new OrgNode();
+                node.id = cursor.getLong(cursor.getColumnIndexOrThrow(OrgData.ID));
+                node.todo = cursor.getString(cursor.getColumnIndexOrThrow(OrgData.TODO));
+                node.name = cursor.getString(cursor.getColumnIndexOrThrow(OrgData.NAME));
+                node.setPayload(cursor.getString(cursor.getColumnIndexOrThrow(OrgData.PAYLOAD)));
+                result.add(node);
+            }
+        } finally {
+            cursor.close();
+        }
+        return result;
+    }
+
+    /**
+     * Returns tag-filter data for all nodes: id, parentId, tags, tagsInherited.
+     * Used by OutlineTagFilter to build the match/ancestor sets.
+     */
+    public Cursor getTagFilterCursor() {
+        return resolver.query(
+            OrgData.CONTENT_URI,
+            new String[]{OrgData.ID, OrgData.PARENT_ID, OrgData.TAGS, OrgData.TAGS_INHERITED},
+            null, null, null
+        );
+    }
+
 }

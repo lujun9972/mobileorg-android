@@ -2,8 +2,8 @@ package com.matburt.mobileorg.Gui.Outline;
 
 import android.content.ContentResolver;
 import android.database.Cursor;
+import com.matburt.mobileorg.OrgData.OrgNodeRepository;
 
-import com.matburt.mobileorg.OrgData.OrgContract.OrgData;
 
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -75,10 +75,7 @@ public class OutlineTagFilter {
 
         HashMap<Long, Long> parentMap = new HashMap<>();
 
-        Cursor cursor = resolver.query(
-                OrgData.CONTENT_URI,
-                new String[]{OrgData.ID, OrgData.PARENT_ID, OrgData.TAGS, OrgData.TAGS_INHERITED},
-                null, null, null);
+        Cursor cursor = new OrgNodeRepository(resolver).getTagFilterCursor();
 
         if (cursor == null) {
             return;

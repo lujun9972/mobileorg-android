@@ -6,15 +6,15 @@ import android.content.ContentResolver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.database.Cursor;
 import android.net.Uri;
 import android.os.Build;
 import android.preference.PreferenceManager;
 import android.text.TextUtils;
 import android.util.Log;
 
-import com.matburt.mobileorg.OrgData.OrgContract.OrgData;
 import com.matburt.mobileorg.OrgData.OrgNodePayload;
+import com.matburt.mobileorg.OrgData.OrgNode;
+import com.matburt.mobileorg.OrgData.OrgNodeRepository;
 import com.matburt.mobileorg.OrgData.OrgFileRepository;
 
 import java.util.Calendar;
@@ -63,59 +63,41 @@ public class ReminderScheduler {
         long scheduledAdvance = Long.parseLong(
             prefs.getString("key_reminderScheduledAdvance", "0"));
 
-        Cursor cursor = resolver.query(
-            OrgData.CONTENT_URI,
-            OrgData.DEFAULT_COLUMNS,
-            OrgData.PAYLOAD + " LIKE ? OR " + OrgData.PAYLOAD + " LIKE ?",
-            new String[]{"%DEADLINE:%", "%SCHEDULED:%"},
-            null
-        );
-
-        if (cursor == null) return;
+        ArrayList<OrgNode> nodes = new OrgNodeRepository(resolver).getReminderEligibleNodes();
 
         AlarmManager alarmManager = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
         long now = System.currentTimeMillis();
         int registered = 0;
 
-        try {
-            while (cursor.moveToNext()) {
-                String todo = cursor.getString(cursor.getColumnIndex(OrgData.TODO));
-                if (todo != null && !activeTodos.contains(todo)) continue;
+        for (OrgNode node : nodes) {
+            if (node.todo != null && !activeTodos.contains(node.todo)) continue;
 
-                long nodeId = cursor.getLong(cursor.getColumnIndex(OrgData.ID));
-                String payload = cursor.getString(cursor.getColumnIndex(OrgData.PAYLOAD));
-
-                // Process DEADLINE
-                OrgNodePayload nodePayload = new OrgNodePayload(payload);
-                String deadlineStr = nodePayload.getDeadline();
-                if (!TextUtils.isEmpty(deadlineStr)) {
-                    Calendar deadlineCal = parseDateToCalendar(deadlineStr);
-                    if (deadlineCal != null) {
-                        long reminderTime = deadlineCal.getTimeInMillis() - deadlineAdvance;
-                        if (reminderTime > now && (reminderTime - now) <= SEVEN_DAYS_MS) {
-                            registerAlarm(alarmManager, context, nodeId, "deadline",
-                                formatDate(deadlineStr), reminderTime);
-                            registered++;
-                        }
-                    }
-                }
-
-                // Process SCHEDULED
-                String scheduledStr = nodePayload.getScheduled();
-                if (!TextUtils.isEmpty(scheduledStr)) {
-                    Calendar scheduledCal = parseDateToCalendar(scheduledStr);
-                    if (scheduledCal != null) {
-                        long reminderTime = scheduledCal.getTimeInMillis() - scheduledAdvance;
-                        if (reminderTime > now && (reminderTime - now) <= SEVEN_DAYS_MS) {
-                            registerAlarm(alarmManager, context, nodeId, "scheduled",
-                                formatDate(scheduledStr), reminderTime);
-                            registered++;
-                        }
+            OrgNodePayload nodePayload = new OrgNodePayload(node.getPayload());
+            String deadlineStr = nodePayload.getDeadline();
+            if (!TextUtils.isEmpty(deadlineStr)) {
+                Calendar deadlineCal = parseDateToCalendar(deadlineStr);
+                if (deadlineCal != null) {
+                    long reminderTime = deadlineCal.getTimeInMillis() - deadlineAdvance;
+                    if (reminderTime > now && (reminderTime - now) <= SEVEN_DAYS_MS) {
+                        registerAlarm(alarmManager, context, node.id, "deadline",
+                            formatDate(deadlineStr), reminderTime);
+                        registered++;
                     }
                 }
             }
-        } finally {
-            cursor.close();
+
+            String scheduledStr = nodePayload.getScheduled();
+            if (!TextUtils.isEmpty(scheduledStr)) {
+                Calendar scheduledCal = parseDateToCalendar(scheduledStr);
+                if (scheduledCal != null) {
+                    long reminderTime = scheduledCal.getTimeInMillis() - scheduledAdvance;
+                    if (reminderTime > now && (reminderTime - now) <= SEVEN_DAYS_MS) {
+                        registerAlarm(alarmManager, context, node.id, "scheduled",
+                            formatDate(scheduledStr), reminderTime);
+                        registered++;
+                    }
+                }
+            }
         }
         Log.d(TAG, "ReminderScheduler: registered " + registered + " alarms");
 
@@ -125,32 +107,19 @@ public class ReminderScheduler {
     public static void cancelAll(ContentResolver resolver, Context context) {
         AlarmManager alarmManager = (AlarmManager) context.getSystemService(Context.ALARM_SERVICE);
 
-        Cursor cursor = resolver.query(
-            OrgData.CONTENT_URI,
-            new String[]{OrgData.ID, OrgData.PAYLOAD},
-            OrgData.PAYLOAD + " LIKE ? OR " + OrgData.PAYLOAD + " LIKE ?",
-            new String[]{"%DEADLINE:%", "%SCHEDULED:%"},
-            null
-        );
+        ArrayList<OrgNode> nodes = new OrgNodeRepository(resolver).getReminderEligibleNodes();
 
-        if (cursor == null) return;
+        for (OrgNode node : nodes) {
+            String payload = node.getPayload();
+            boolean hasDeadline = payload.contains("DEADLINE:");
+            boolean hasScheduled = payload.contains("SCHEDULED:");
 
-        try {
-            while (cursor.moveToNext()) {
-                long nodeId = cursor.getLong(cursor.getColumnIndex(OrgData.ID));
-                String payload = cursor.getString(cursor.getColumnIndex(OrgData.PAYLOAD));
-                boolean hasDeadline = payload.contains("DEADLINE:");
-                boolean hasScheduled = payload.contains("SCHEDULED:");
-
-                if (hasDeadline) {
-                    cancelAlarm(alarmManager, context, nodeId, "deadline");
-                }
-                if (hasScheduled) {
-                    cancelAlarm(alarmManager, context, nodeId, "scheduled");
-                }
+            if (hasDeadline) {
+                cancelAlarm(alarmManager, context, node.id, "deadline");
             }
-        } finally {
-            cursor.close();
+            if (hasScheduled) {
+                cancelAlarm(alarmManager, context, node.id, "scheduled");
+            }
         }
     }
 

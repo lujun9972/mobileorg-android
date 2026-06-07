@@ -17,6 +17,7 @@ import com.matburt.mobileorg.OrgData.OrgContract.OrgData;
 import com.matburt.mobileorg.test.util.OrgTestUtils;
 import com.matburt.mobileorg.util.OrgFileNotFoundException;
 import com.matburt.mobileorg.util.OrgNodeNotFoundException;
+import com.matburt.mobileorg.OrgData.OrgFileRepository;
 
 import org.junit.After;
 import org.junit.Before;
@@ -120,7 +121,7 @@ public class OrgNodeTest extends ProviderTestCase2<OrgProvider> {
 	@Test
 	public void testGetParentFileNode() throws OrgNodeNotFoundException {
 		OrgFile file = OrgTestUtils.getDefaultOrgFile();
-		file.write(resolver);
+		new OrgFileRepository(resolver).write(file);
 		OrgNode node = OrgTestUtils.getDefaultOrgNode();
 		node.parentId = file.nodeId;
 		repo.write(node);
@@ -132,7 +133,7 @@ public class OrgNodeTest extends ProviderTestCase2<OrgProvider> {
 	@Test
 	public void testGetParentWithTopLevel() throws OrgNodeNotFoundException {
 		OrgFile file = OrgTestUtils.getDefaultOrgFile();
-		file.write(resolver);
+		new OrgFileRepository(resolver).write(file);
 
 		OrgNode node = repo.getById(file.nodeId);
 

@@ -141,7 +141,7 @@ public class SynchronizerTest extends ProviderTestCase2<OrgProvider> {
 	public void testPushWithCaptures() throws SSLHandshakeException, CertificateException, IOException, Exception {
 		synchronizerStub.addFile(FileUtils.CAPTURE_FILE, "");
 		OrgFile file = new OrgFile(FileUtils.CAPTURE_FILE, FileUtils.CAPTURE_FILE, "");
-		file.write(resolver);
+		new OrgFileRepository(resolver).write(file);
 
 		OrgNode node = new OrgNode();
 		repo.setFilename(node, FileUtils.CAPTURE_FILE);
@@ -156,7 +156,7 @@ public class SynchronizerTest extends ProviderTestCase2<OrgProvider> {
 	public void testPushWithCapturesAndEdits() throws SSLHandshakeException, CertificateException, IOException, Exception {
 		synchronizerStub.addFile(FileUtils.CAPTURE_FILE, "");
 		OrgFile file = new OrgFile(FileUtils.CAPTURE_FILE, FileUtils.CAPTURE_FILE, "");
-		file.write(resolver);
+		new OrgFileRepository(resolver).write(file);
 
 		OrgNode node = new OrgNode();
 		repo.setFilename(node, FileUtils.CAPTURE_FILE);
@@ -174,7 +174,7 @@ public class SynchronizerTest extends ProviderTestCase2<OrgProvider> {
 	public void testPullRemovesRemoteDeletedFiles() throws Exception {
 		// Step 1: Simulate a previously synced archive.org in local DB
 		OrgFile archiveFile = new OrgFile("archive.org", "Archive", "old_checksum");
-		archiveFile.write(resolver);
+		new OrgFileRepository(resolver).write(archiveFile);
 
 		HashMap<String, String> localBefore = new OrgFileRepository(resolver).getFileChecksums();
 		assertTrue("archive.org should be in local DB before sync", localBefore.containsKey("archive.org"));
@@ -203,7 +203,7 @@ public class SynchronizerTest extends ProviderTestCase2<OrgProvider> {
 	public void testPullDoesNotRemoveCaptureFile() throws Exception {
 		// Capture file should never be removed even if not in remote index
 		OrgFile captureFile = new OrgFile(FileUtils.CAPTURE_FILE, "Captures", "cap_checksum");
-		captureFile.write(resolver);
+		new OrgFileRepository(resolver).write(captureFile);
 
 		String indexEmpty = "#+READONLY\n#+TODO: TODO | DONE\n#+TAGS:\n#+ALLPRIORITIES:\n";
 		String checksumsEmpty = "abc123  index.org\n";
@@ -220,7 +220,7 @@ public class SynchronizerTest extends ProviderTestCase2<OrgProvider> {
 	public void testPullDoesNotRemoveAgendaFile() throws Exception {
 		// Agenda file should never be removed even if not in remote index
 		OrgFile agendaFile = new OrgFile(OrgFile.AGENDA_FILE, OrgFile.AGENDA_FILE_ALIAS, "agenda_checksum");
-		agendaFile.write(resolver);
+		new OrgFileRepository(resolver).write(agendaFile);
 
 		String indexEmpty = "#+READONLY\n#+TODO: TODO | DONE\n#+TAGS:\n#+ALLPRIORITIES:\n";
 		String checksumsEmpty = "abc123  index.org\n";
@@ -237,7 +237,7 @@ public class SynchronizerTest extends ProviderTestCase2<OrgProvider> {
 	public void testPullDoesNotReDownloadDeletedFile() throws Exception {
 		// File in checksums.dat but NOT in index.org should not be downloaded
 		OrgFile archiveFile = new OrgFile("books.org_archive", "Archive", "old_checksum");
-		archiveFile.write(resolver);
+		new OrgFileRepository(resolver).write(archiveFile);
 
 		String indexWithoutArchive = "#+READONLY\n"
 				+ "#+TODO: TODO | DONE\n"

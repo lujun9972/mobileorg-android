@@ -15,6 +15,7 @@ import com.matburt.mobileorg.OrgData.OrgContract.Edits;
 import com.matburt.mobileorg.OrgData.OrgContract.Files;
 import com.matburt.mobileorg.OrgData.OrgContract.OrgData;
 import com.matburt.mobileorg.util.OrgRenderer;
+import com.matburt.mobileorg.OrgData.OrgFileRepository;
 
 import org.junit.After;
 import org.junit.Before;
@@ -70,7 +71,7 @@ public class OrgRendererTest extends ProviderTestCase2<OrgProvider> {
 
     private OrgNode createTestNode(String payload) throws Exception {
         OrgFile file = new OrgFile("test.org", "Test", "checksum");
-        file.write(resolver);
+        new OrgFileRepository(resolver).write(file);
 
         OrgNode node = new OrgNode();
         repo.setFilename(node, "test.org");

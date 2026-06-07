@@ -20,7 +20,7 @@ import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
 
 import com.matburt.mobileorg.OrgData.OrgNodeRepository;
-import com.matburt.mobileorg.OrgData.OrgProviderUtils;
+import com.matburt.mobileorg.OrgData.OrgFileRepository;
 import com.matburt.mobileorg.R;
 import com.matburt.mobileorg.Services.CalendarSyncService;
 import com.matburt.mobileorg.Services.CalendarWrapper;
@@ -240,7 +240,7 @@ public class SettingsActivity extends PreferenceActivity implements
 		ListPreference defaultTodo = (ListPreference) findPreference(KEY_DEFAULT_TODO);
 		if (defaultTodo == null) return;
 
-		ArrayList<String> todoList = OrgProviderUtils.getTodos(getContentResolver());;
+		ArrayList<String> todoList = new OrgFileRepository(getContentResolver()).getTodos();;
 
 		CharSequence[] todos = new CharSequence[todoList.size() + 1];
 		int i = 0;

@@ -29,9 +29,11 @@ import com.matburt.mobileorg.util.OrgNodeNotFoundException;
 public class OrgNodeRepository {
 
     private final ContentResolver resolver;
+    private final OrgFileRepository fileRepo;
 
     public OrgNodeRepository(ContentResolver resolver) {
         this.resolver = resolver;
+        this.fileRepo = new OrgFileRepository(resolver);
     }
 
     // =====================================================================
@@ -220,7 +222,7 @@ public class OrgNodeRepository {
         } else
             throw new IllegalArgumentException("Olp path " + olpPath + " is not valid");
 
-        OrgFile file = new OrgFile(filename, resolver);
+        OrgFile file = fileRepo.getByFilename(filename);
         OrgNode node = getById(file.nodeId);
 
         for (String nodeName : nodes)
@@ -244,7 +246,7 @@ public class OrgNodeRepository {
         if (!nodeIdStr.startsWith("olp:")) {
             String nodeIdQuery = OrgData.PAYLOAD + " LIKE '%" + nodeIdStr + "%'";
             try {
-                OrgFile agendaFile = new OrgFile(OrgFile.AGENDA_FILE, resolver);
+                OrgFile agendaFile = fileRepo.getByFilename(OrgFile.AGENDA_FILE);
                 if (agendaFile != null)
                     nodeIdQuery += " AND NOT " + OrgData.FILE_ID + "=" + agendaFile.nodeId;
             } catch (OrgFileNotFoundException e) {
@@ -271,7 +273,7 @@ public class OrgNodeRepository {
 
     public String getFilename(OrgNode node) {
         try {
-            OrgFile file = new OrgFile(node.fileId, resolver);
+            OrgFile file = fileRepo.getById(node.fileId);
             return file.filename;
         } catch (OrgFileNotFoundException e) {
             return "";
@@ -279,17 +281,17 @@ public class OrgNodeRepository {
     }
 
     public OrgFile getOrgFile(OrgNode node) throws OrgFileNotFoundException {
-        return new OrgFile(node.fileId, resolver);
+        return fileRepo.getById(node.fileId);
     }
 
     public void setFilename(OrgNode node, String filename) throws OrgFileNotFoundException {
-        OrgFile file = new OrgFile(filename, resolver);
+        OrgFile file = fileRepo.getByFilename(filename);
         node.fileId = file.nodeId;
     }
 
     public boolean isFilenode(OrgNode node) {
         try {
-            OrgFile file = new OrgFile(node.fileId, resolver);
+            OrgFile file = fileRepo.getById(node.fileId);
             return file.nodeId == node.id;
         } catch (OrgFileNotFoundException e) {
             return false;
@@ -304,7 +306,7 @@ public class OrgNodeRepository {
             return false;
 
         try {
-            OrgFile agendaFile = new OrgFile(OrgFile.AGENDA_FILE, resolver);
+            OrgFile agendaFile = fileRepo.getByFilename(OrgFile.AGENDA_FILE);
             if (agendaFile != null && agendaFile.nodeId == node.parentId)
                 return false;
 
@@ -322,7 +324,7 @@ public class OrgNodeRepository {
             return false;
 
         try {
-            OrgFile agendaFile = new OrgFile(OrgFile.AGENDA_FILE, resolver);
+            OrgFile agendaFile = fileRepo.getByFilename(OrgFile.AGENDA_FILE);
             if (agendaFile != null && agendaFile.id == node.fileId)
                 return false;
         } catch (OrgFileNotFoundException e) {
@@ -392,7 +394,7 @@ public class OrgNodeRepository {
 
         boolean generateEdit = true;
         try {
-            OrgFile file = new OrgFile(parent.fileId, resolver);
+            OrgFile file = fileRepo.getById(parent.fileId);
             generateEdit = file.generateEditsForFile();
         } catch (OrgFileNotFoundException e) {
         }
@@ -418,7 +420,7 @@ public class OrgNodeRepository {
             try {
                 return getOrgNodeFromOlpPath(olpPath);
             } catch (Exception ex) {
-                OrgFile captureFile = OrgProviderUtils.getOrCreateCaptureFile(resolver);
+                OrgFile captureFile = fileRepo.getOrCreateCaptureFile();
                 try {
                     return getById(captureFile.nodeId);
                 } catch (OrgNodeNotFoundException e2) {
@@ -524,7 +526,7 @@ public class OrgNodeRepository {
     // =====================================================================
 
     public OrgNode getOrgNodeFromFilename(String filename) throws OrgFileNotFoundException {
-        OrgFile file = new OrgFile(filename, resolver);
+        OrgFile file = fileRepo.getByFilename(filename);
         try {
             return getById(file.nodeId);
         } catch (OrgNodeNotFoundException e) {
@@ -610,7 +612,7 @@ public class OrgNodeRepository {
         if (filename.indexOf(":") > -1)
             filename = filename.substring(0, filename.indexOf(":"));
 
-        OrgFile file = new OrgFile(filename, resolver);
+        OrgFile file = fileRepo.getByFilename(filename);
         return file.nodeId;
     }
 
@@ -619,7 +621,7 @@ public class OrgNodeRepository {
      */
     public long getNodeByHeading(String filename, String heading)
             throws OrgNodeNotFoundException, OrgFileNotFoundException {
-        OrgFile file = new OrgFile(filename, resolver);
+        OrgFile file = fileRepo.getByFilename(filename);
         Cursor cursor = resolver.query(OrgData.CONTENT_URI, OrgData.DEFAULT_COLUMNS,
                 OrgData.FILE_ID + "=? AND " + OrgData.NAME + "=?",
                 new String[] { String.valueOf(file.nodeId), heading }, null);
@@ -650,6 +652,14 @@ public class OrgNodeRepository {
             if (cursor != null) cursor.close();
         }
         throw new OrgNodeNotFoundException("Node with ID \"" + id + "\" not found");
+    }
+
+    public void recordPomodoroSession(long startedAt, int durationMin) {
+        ContentValues values = new ContentValues();
+        values.put(OrgContract.PomodoroSessions.STARTED_AT, startedAt);
+        values.put(OrgContract.PomodoroSessions.DURATION_MIN, durationMin);
+        values.put(OrgContract.PomodoroSessions.COMPLETED_AT, System.currentTimeMillis());
+        resolver.insert(OrgContract.PomodoroSessions.CONTENT_URI, values);
     }
 
 }

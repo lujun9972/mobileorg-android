@@ -23,6 +23,7 @@ import com.matburt.mobileorg.OrgData.OrgContract.OrgData;
 import com.matburt.mobileorg.Synchronizers.Synchronizer;
 import com.matburt.mobileorg.util.FileUtils;
 import com.matburt.mobileorg.test.util.OrgTestFiles.SimpleOrgFiles;
+import com.matburt.mobileorg.OrgData.OrgFileRepository;
 
 import org.junit.After;
 import org.junit.Before;
@@ -33,7 +34,6 @@ import androidx.test.ext.junit.runners.AndroidJUnit4;
 
 import java.util.HashMap;
 
-import com.matburt.mobileorg.OrgData.OrgProviderUtils;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertFalse;
@@ -176,7 +176,7 @@ public class SynchronizerTest extends ProviderTestCase2<OrgProvider> {
 		OrgFile archiveFile = new OrgFile("archive.org", "Archive", "old_checksum");
 		archiveFile.write(resolver);
 
-		HashMap<String, String> localBefore = OrgProviderUtils.getFileChecksums(resolver);
+		HashMap<String, String> localBefore = new OrgFileRepository(resolver).getFileChecksums();
 		assertTrue("archive.org should be in local DB before sync", localBefore.containsKey("archive.org"));
 
 		// Step 2: Sync with remote that no longer has archive.org
@@ -194,7 +194,7 @@ public class SynchronizerTest extends ProviderTestCase2<OrgProvider> {
 		synchronizer.pull(parserStub);
 
 		// Step 3: Verify archive.org was removed from local DB
-		HashMap<String, String> localAfter = OrgProviderUtils.getFileChecksums(resolver);
+		HashMap<String, String> localAfter = new OrgFileRepository(resolver).getFileChecksums();
 		assertFalse("archive.org should be removed from local DB after sync",
 				localAfter.containsKey("archive.org"));
 	}
@@ -212,7 +212,7 @@ public class SynchronizerTest extends ProviderTestCase2<OrgProvider> {
 
 		synchronizer.pull(parserStub);
 
-		HashMap<String, String> localAfter = OrgProviderUtils.getFileChecksums(resolver);
+		HashMap<String, String> localAfter = new OrgFileRepository(resolver).getFileChecksums();
 		assertTrue("capture file should NOT be removed", localAfter.containsKey(FileUtils.CAPTURE_FILE));
 	}
 
@@ -229,7 +229,7 @@ public class SynchronizerTest extends ProviderTestCase2<OrgProvider> {
 
 		synchronizer.pull(parserStub);
 
-		HashMap<String, String> localAfter = OrgProviderUtils.getFileChecksums(resolver);
+		HashMap<String, String> localAfter = new OrgFileRepository(resolver).getFileChecksums();
 		assertTrue("agenda file should NOT be removed", localAfter.containsKey(OrgFile.AGENDA_FILE));
 	}
 
@@ -256,7 +256,7 @@ public class SynchronizerTest extends ProviderTestCase2<OrgProvider> {
 		synchronizer.pull(parserStub);
 
 		// archive file should be removed despite being in checksums.dat
-		HashMap<String, String> localAfter = OrgProviderUtils.getFileChecksums(resolver);
+		HashMap<String, String> localAfter = new OrgFileRepository(resolver).getFileChecksums();
 		assertFalse("books.org_archive should be removed even if in checksums.dat",
 				localAfter.containsKey("books.org_archive"));
 		assertFalse("books.org_archive should not be downloaded",

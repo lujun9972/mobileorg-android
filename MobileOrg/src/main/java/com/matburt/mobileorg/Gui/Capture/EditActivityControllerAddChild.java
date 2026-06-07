@@ -8,7 +8,7 @@ import android.util.Log;
 import com.matburt.mobileorg.OrgData.OrgEdit;
 import com.matburt.mobileorg.OrgData.OrgNode;
 import com.matburt.mobileorg.OrgData.OrgNodeRepository;
-import com.matburt.mobileorg.OrgData.OrgProviderUtils;
+import com.matburt.mobileorg.OrgData.OrgFileRepository;
 import com.matburt.mobileorg.util.OrgNodeNotFoundException;
 
 public class EditActivityControllerAddChild extends EditActivityController {
@@ -46,8 +46,8 @@ public class EditActivityControllerAddChild extends EditActivityController {
 			}
 		}
 		else
-			this.node.parentId = OrgProviderUtils
-					.getOrCreateCaptureFile(resolver).nodeId;
+			this.node.parentId = new OrgFileRepository(
+					resolver).getOrCreateCaptureFile().nodeId;
 	}
 
 	private String getTodo(OrgNode parent) {

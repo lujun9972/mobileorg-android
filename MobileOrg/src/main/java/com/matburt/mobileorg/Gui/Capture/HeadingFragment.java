@@ -12,7 +12,7 @@ import android.widget.Spinner;
 import androidx.fragment.app.Fragment;
 import com.matburt.mobileorg.R;
 import com.matburt.mobileorg.OrgData.OrgNode;
-import com.matburt.mobileorg.OrgData.OrgProviderUtils;
+import com.matburt.mobileorg.OrgData.OrgFileRepository;
 import com.matburt.mobileorg.util.OrgUtils;
 
 public class HeadingFragment extends Fragment {
@@ -94,9 +94,9 @@ public class HeadingFragment extends Fragment {
 		titleView.setText(title);
 		titleView.setSelection(title.length());
 		
-		OrgUtils.setupSpinnerWithEmpty(todoStateView, OrgProviderUtils.getTodos(resolver),
+		OrgUtils.setupSpinnerWithEmpty(todoStateView, new OrgFileRepository(resolver).getTodos(),
 				todo);
-		OrgUtils.setupSpinnerWithEmpty(priorityView, OrgProviderUtils.getPriorities(resolver),
+		OrgUtils.setupSpinnerWithEmpty(priorityView, new OrgFileRepository(resolver).getPriorities(),
 				priority);
 	}
 	

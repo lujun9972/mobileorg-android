@@ -17,7 +17,7 @@ import com.matburt.mobileorg.OrgData.MobileOrgApplication;
 import com.matburt.mobileorg.OrgData.OrgEdit;
 import com.matburt.mobileorg.OrgData.OrgFile;
 import com.matburt.mobileorg.OrgData.OrgFileParser;
-import com.matburt.mobileorg.OrgData.OrgProviderUtils;
+import com.matburt.mobileorg.OrgData.OrgFileRepository;
 import com.matburt.mobileorg.R;
 import com.matburt.mobileorg.util.FileUtils;
 import com.matburt.mobileorg.util.OrgFileNotFoundException;
@@ -137,8 +137,8 @@ public class Synchronizer {
 		String localContents = "";
 
 		try {
-			OrgFile file = new OrgFile(filename, resolver);
-			localContents += file.toString(resolver);
+			OrgFile file = new OrgFileRepository(resolver).getByFilename(filename);
+			localContents += new OrgFileRepository(resolver).nodesToString(file);
 		} catch (OrgFileNotFoundException e) {}
 
 		localContents += OrgEdit.editsToString(resolver);
@@ -153,7 +153,8 @@ public class Synchronizer {
 		syncher.putRemoteFile(filename, localContents);
 
 		try {
-			new OrgFile(filename, resolver).removeFile(resolver);
+			OrgFileRepository fileRepo = new OrgFileRepository(resolver);
+			fileRepo.removeFile(fileRepo.getByFilename(filename));
 		} catch (OrgFileNotFoundException e) {}
 
 		resolver.delete(Edits.CONTENT_URI, null, null);
@@ -172,7 +173,7 @@ public class Synchronizer {
 		Log.i("MobileOrg", "Sync: remoteChecksums count=" + remoteChecksums.size()
 				+ ", entries=" + remoteChecksums.keySet());
 
-		HashMap<String, String> localChecksums = OrgProviderUtils.getFileChecksums(resolver);
+		HashMap<String, String> localChecksums = new OrgFileRepository(resolver).getFileChecksums();
 			ArrayList<String> changedFiles = getFilesThatChangedRemotely(remoteChecksums, localChecksums);
 		syncDiag += "changed: " + changedFiles.size() + " files" +
 				(changedFiles.isEmpty() ? "" : " " + changedFiles) + "\n";
@@ -229,13 +230,12 @@ public class Synchronizer {
 		syncDiag += "index.org: " + remoteIndexContents.length() + " chars\n";
 		Log.i("MobileOrg", "Sync: index.org length=" + remoteIndexContents.length()
 				+ ", preview=" + remoteIndexContents.substring(0, Math.min(200, remoteIndexContents.length())));
-		OrgProviderUtils.setTodos(
-				OrgFileParser.getTodosFromIndex(remoteIndexContents), resolver);
-		OrgProviderUtils.setPriorities(
-				OrgFileParser.getPrioritiesFromIndex(remoteIndexContents),
-				resolver);
-		OrgProviderUtils.setTags(
-				OrgFileParser.getTagsFromIndex(remoteIndexContents), resolver);
+		new OrgFileRepository(resolver).setTodos(
+				OrgFileParser.getTodosFromIndex(remoteIndexContents));
+		new OrgFileRepository(resolver).setPriorities(
+				OrgFileParser.getPrioritiesFromIndex(remoteIndexContents));
+		new OrgFileRepository(resolver).setTags(
+				OrgFileParser.getTagsFromIndex(remoteIndexContents));
 		HashMap<String, String> filenameMap = OrgFileParser
 				.getFilesFromIndex(remoteIndexContents);
 		return filenameMap;
@@ -284,7 +284,8 @@ public class Synchronizer {
 				Log.i("MobileOrg", "Sync: removing locally deleted remote file: " + localFile);
 				syncDiag += "removed: " + localFile + "\n";
 				try {
-					new OrgFile(localFile, resolver).removeFile(resolver);
+					OrgFileRepository fileRepo = new OrgFileRepository(resolver);
+					fileRepo.removeFile(fileRepo.getByFilename(localFile));
 				} catch (OrgFileNotFoundException e) {
 					// already gone
 				}
@@ -300,7 +301,8 @@ public class Synchronizer {
 		// TODO Generate checksum of file and compare to remoteChecksum
 
 		try {
-			new OrgFile(orgFile.filename, resolver).removeFile(resolver);
+			OrgFileRepository fileRepo = new OrgFileRepository(resolver);
+			fileRepo.removeFile(fileRepo.getByFilename(orgFile.filename));
 		} catch (OrgFileNotFoundException e) { /* file did not exist */ }
 
 		if (orgFile.isEncrypted())

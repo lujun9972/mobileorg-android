@@ -28,7 +28,7 @@ import com.matburt.mobileorg.Gui.Theme.DefaultTheme;
 import com.matburt.mobileorg.OrgData.OrgFileParser;
 import com.matburt.mobileorg.OrgData.OrgNode;
 import com.matburt.mobileorg.OrgData.OrgNodeRepository;
-import com.matburt.mobileorg.OrgData.OrgProviderUtils;
+import com.matburt.mobileorg.OrgData.OrgFileRepository;
 import com.matburt.mobileorg.Synchronizers.Synchronizer;
 import com.matburt.mobileorg.util.OrgNodeNotFoundException;
 import com.matburt.mobileorg.util.OrgUtils;
@@ -67,8 +67,8 @@ public class OutlineItem extends RelativeLayout implements Checkable {
 		ArrayList<String> todos = PreferenceUtils.getSelectedTodos();
 		
 		if (todos.size() == 0)
-			todos = OrgProviderUtils.getTodos(getContext()
-					.getContentResolver());
+			todos = new OrgFileRepository(getContext()
+					.getContentResolver()).getTodos();
 			
 		final ArrayList<String> todoList = todos;
 		AlertDialog.Builder builder = new AlertDialog.Builder(getContext());
@@ -154,7 +154,7 @@ public class OutlineItem extends RelativeLayout implements Checkable {
 		if(!TextUtils.isEmpty(todo)) {
 			Spannable todoSpan = new SpannableString(todo + " ");
 			
-			boolean active = OrgProviderUtils.isTodoActive(todo, resolver);
+			boolean active = new OrgFileRepository(resolver).isTodoActive(todo);
 			
 			todoSpan.setSpan(new ForegroundColorSpan(active ? theme.c1Red : theme.caLGreen), 0,
 					todo.length(), 0);

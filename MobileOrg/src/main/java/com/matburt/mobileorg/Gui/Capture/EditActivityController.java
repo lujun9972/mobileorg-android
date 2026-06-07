@@ -10,7 +10,6 @@ import com.matburt.mobileorg.OrgData.OrgFile;
 import com.matburt.mobileorg.OrgData.OrgNode;
 import com.matburt.mobileorg.OrgData.OrgNodePayload;
 import com.matburt.mobileorg.OrgData.OrgNodeRepository;
-import com.matburt.mobileorg.OrgData.OrgProviderUtils;
 
 public abstract class EditActivityController {
 	public final static String NODE_ID = "node_id";
@@ -34,8 +33,8 @@ public abstract class EditActivityController {
 		
 		if (!TextUtils.isEmpty(olpLocation)) {
 			try {
-				OrgNode parentNode = OrgProviderUtils.getOrgNodeFromOlpPath(
-						olpLocation, resolver);
+				OrgNode parentNode = new OrgNodeRepository(resolver).getOrgNodeFromOlpPath(
+						olpLocation);
 				node_id = parentNode.id;
 			} catch (Exception e) {
 				Log.w("MobileOrg", "Failed to resolve OLP location: " + olpLocation, e);

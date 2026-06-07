@@ -10,8 +10,8 @@ import com.matburt.mobileorg.OrgData.OrgContract.OrgData;
 import com.matburt.mobileorg.OrgData.OrgFile;
 import com.matburt.mobileorg.OrgData.OrgNode;
 import com.matburt.mobileorg.OrgData.OrgNodeRepository;
-import com.matburt.mobileorg.OrgData.OrgProviderUtils;
 import com.matburt.mobileorg.test.util.OrgTestUtils;
+import com.matburt.mobileorg.OrgData.OrgFileRepository;
 
 import org.junit.After;
 import org.junit.Before;
@@ -82,15 +82,16 @@ public class LocationFragmentTest {
 		prepareActivityWithNode(node, EditActivityController.ACTIONMODE_CREATE);
 		OrgNode locationNode = locationFragment.getLocationSelection();
 
-		OrgNode captureFile = OrgProviderUtils.getOrCreateCaptureFile(resolver).getOrgNode(resolver);
-		assertEquals(captureFile.fileId, locationNode.fileId);
-		assertEquals(captureFile.id, locationNode.id);
+		OrgFile captureFile = new OrgFileRepository(resolver).getOrCreateCaptureFile();
+		OrgNode captureFileNode = new OrgFileRepository(resolver).getOrgNode(captureFile);
+		assertEquals(captureFileNode.fileId, locationNode.fileId);
+		assertEquals(captureFileNode.id, locationNode.id);
 	}
 
 	@Test
 	public void test_Addchild_ToplevelFile() {
-		OrgFile file = OrgProviderUtils.getOrCreateFile("test file.org", "delete me", resolver);
-		OrgNode fileNode = file.getOrgNode(resolver);
+		OrgFile file = new OrgFileRepository(resolver).getOrCreateFile("test file.org", "delete me");
+		OrgNode fileNode = new OrgFileRepository(resolver).getOrgNode(file);
 
 		prepareActivityWithNode(fileNode, EditActivityController.ACTIONMODE_ADDCHILD);
 		OrgNode locationNode = locationFragment.getLocationSelection();
@@ -102,7 +103,8 @@ public class LocationFragmentTest {
 
 	@Test
 	public void test_Addchild_ToplevelFileWithAddChild() {
-		OrgNode fileNode = OrgProviderUtils.getOrCreateCaptureFile(resolver).getOrgNode(resolver);
+		OrgFile captureFile = new OrgFileRepository(resolver).getOrCreateCaptureFile();
+		OrgNode fileNode = new OrgFileRepository(resolver).getOrgNode(captureFile);
 
 		prepareActivityWithNode(fileNode, EditActivityController.ACTIONMODE_ADDCHILD);
 

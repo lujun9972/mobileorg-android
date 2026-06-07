@@ -13,11 +13,11 @@ import android.database.sqlite.SQLiteDatabase;
 import com.matburt.mobileorg.OrgData.OrgContract.OrgData;
 import com.matburt.mobileorg.OrgData.OrgDatabase.Tables;
 import com.matburt.mobileorg.OrgData.OrgFile;
-import com.matburt.mobileorg.OrgData.OrgProviderUtils;
 import com.matburt.mobileorg.OrgData.OrgNode;
 import com.matburt.mobileorg.OrgData.OrgNodeRepository;
 import com.matburt.mobileorg.OrgData.OrgNodeDate;
 import com.matburt.mobileorg.OrgData.OrgNodePayload;
+import com.matburt.mobileorg.OrgData.OrgFileRepository;
 import com.matburt.mobileorg.util.OrgFileNotFoundException;
 import com.matburt.mobileorg.util.OrgNodeNotFoundException;
 import com.matburt.mobileorg.util.SelectionBuilder;
@@ -95,7 +95,7 @@ public class OrgQueryBuilder implements Serializable {
 					try {
 						OrgNode node = new OrgNodeRepository(resolver).getById(id);
 
-						if ((OrgProviderUtils.isTodoActive(node.todo, resolver)
+						if ((new OrgFileRepository(resolver).isTodoActive(node.todo)
 						     && (hasDate(node, start, end, warn)
 						         || (node.isHabit()
 						             && hasDate(node, start, next, next))))
@@ -226,8 +226,8 @@ public class OrgQueryBuilder implements Serializable {
 		getFileSelection(builder, context);
 		
 		if (activeTodos)
-			builder.where(getSelection(OrgProviderUtils.getActiveTodos(context
-					.getContentResolver()), OrgData.TODO));
+			builder.where(getSelection(new OrgFileRepository(context
+					.getContentResolver()).getActiveTodos(), OrgData.TODO));
 		
 		if(todos != null && todos.size() > 0)
 			builder.where(getSelection(todos, OrgData.TODO));
@@ -296,7 +296,7 @@ public class OrgQueryBuilder implements Serializable {
 	
 	private long getFileId(String filename, ContentResolver resolver) {
 		try {
-			OrgFile agendaFile = new OrgFile(filename, resolver);
+			OrgFile agendaFile = new OrgFileRepository(resolver).getByFilename(filename);
 			return agendaFile.id;
 		} catch (OrgFileNotFoundException e) { return -1;}
 	}

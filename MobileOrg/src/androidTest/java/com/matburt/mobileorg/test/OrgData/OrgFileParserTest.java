@@ -19,7 +19,6 @@ import com.matburt.mobileorg.OrgData.OrgFile;
 import com.matburt.mobileorg.OrgData.OrgFileParser;
 import com.matburt.mobileorg.OrgData.OrgNode;
 import com.matburt.mobileorg.OrgData.OrgProvider;
-import com.matburt.mobileorg.OrgData.OrgProviderUtils;
 import com.matburt.mobileorg.test.util.OrgTestFiles;
 import com.matburt.mobileorg.test.util.OrgTestFiles.OrgFileWithEmphasisedNode;
 import com.matburt.mobileorg.test.util.OrgTestFiles.OrgFileWithStarNewlineNode;
@@ -27,6 +26,7 @@ import com.matburt.mobileorg.test.util.OrgTestFiles.OrgIndexWithFileDirectorySpa
 import com.matburt.mobileorg.test.util.OrgTestFiles.SimpleOrgFiles;
 import com.matburt.mobileorg.test.util.OrgTestUtils;
 import com.matburt.mobileorg.util.OrgNodeNotFoundException;
+import com.matburt.mobileorg.OrgData.OrgFileRepository;
 
 import org.junit.After;
 import org.junit.Before;
@@ -103,7 +103,7 @@ public class OrgFileParserTest extends ProviderTestCase2<OrgProvider> {
 		BufferedReader breader = new BufferedReader(new InputStreamReader(is));
 		final String name = "file alias";
 		OrgFile orgFile = new OrgFile("GTD.org", name, "");
-		OrgProviderUtils.setTodos(OrgTestUtils.getTodos(), resolver);
+		new OrgFileRepository(resolver).setTodos(OrgTestUtils.getTodos());
 		parser.parse(orgFile, breader);
 
 		Cursor cursor = resolver.query(OrgData.CONTENT_URI, OrgData.DEFAULT_COLUMNS, OrgData.NAME + "=?",

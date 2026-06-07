@@ -16,6 +16,8 @@ import android.util.Log;
 import android.util.Pair;
 
 import com.matburt.mobileorg.OrgData.OrgContract.OrgData;
+import com.matburt.mobileorg.OrgData.OrgFileRepository;
+import com.matburt.mobileorg.OrgData.OrgNodeRepository;
 import com.matburt.mobileorg.util.OrgFileNotFoundException;
 import com.matburt.mobileorg.util.PreferenceUtils;
 
@@ -38,8 +40,8 @@ public class OrgFileParser {
 	}
 
 	private void init(OrgFile orgFile) {
-		orgFile.removeFile(resolver);
-		orgFile.addFile(resolver);
+		new OrgFileRepository(resolver).removeFile(orgFile);
+		new OrgFileRepository(resolver).addFile(orgFile);
 		this.orgFile = orgFile;
 
 		this.parseStack = new ParseStack();
@@ -48,7 +50,7 @@ public class OrgFileParser {
 		this.payload = new StringBuilder();
 		
 		this.orgNodeParser = new OrgNodeParser(
-				OrgProviderUtils.getTodos(resolver));
+				new OrgFileRepository(resolver).getTodos());
 	}
 	
 	public void parse(OrgFile orgFile, BufferedReader breader, Context context) {
@@ -174,8 +176,8 @@ public class OrgFileParser {
 	
 	public static final String BLOCK_SEPARATOR_PREFIX = "#HEAD#";	
 	private void combineBlockAgendas() throws OrgFileNotFoundException {		
-		OrgNode agendaFile = OrgProviderUtils.getOrgNodeFromFilename(
-				OrgFile.AGENDA_FILE, resolver);
+		OrgNode agendaFile = new OrgNodeRepository(resolver).getOrgNodeFromFilename(
+				OrgFile.AGENDA_FILE);
 		
 		String previousAgendaBlockTitle = "";
 		OrgNode previousBlockNode = null;

@@ -22,7 +22,7 @@ import com.matburt.mobileorg.OrgData.OrgNode;
 import com.matburt.mobileorg.OrgData.OrgNodeRepository;
 import com.matburt.mobileorg.OrgData.OrgNodeDate;
 import com.matburt.mobileorg.OrgData.OrgNodePayload;
-import com.matburt.mobileorg.OrgData.OrgProviderUtils;
+import com.matburt.mobileorg.OrgData.OrgFileRepository;
 import com.matburt.mobileorg.Synchronizers.Synchronizer;
 import com.matburt.mobileorg.util.MultiMap;
 import com.matburt.mobileorg.util.OrgFileNotFoundException;
@@ -127,7 +127,7 @@ public class CalendarSyncService extends Service implements
 	}
 
 	private void syncFiles() {
-		ArrayList<String> files = OrgProviderUtils.getFilenames(resolver);
+		ArrayList<String> files = new OrgFileRepository(resolver).getFilenames();
 		files.remove(OrgFile.AGENDA_FILE);
 		for (String filename : files)
 			syncFile(filename);
@@ -153,8 +153,8 @@ public class CalendarSyncService extends Service implements
 
 		Cursor scheduledQuery;
 		try {
-			scheduledQuery = OrgProviderUtils.getFileSchedule(filename,
-					this.showHabits, resolver);
+			scheduledQuery = new OrgFileRepository(resolver).getFileSchedule(
+				filename, this.showHabits);
 		} catch (OrgFileNotFoundException e) {
 			return;
 		}
@@ -254,8 +254,8 @@ public class CalendarSyncService extends Service implements
 			CalendarEntry entry = entriesParser.getEntryFromCursor(query);
 			OrgNode node = entry.convertToOrgNode();
 			
-			OrgFile captureFile = OrgProviderUtils
-					.getOrCreateCaptureFile(getContentResolver());
+			OrgFile captureFile = new OrgFileRepository(
+					getContentResolver()).getOrCreateCaptureFile();
 			node.fileId = captureFile.id;
 			node.parentId = captureFile.nodeId;
 			node.level = 1;
@@ -280,8 +280,8 @@ public class CalendarSyncService extends Service implements
 		this.showPast = sharedPreferences.getBoolean("calendarShowPast", true);
 		this.showHabits = sharedPreferences.getBoolean("calendarHabits", true);
 		this.activeTodos = new HashSet<String>(
-				OrgProviderUtils.getActiveTodos(resolver));
-		this.allTodos = new HashSet<String>(OrgProviderUtils.getTodos(resolver));
+				new OrgFileRepository(resolver).getActiveTodos());
+		this.allTodos = new HashSet<String>(new OrgFileRepository(resolver).getTodos());
 		this.calendarWrapper.refreshPreferences();
 	}
 

@@ -11,12 +11,12 @@ import com.matburt.mobileorg.OrgData.OrgFile;
 import com.matburt.mobileorg.OrgData.OrgNode;
 import com.matburt.mobileorg.OrgData.OrgNodeRepository;
 import com.matburt.mobileorg.OrgData.OrgProvider;
-import com.matburt.mobileorg.OrgData.OrgProviderUtils;
 import com.matburt.mobileorg.OrgData.OrgContract.Edits;
 import com.matburt.mobileorg.OrgData.OrgContract.Files;
 import com.matburt.mobileorg.OrgData.OrgContract.OrgData;
 import com.matburt.mobileorg.test.util.OrgTestUtils;
 import com.matburt.mobileorg.util.OrgNodeNotFoundException;
+import com.matburt.mobileorg.OrgData.OrgFileRepository;
 
 import org.junit.After;
 import org.junit.Before;
@@ -108,8 +108,8 @@ public class OrgEditTest extends ProviderTestCase2<OrgProvider> {
 
 	@Test
 	public void testNewHeadingDefaultFile() {
-		OrgNode capturefileNode = OrgProviderUtils
-				.getOrCreateCaptureFile(resolver).getOrgNode(resolver);
+		OrgFile capturefile = new OrgFileRepository(resolver).getOrCreateCaptureFile();
+		OrgNode capturefileNode = new OrgFileRepository(resolver).getOrgNode(capturefile);
 		assertTrue(capturefileNode.fileId >= 0);
 
 		OrgNode node = OrgTestUtils.getDefaultOrgNode();

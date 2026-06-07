@@ -6,6 +6,7 @@ import android.database.Cursor;
 import android.net.Uri;
 
 import com.matburt.mobileorg.OrgData.OrgContract.Edits;
+import com.matburt.mobileorg.OrgData.OrgNodeRepository;
 
 public class OrgEdit {
 

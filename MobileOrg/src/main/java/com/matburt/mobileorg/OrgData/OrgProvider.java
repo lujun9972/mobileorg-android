@@ -38,6 +38,7 @@ public class OrgProvider extends ContentProvider {
 	private static final int PRIORITIES = 600;
 	private static final int SEARCH = 700;
 	private static final int TIMED = 710;
+	private static final int POMODORO_SESSIONS = 800;
 
 	private static UriMatcher buildUriMatcher() {
 		final UriMatcher uriMatcher = new UriMatcher(UriMatcher.NO_MATCH);
@@ -59,6 +60,7 @@ public class OrgProvider extends ContentProvider {
 		
 		uriMatcher.addURI(AUTHORITY, "search/*", SEARCH);
 		uriMatcher.addURI(AUTHORITY, "timed/*", TIMED);
+		uriMatcher.addURI(AUTHORITY, "pomodoro_sessions", POMODORO_SESSIONS);
 
 		return uriMatcher;
 	}
@@ -149,6 +151,8 @@ public class OrgProvider extends ContentProvider {
 			return builder.table(Tables.TODOS);
 		case PRIORITIES:
 			return builder.table(Tables.PRIORITIES);
+		case POMODORO_SESSIONS:
+			return builder.table(Tables.POMODORO_SESSIONS);
 		case SEARCH:
 			final String search = Search.getSearchTerm(uri);
 			return builder.table(Tables.ORGDATA).where("name LIKE %?%", search);
@@ -178,6 +182,9 @@ public class OrgProvider extends ContentProvider {
 			break;
 		case PRIORITIES:
 			tableName = Tables.PRIORITIES;
+			break;
+		case POMODORO_SESSIONS:
+			tableName = Tables.POMODORO_SESSIONS;
 			break;
 			
 		default:

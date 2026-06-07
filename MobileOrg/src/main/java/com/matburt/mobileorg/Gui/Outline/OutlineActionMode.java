@@ -24,6 +24,7 @@ import com.matburt.mobileorg.Gui.Capture.EditActivityController;
 import com.matburt.mobileorg.OrgData.OrgFile;
 import com.matburt.mobileorg.OrgData.OrgNode;
 import com.matburt.mobileorg.OrgData.OrgNodeRepository;
+import com.matburt.mobileorg.OrgData.OrgFileRepository;
 import com.matburt.mobileorg.Services.CalendarSyncService;
 import com.matburt.mobileorg.Services.RecordingService;
 import com.matburt.mobileorg.Services.TimeclockService;
@@ -218,8 +219,8 @@ public class OutlineActionMode implements ActionMode.Callback {
 	
 	private void deleteFileNode() {
 		try {
-			OrgFile file = new OrgFile(node.fileId, resolver);
-			file.removeFile(resolver);
+			OrgFile file = new OrgFileRepository(resolver).getById(node.fileId);
+			new OrgFileRepository(resolver).removeFile(file);
 			
 			Intent calDeleteIntent = new Intent(context, CalendarSyncService.class);
 			calDeleteIntent.putExtra(CalendarSyncService.CLEARDB, true);
@@ -320,7 +321,7 @@ public class OutlineActionMode implements ActionMode.Callback {
 	private void runRecover() {
 		try {
 			OrgFile orgFile = repo.getOrgFile(this.node);
-			Log.d("MobileOrg", orgFile.toString(resolver));
+			Log.d("MobileOrg", new OrgFileRepository(resolver).nodesToString(orgFile));
 		} catch (OrgFileNotFoundException e) {
 			e.printStackTrace();
 		}

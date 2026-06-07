@@ -15,7 +15,7 @@ import android.util.Log;
 
 import com.matburt.mobileorg.OrgData.OrgContract.OrgData;
 import com.matburt.mobileorg.OrgData.OrgNodePayload;
-import com.matburt.mobileorg.OrgData.OrgProviderUtils;
+import com.matburt.mobileorg.OrgData.OrgFileRepository;
 
 import java.util.Calendar;
 import java.util.HashSet;
@@ -57,7 +57,7 @@ public class ReminderScheduler {
 
         cancelAll(resolver, context);
 
-        Set<String> activeTodos = new HashSet<>(OrgProviderUtils.getActiveTodos(resolver));
+        Set<String> activeTodos = new HashSet<>(new OrgFileRepository(resolver).getActiveTodos());
         long deadlineAdvance = Long.parseLong(
             prefs.getString("key_reminderDeadlineAdvance", "259200000"));
         long scheduledAdvance = Long.parseLong(

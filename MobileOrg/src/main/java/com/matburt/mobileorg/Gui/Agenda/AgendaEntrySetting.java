@@ -17,7 +17,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import android.view.Menu;
 import android.view.MenuItem;
 import com.matburt.mobileorg.R;
-import com.matburt.mobileorg.OrgData.OrgProviderUtils;
+import com.matburt.mobileorg.OrgData.OrgFileRepository;
 
 public class AgendaEntrySetting extends AppCompatActivity {
 	public static final String AGENDA_NUMBER = "agenda_number";
@@ -159,8 +159,8 @@ public class AgendaEntrySetting extends AppCompatActivity {
 	}
 	
 	private void setupFileList(OrgQueryBuilder agenda) {
-		ArrayList<String> filenames = OrgProviderUtils
-				.getFilenames(getContentResolver());
+		ArrayList<String> filenames = new OrgFileRepository(
+				getContentResolver()).getFilenames();
 		for (String filename : filenames) {
 			CheckBox checkBox = new CheckBox(this);
 			checkBox.setText(filename);

@@ -8,8 +8,8 @@ import android.content.ContentResolver;
 import com.matburt.mobileorg.OrgData.OrgFile;
 import com.matburt.mobileorg.OrgData.OrgNode;
 import com.matburt.mobileorg.OrgData.OrgNodeRepository;
-import com.matburt.mobileorg.OrgData.OrgProviderUtils;
 import com.matburt.mobileorg.util.OrgFileNotFoundException;
+import com.matburt.mobileorg.OrgData.OrgFileRepository;
 
 public class OrgTestUtils {
 
@@ -63,8 +63,8 @@ public class OrgTestUtils {
 	public static final String setupParentScenarioChild2ChildOlpId = "olp:" + defaultTestfilename + ":" + "child2/child2Child";
 	public static OrgNode setupParentScenario(ContentResolver resolver) {
 		OrgNodeRepository repo = new OrgNodeRepository(resolver);
-		OrgFile file = OrgProviderUtils.getOrCreateFile(defaultTestfilename,
-				defaultTestfileAlias, resolver);
+		OrgFile file = new OrgFileRepository(resolver).getOrCreateFile(defaultTestfilename,
+				defaultTestfileAlias);
 
 		OrgNode child = new OrgNode();
 		child.name = "child";
@@ -89,8 +89,8 @@ public class OrgTestUtils {
 
 	public static void cleanupParentScenario(ContentResolver resolver) {
 		try {
-			OrgFile file = new OrgFile(defaultTestfilename, resolver);
-			file.removeFile(resolver);
+			OrgFile file = new OrgFileRepository(resolver).getByFilename(defaultTestfilename);
+			new OrgFileRepository(resolver).removeFile(file);
 		} catch (OrgFileNotFoundException e) {}
 	}
 

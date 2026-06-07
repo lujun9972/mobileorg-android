@@ -17,7 +17,7 @@ import com.matburt.mobileorg.R;
 import com.matburt.mobileorg.OrgData.OrgFile;
 import com.matburt.mobileorg.OrgData.OrgNode;
 import com.matburt.mobileorg.OrgData.OrgNodeRepository;
-import com.matburt.mobileorg.OrgData.OrgProviderUtils;
+import com.matburt.mobileorg.OrgData.OrgFileRepository;
 import com.matburt.mobileorg.util.OrgNodeNotFoundException;
 
 public class LocationFragment extends Fragment {
@@ -140,7 +140,7 @@ public class LocationFragment extends Fragment {
 	}
 	
 	private LocationEntry getTopLevelNode(String selection) {
-		ArrayList<String> data = OrgProviderUtils.getFileAliases(resolver);
+		ArrayList<String> data = new OrgFileRepository(resolver).getFileAliases();
 		data.remove(OrgFile.AGENDA_FILE);
 		data.remove(OrgFile.AGENDA_FILE_ALIAS);
 		LocationEntry entry = getLocationEntry(null, data, selection);
@@ -221,7 +221,7 @@ public class LocationFragment extends Fragment {
 				.getSelectedItem();
 		
 		if (!TextUtils.isEmpty(selection)) {
-			return OrgProviderUtils.getOrCreateFileFromAlias(selection, resolver).getOrgNode(resolver);
+			return new OrgFileRepository(resolver).getOrgNode(new OrgFileRepository(resolver).getOrCreateFileFromAlias(selection));
 		} else
 			throw new IllegalStateException("Can't determine location");
 	}

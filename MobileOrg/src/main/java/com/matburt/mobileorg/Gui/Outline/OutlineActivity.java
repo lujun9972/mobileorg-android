@@ -34,7 +34,7 @@ import com.matburt.mobileorg.Gui.Agenda.AgendasActivity;
 import com.matburt.mobileorg.Gui.Statistics.StatisticsActivity;
 import com.matburt.mobileorg.Gui.Wizard.WizardActivity;
 import com.matburt.mobileorg.OrgData.MobileOrgApplication;
-import com.matburt.mobileorg.OrgData.OrgProviderUtils;
+import com.matburt.mobileorg.OrgData.OrgFileRepository;
 import com.matburt.mobileorg.Services.RecordingService;
 import com.matburt.mobileorg.Services.TimeclockService;
 import com.matburt.mobileorg.Services.SyncService;
@@ -213,7 +213,7 @@ public class OutlineActivity extends AppCompatActivity {
 	}
 
 	private void setupFilterBar() {
-		ArrayList<String> tags = OrgProviderUtils.getTags(getContentResolver());
+		ArrayList<String> tags = new OrgFileRepository(getContentResolver()).getTags();
 		View filterBar = findViewById(R.id.tag_filter_bar);
 		ChipGroup chipGroup = findViewById(R.id.tag_filter_chips);
 
@@ -362,7 +362,7 @@ public class OutlineActivity extends AppCompatActivity {
 	}
 
     private String getChangesString() {
-    	int changes = OrgProviderUtils.getChangesCount(getContentResolver());
+    	int changes = new OrgFileRepository(getContentResolver()).getChangesCount();
     	if(changes > 0)
     		return "[" + changes + "]";
     	else

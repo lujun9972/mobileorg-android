@@ -12,7 +12,7 @@ import com.matburt.mobileorg.R;
 import com.matburt.mobileorg.Gui.Outline.OutlineAdapter;
 import com.matburt.mobileorg.Gui.Outline.OutlineListView;
 import com.matburt.mobileorg.OrgData.OrgNode;
-import com.matburt.mobileorg.OrgData.OrgProviderUtils;
+import com.matburt.mobileorg.OrgData.OrgFileRepository;
 import com.matburt.mobileorg.util.OrgUtils;
 
 public class SearchActivity extends AppCompatActivity {
@@ -50,10 +50,10 @@ public class SearchActivity extends AppCompatActivity {
 	}
 
 	private void doSearch(String query) {
-		Cursor result = OrgProviderUtils.search("%" + query.trim() + "%",
-				getContentResolver());
-		ArrayList<OrgNode> data = OrgProviderUtils
-				.orgDataCursorToArrayList(result);
+		Cursor result = new OrgFileRepository(getContentResolver()).search(
+				"%" + query.trim() + "%");
+		ArrayList<OrgNode> data = new OrgFileRepository(
+				getContentResolver()).orgDataCursorToArrayList(result);
 
 		if(result.getCount() == 0) {
 			getSupportActionBar().setTitle(

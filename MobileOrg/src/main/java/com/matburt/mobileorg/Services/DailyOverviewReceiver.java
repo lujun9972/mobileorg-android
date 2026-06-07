@@ -16,7 +16,7 @@ import androidx.core.app.NotificationCompat;
 import com.matburt.mobileorg.Gui.Outline.OutlineActivity;
 import com.matburt.mobileorg.OrgData.OrgContract.OrgData;
 import com.matburt.mobileorg.OrgData.OrgNodePayload;
-import com.matburt.mobileorg.OrgData.OrgProviderUtils;
+import com.matburt.mobileorg.OrgData.OrgFileRepository;
 import com.matburt.mobileorg.R;
 import com.matburt.mobileorg.util.Compat;
 import com.matburt.mobileorg.util.ReminderScheduler;
@@ -40,7 +40,7 @@ public class DailyOverviewReceiver extends BroadcastReceiver {
         ContentResolver resolver = context.getContentResolver();
         SharedPreferences prefs = PreferenceManager.getDefaultSharedPreferences(context);
 
-        HashSet<String> activeTodos = new HashSet<>(OrgProviderUtils.getActiveTodos(resolver));
+        HashSet<String> activeTodos = new HashSet<>(new OrgFileRepository(resolver).getActiveTodos());
         long deadlineAdvance = Long.parseLong(
             prefs.getString("key_reminderDeadlineAdvance", "259200000"));
 

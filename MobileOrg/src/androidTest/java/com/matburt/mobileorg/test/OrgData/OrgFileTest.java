@@ -18,11 +18,11 @@ import com.matburt.mobileorg.OrgData.OrgFileParser;
 import com.matburt.mobileorg.OrgData.OrgNode;
 import com.matburt.mobileorg.OrgData.OrgNodeRepository;
 import com.matburt.mobileorg.OrgData.OrgProvider;
-import com.matburt.mobileorg.OrgData.OrgProviderUtils;
 import com.matburt.mobileorg.test.util.OrgTestFiles.SimpleOrgFiles;
 import com.matburt.mobileorg.test.util.OrgTestUtils;
 import com.matburt.mobileorg.util.OrgFileNotFoundException;
 import com.matburt.mobileorg.util.OrgNodeNotFoundException;
+import com.matburt.mobileorg.OrgData.OrgFileRepository;
 
 import org.junit.After;
 import org.junit.Before;
@@ -65,9 +65,9 @@ public class OrgFileTest extends ProviderTestCase2<OrgProvider> {
 	@Test
 	public void testAddFileSimple() throws OrgFileNotFoundException, OrgNodeNotFoundException{
 		OrgFile orgFile = new OrgFile("filename", "name", "checksum");
-		orgFile.addFile(resolver);
+		new OrgFileRepository(resolver).addFile(orgFile);
 
-		OrgFile insertedFile = new OrgFile(orgFile.id, resolver);
+		OrgFile insertedFile = new OrgFileRepository(resolver).getById(orgFile.id);
 		assertTrue(orgFile.equals(insertedFile));
 		assertEquals(insertedFile.id, orgFile.id);
 		assertEquals(insertedFile.nodeId, orgFile.nodeId);
@@ -81,17 +81,17 @@ public class OrgFileTest extends ProviderTestCase2<OrgProvider> {
 	@Test
 	public void testDoesFileExist() {
 		OrgFile orgFile = new OrgFile("filename", "name", "checksum");
-		orgFile.addFile(resolver);
+		new OrgFileRepository(resolver).addFile(orgFile);
 
-		assertTrue(orgFile.doesFileExist(resolver));
+		assertTrue(new OrgFileRepository(resolver).doesFileExist(orgFile.filename));
 	}
 
 	@Test
 	public void testRemoveFileSimple() throws OrgFileNotFoundException {
 		OrgFile orgFile = new OrgFile("filename", "name", "checksum");
-		orgFile.addFile(resolver);
-		OrgFile insertedFile = new OrgFile(orgFile.id, resolver);
-		insertedFile.removeFile(resolver);
+		new OrgFileRepository(resolver).addFile(orgFile);
+		OrgFile insertedFile = new OrgFileRepository(resolver).getById(orgFile.id);
+		new OrgFileRepository(resolver).removeFile(insertedFile);
 
 		Cursor filesCursor = resolver.query(Files.buildIdUri(orgFile.id),
 				Files.DEFAULT_COLUMNS, null, null, null);
@@ -109,7 +109,7 @@ public class OrgFileTest extends ProviderTestCase2<OrgProvider> {
 		OrgNode node = OrgTestUtils.setupParentScenario(resolver);
 		OrgFile orgFile = repo.getOrgFile(node);
 
-		orgFile.removeFile(resolver);
+		new OrgFileRepository(resolver).removeFile(orgFile);
 
 		Cursor filesCursor = resolver.query(Files.buildIdUri(orgFile.id),
 				Files.DEFAULT_COLUMNS, null, null, null);
@@ -137,21 +137,21 @@ public class OrgFileTest extends ProviderTestCase2<OrgProvider> {
 		parser.parse(orgFile, breader);
 		db.close();
 
-		OrgFile file = new OrgFile(filename, resolver);
-		String fileString = file.toString(resolver);
+		OrgFile file = new OrgFileRepository(resolver).getByFilename(filename);
+		String fileString = new OrgFileRepository(resolver).nodesToString(file);
 		assertEquals(SimpleOrgFiles.orgFile.trim(), fileString.trim());
 	}
 
 	@Test
 	public void testCreateFile () {
 		final String fileAlias = "test name";
-		OrgFile file = OrgProviderUtils.getOrCreateFile("test file", fileAlias, resolver);
+		OrgFile file = new OrgFileRepository(resolver).getOrCreateFile("test file", fileAlias);
 
 		assertTrue(file.id >= 0);
-		assertTrue(file.doesFileExist(resolver));
+		assertTrue(new OrgFileRepository(resolver).doesFileExist(file.filename));
 
 		try {
-			OrgNode capturefileNode = file.getOrgNode(resolver);
+			OrgNode capturefileNode = new OrgFileRepository(resolver).getOrgNode(file);
 			assertTrue(capturefileNode.id >= 0);
 			assertTrue(capturefileNode.fileId >= 0);
 			assertEquals(file.id, capturefileNode.fileId);
@@ -161,7 +161,7 @@ public class OrgFileTest extends ProviderTestCase2<OrgProvider> {
 		}
 
 		try {
-			OrgFile file2 = new OrgFile(file.id, resolver);
+			OrgFile file2 = new OrgFileRepository(resolver).getById(file.id);
 			assertTrue(file.equals(file2));
 		} catch (OrgFileNotFoundException e) {
 			fail("File node not created");
@@ -170,13 +170,13 @@ public class OrgFileTest extends ProviderTestCase2<OrgProvider> {
 
 	@Test
 	public void testCreateCaptureFile () {
-		OrgFile file = OrgProviderUtils.getOrCreateCaptureFile(resolver);
+		OrgFile file = new OrgFileRepository(resolver).getOrCreateCaptureFile();
 
 		assertTrue(file.id >= 0);
-		assertTrue(file.doesFileExist(resolver));
+		assertTrue(new OrgFileRepository(resolver).doesFileExist(file.filename));
 
 		try {
-			OrgNode capturefileNode = file.getOrgNode(resolver);
+			OrgNode capturefileNode = new OrgFileRepository(resolver).getOrgNode(file);
 			assertTrue(capturefileNode.id >= 0);
 			assertTrue(capturefileNode.fileId >= 0);
 			assertEquals(file.id, capturefileNode.fileId);
@@ -186,7 +186,7 @@ public class OrgFileTest extends ProviderTestCase2<OrgProvider> {
 		}
 
 		try {
-			OrgFile file2 = new OrgFile(file.id, resolver);
+			OrgFile file2 = new OrgFileRepository(resolver).getById(file.id);
 			assertTrue(file.equals(file2));
 		} catch (OrgFileNotFoundException e) {
 			fail("File node not created");
@@ -195,15 +195,15 @@ public class OrgFileTest extends ProviderTestCase2<OrgProvider> {
 
 	@Test
 	public void testGetCaptureFile () {
-		OrgNode node1 = OrgProviderUtils.getOrCreateCaptureFile(resolver)
-				.getOrgNode(resolver);
+		OrgFile captureFile1 = new OrgFileRepository(resolver).getOrCreateCaptureFile();
+		OrgNode node1 = new OrgFileRepository(resolver).getOrgNode(captureFile1);
 
 		assertNotNull(node1);
 		assertTrue(node1.id >= 0);
 		assertTrue(node1.fileId >= 0);
 
-		OrgNode node2 = OrgProviderUtils.getOrCreateCaptureFile(resolver)
-				.getOrgNode(resolver);
+		OrgFile captureFile2 = new OrgFileRepository(resolver).getOrCreateCaptureFile();
+		OrgNode node2 = new OrgFileRepository(resolver).getOrgNode(captureFile2);
 		assertNotNull(node2);
 
 		assertEquals(node1.id, node2.id);
@@ -213,8 +213,8 @@ public class OrgFileTest extends ProviderTestCase2<OrgProvider> {
 
 	@Test
 	public void testGetOrgNodeFromFilename() throws OrgFileNotFoundException{
-		OrgFile file = OrgProviderUtils.getOrCreateFile("test file", "file name", resolver);
-		OrgNode fileNode = file.getOrgNode(resolver);
+		OrgFile file = new OrgFileRepository(resolver).getOrCreateFile("test file", "file name");
+		OrgNode fileNode = new OrgFileRepository(resolver).getOrgNode(file);
 
 		OrgNode node = repo.getOrgNodeFromFilename(file.filename);
 

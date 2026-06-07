@@ -17,7 +17,7 @@ import android.view.MenuInflater;
 import android.view.MenuItem;
 import com.matburt.mobileorg.R;
 import com.matburt.mobileorg.OrgData.OrgNode;
-import com.matburt.mobileorg.OrgData.OrgProviderUtils;
+import com.matburt.mobileorg.OrgData.OrgFileRepository;
 
 public class TagsFragment extends Fragment {
 	private static String BUNDLE_TAGS = "tags";
@@ -104,7 +104,7 @@ public class TagsFragment extends Fragment {
 		LayoutInflater inflater = LayoutInflater.from(getActivity());
 		TagTableRow tagsTableEntry =
 		                (TagTableRow) inflater.inflate(R.layout.edit_tagsrow, tagsView, false);
-		tagsTableEntry.setTags(selectedTag, OrgProviderUtils.getTags(resolver));
+		tagsTableEntry.setTags(selectedTag, new OrgFileRepository(resolver).getTags());
 		tagsTableEntry.setParents(tagsView, this);
 		tagsView.addView(tagsTableEntry);
 		tagEntries.add(tagsTableEntry);

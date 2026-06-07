@@ -17,10 +17,12 @@ This fork brings the original project (API 17) up to modern Android standards â€
 - **Agenda view**: Day/week/month agenda from your org files
 - **Capture**: Quick note entry (like `org-capture`)
 - **Search**: Full-text search across all org nodes
+- **Pomodoro timer**: Configurable duration with alarm sound on completion, overtime tracking, and statistics
+- **Pomodoro statistics**: Day/week/month charts showing completed pomodoro sessions, with trend analysis (MPAndroidChart)
 - **Timeclock**: Built-in timer for clocking tasks (with Effort estimation support)
 - **Quick recording**: Record audio and attach to org nodes (requires RECORD_AUDIO permission)
-- **Auto-sync**: Periodic background synchronization via AlarmManager
-- **DEADLINE/SCHEDULED reminders**: Individual notifications for upcoming deadlines and scheduled items
+- **Auto-sync**: Periodic background synchronization
+- **DEADLINE/SCHEDULED reminders**: Exact-time notifications for upcoming deadlines and scheduled items
 - **Daily overview**: Morning summary notification of today's scheduled items and upcoming deadlines
 - **Sync config backup**: Export/import sync settings via system file picker (SAF), survives app reinstall
 - **Homescreen widgets**: Agenda widget and capture shortcut widget
@@ -35,7 +37,8 @@ This fork brings the original project (API 17) up to modern Android standards â€
 | Database | SQLite via ContentProvider |
 | SSH | [JSch](http://www.jcraft.com/jsch/) 0.1.50 |
 | Syntax Highlighting | [highlight.js](https://highlightjs.org/) 11.9.0 (Atom One Dark) |
-| UI | Material Components, AndroidX AppCompat, RecyclerView |
+| Charts | [MPAndroidChart](https://github.com/PhilJay/MPAndroidChart) v3.1.0 (via JitPack) |
+| UI | Material Components, AndroidX AppCompat, RecyclerView, ViewPager2 |
 
 ## Getting Started
 
@@ -70,6 +73,13 @@ MobileOrg/src/main/java/com/matburt/mobileorg/
 [GNU General Public License v2.0](LICENSE.txt)
 
 ## Changelog
+
+### v2.8.0
+
+- **Pomodoro statistics**: New statistics screen with overview (today/week/all-time counts) and trend charts (bar chart + daily line chart), accessible from outline menu. Day/week/month granularity with navigation. Uses MPAndroidChart with theme-aware colors.
+- **AlarmManager â†’ Handler migration**: Replaced AlarmManager-based timing in TimeclockService with Handler.postDelayed(). Foreground service timers (pomodoro countdown, timeout) now work reliably in background â€” no more missed timeouts or stale notification displays.
+- **Exact alarm reminders**: DEADLINE/SCHEDULED reminders now use setExactAndAllowWhileIdle() with SCHEDULE_EXACT_ALARM permission, replacing setWindow() which was elongated to 10 minutes on Android 12+.
+- **Daily overview fix**: Replaced setRepeating() (inexact since API 19) with one-shot setExact() + reschedule in BroadcastReceiver for precise daily timing.
 
 ### v2.7.0
 

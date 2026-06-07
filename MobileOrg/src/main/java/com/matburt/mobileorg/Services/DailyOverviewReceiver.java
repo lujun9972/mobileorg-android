@@ -15,6 +15,7 @@ import androidx.core.app.NotificationCompat;
 import com.matburt.mobileorg.Gui.Outline.OutlineActivity;
 import com.matburt.mobileorg.OrgData.OrgNodePayload;
 import com.matburt.mobileorg.OrgData.OrgNode;
+import com.matburt.mobileorg.OrgData.OrgNodeRepository;
 import com.matburt.mobileorg.OrgData.OrgFileRepository;
 import com.matburt.mobileorg.R;
 import com.matburt.mobileorg.util.Compat;

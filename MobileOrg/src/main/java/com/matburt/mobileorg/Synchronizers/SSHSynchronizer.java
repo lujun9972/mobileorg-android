@@ -199,6 +199,6 @@ public class SSHSynchronizer implements SynchronizerInterface {
 
 	@Override
 	public boolean isConnectable() {
-		return OrgUtils.isNetworkOnline(context);
+		return Synchronizer.isNetworkOnline(context);
 	}
 }

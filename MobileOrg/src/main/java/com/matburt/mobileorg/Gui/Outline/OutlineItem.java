@@ -29,6 +29,7 @@ import com.matburt.mobileorg.OrgData.OrgFileParser;
 import com.matburt.mobileorg.OrgData.OrgNode;
 import com.matburt.mobileorg.OrgData.OrgNodeRepository;
 import com.matburt.mobileorg.OrgData.OrgProviderUtils;
+import com.matburt.mobileorg.Synchronizers.Synchronizer;
 import com.matburt.mobileorg.util.OrgNodeNotFoundException;
 import com.matburt.mobileorg.util.OrgUtils;
 import com.matburt.mobileorg.util.PreferenceUtils;
@@ -101,7 +102,7 @@ public class OutlineItem extends RelativeLayout implements Checkable {
 		repo.generateApplyWriteEdits(node, newNode, null);
 		repo.write(node);
 		setupTodo(node.todo, theme, resolver);
-		OrgUtils.announceSyncDone(getContext());
+		Synchronizer.announceSyncDone(getContext());
 	}
 	
 	private OrgNode node;

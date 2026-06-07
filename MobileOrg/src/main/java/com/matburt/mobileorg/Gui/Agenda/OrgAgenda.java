@@ -4,12 +4,16 @@ import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
+import java.io.ByteArrayInputStream;
+import java.io.ByteArrayOutputStream;
+import java.io.ObjectInputStream;
+import java.io.ObjectOutput;
+import java.io.ObjectOutputStream;
 import java.io.Serializable;
 import java.util.ArrayList;
 
 import android.content.Context;
-
-import com.matburt.mobileorg.util.OrgUtils;
+import android.util.Log;
 
 public class OrgAgenda implements Serializable {
 	private static final long serialVersionUID = 2;
@@ -28,8 +32,7 @@ public class OrgAgenda implements Serializable {
 			fis.close();
 
 			@SuppressWarnings("unchecked")
-			ArrayList<OrgAgenda> result = (ArrayList<OrgAgenda>) OrgUtils
-					.deserializeObject(serializedObject);
+			ArrayList<OrgAgenda> result = (ArrayList<OrgAgenda>) deserializeObject(serializedObject);
 			return result;
 		} catch (FileNotFoundException e) {
 			return new ArrayList<OrgAgenda>();
@@ -37,7 +40,7 @@ public class OrgAgenda implements Serializable {
 	}
 	
 	public static void writeAgendas(ArrayList<OrgAgenda> agendas, Context context) throws IOException {
-		byte[] serializeObject = OrgUtils.serializeObject(agendas);
+		byte[] serializeObject = serializeObject(agendas);
 		FileOutputStream fos = context.openFileOutput(AGENDA_CONFIG_FILE, Context.MODE_PRIVATE);
 		fos.write(serializeObject);
 		fos.flush();
@@ -163,6 +166,34 @@ public class OrgAgenda implements Serializable {
 			
 		} catch (IOException e) {
 			e.printStackTrace();
+		}
+	}
+
+	private static byte[] serializeObject(Object o) {
+		ByteArrayOutputStream bos = new ByteArrayOutputStream();
+		try {
+			ObjectOutput out = new ObjectOutputStream(bos);
+			out.writeObject(o);
+			out.close();
+			return bos.toByteArray();
+		} catch (IOException ioe) {
+			Log.e("OrgAgenda", "serialize error", ioe);
+			return null;
+		}
+	}
+
+	private static Object deserializeObject(byte[] b) {
+		try {
+			ObjectInputStream in = new ObjectInputStream(new ByteArrayInputStream(b));
+			Object object = in.readObject();
+			in.close();
+			return object;
+		} catch (ClassNotFoundException cnfe) {
+			Log.e("OrgAgenda", "class not found error", cnfe);
+			return null;
+		} catch (IOException ioe) {
+			Log.e("OrgAgenda", "io error", ioe);
+			return null;
 		}
 	}
 }

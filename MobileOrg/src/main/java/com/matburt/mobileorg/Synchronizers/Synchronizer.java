@@ -21,7 +21,12 @@ import com.matburt.mobileorg.OrgData.OrgProviderUtils;
 import com.matburt.mobileorg.R;
 import com.matburt.mobileorg.util.FileUtils;
 import com.matburt.mobileorg.util.OrgFileNotFoundException;
-import com.matburt.mobileorg.util.OrgUtils;
+import android.content.SharedPreferences;
+import android.net.ConnectivityManager;
+import android.net.NetworkInfo;
+import android.preference.PreferenceManager;
+
+import com.matburt.mobileorg.util.PreferenceUtils;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -98,7 +103,7 @@ public class Synchronizer {
 			showErrorNotification(e);
 			Log.e("Synchronizer", "Error synchronizing", e);
 			Log.d("MobileOrg", "[Sync] sync FAILED, sending SYNC_DONE broadcast from catch block");
-			OrgUtils.announceSyncDone(context);
+			announceSyncDone(context);
 			showToast("Sync FAILED\n" + syncDiag);
 				writeDebugLog("Sync FAILED\n" + syncDiag);
 			return new ArrayList<String>();
@@ -194,7 +199,7 @@ public class Synchronizer {
 
 		changedFiles.remove(INDEX_FILE);
 
-		Collections.sort(changedFiles, new OrgUtils.SortIgnoreCase());
+		Collections.sort(changedFiles, String::compareToIgnoreCase);
 
 		pull(parser, changedFiles, filenameMap, remoteChecksums);
 		announceProgressDownload("", changedFiles.size() + 1, changedFiles.size() + 2);
@@ -321,7 +326,7 @@ public class Synchronizer {
 	private void announceStartSync() {
 		Log.d("MobileOrg", "[Sync] announceStartSync: sending SYNC_START broadcast");
 		notify.setupNotification();
-		OrgUtils.announceSyncStart(context);
+		announceSyncStart(context);
 	}
 
 	private void announceProgressUpdate(int progress, String message) {
@@ -329,7 +334,7 @@ public class Synchronizer {
 			notify.updateNotification(progress, message);
 		else
 			notify.updateNotification(progress);
-		OrgUtils.announceSyncUpdateProgress(progress, context);
+		announceSyncUpdateProgress(progress, context);
 	}
 
 	private void announceProgressDownload(String filename, int fileIndex, int totalFiles) {
@@ -358,10 +363,72 @@ public class Synchronizer {
 		announceProgressUpdate(100, "Done synchronizing");
 		notify.finalizeNotification();
 		Log.d("MobileOrg", "[Sync] announceSyncDone: sending SYNC_DONE broadcast");
-		OrgUtils.announceSyncDone(context);
+		announceSyncDone(context);
 	}
 
 	public void close() {
 		syncher.postSynchronize();
+	}
+
+	// =====================================================================
+	// Sync state broadcast (moved from OrgUtils)
+	// =====================================================================
+
+	public static void announceSyncDone(Context context) {
+		Intent intent = new Intent(SYNC_UPDATE);
+		intent.putExtra(SYNC_DONE, true);
+		intent.setPackage(context.getPackageName());
+		context.sendBroadcast(intent);
+	}
+
+	public static void announceSyncStart(Context context) {
+		Intent intent = new Intent(SYNC_UPDATE);
+		intent.putExtra(SYNC_START, true);
+		intent.setPackage(context.getPackageName());
+		context.sendBroadcast(intent);
+	}
+
+	public static void announceSyncUpdateProgress(int progress, Context context) {
+		Intent intent = new Intent(SYNC_UPDATE);
+		intent.putExtra(SYNC_PROGRESS_UPDATE, progress);
+		intent.setPackage(context.getPackageName());
+		context.sendBroadcast(intent);
+	}
+
+	// =====================================================================
+	// Network connectivity (moved from OrgUtils)
+	// =====================================================================
+
+	public static boolean isWifiOnline(Context context) {
+		ConnectivityManager conMan = (ConnectivityManager) context
+				.getSystemService(Context.CONNECTIVITY_SERVICE);
+
+		NetworkInfo.State wifi = conMan.getNetworkInfo(ConnectivityManager.TYPE_WIFI)
+				.getState();
+
+		return wifi == NetworkInfo.State.CONNECTED;
+	}
+
+	public static boolean isMobileOnline(Context context) {
+		ConnectivityManager conMan = (ConnectivityManager) context
+				.getSystemService(Context.CONNECTIVITY_SERVICE);
+
+		NetworkInfo.State mobile = conMan.getNetworkInfo(ConnectivityManager.TYPE_MOBILE)
+				.getState();
+
+		return mobile == NetworkInfo.State.CONNECTED;
+	}
+
+	public static boolean isNetworkOnline(Context context) {
+		SharedPreferences prefs = PreferenceManager
+				.getDefaultSharedPreferences(context);
+		boolean wifiOnly = prefs.getBoolean(
+				context.getResources().getString(R.string.key_syncWifiOnly),
+				false);
+
+		if (wifiOnly)
+			return isWifiOnline(context);
+		else
+			return isWifiOnline(context) || isMobileOnline(context);
 	}
 }

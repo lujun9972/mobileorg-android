@@ -325,6 +325,6 @@ public class WebDAVSynchronizer implements SynchronizerInterface {
 
 	@Override
 	public boolean isConnectable() {
-		return OrgUtils.isNetworkOnline(context);
+		return Synchronizer.isNetworkOnline(context);
 	}
 }

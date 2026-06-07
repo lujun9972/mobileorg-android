@@ -11,6 +11,7 @@ import android.view.MenuItem;
 import com.matburt.mobileorg.R;
 import com.matburt.mobileorg.OrgData.OrgNode;
 import com.matburt.mobileorg.Services.SyncService;
+import com.matburt.mobileorg.Synchronizers.Synchronizer;
 import com.matburt.mobileorg.util.OrgUtils;
 import com.matburt.mobileorg.util.PreferenceUtils;
 
@@ -114,7 +115,7 @@ public class EditActivity extends AppCompatActivity implements EditHost,
 		OrgNode newNode = getEditedNode();
 		controller.saveEdits(newNode);
 		
-		OrgUtils.announceSyncDone(this);
+		Synchronizer.announceSyncDone(this);
 	}
 	
 	public OrgNode getEditedNode() {

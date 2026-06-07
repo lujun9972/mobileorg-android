@@ -597,3 +597,60 @@ public class OrgNodeRepository {
         resolver.delete(Edits.CONTENT_URI, null, null);
     }
 }
+
+    // =====================================================================
+    // Node lookup (moved from OrgUtils)
+    // =====================================================================
+
+    /**
+     * Resolve a file:// path to the root node ID of that file.
+     * Strips heading suffix after colon if present.
+     */
+    public long getNodeFromPath(String path) throws OrgFileNotFoundException {
+        String filename = path.substring("file://".length(), path.length());
+
+        // TODO Handle links to headings instead of simply stripping it out
+        if (filename.indexOf(":") > -1)
+            filename = filename.substring(0, filename.indexOf(":"));
+
+        OrgFile file = new OrgFile(filename, resolver);
+        return file.nodeId;
+    }
+
+    /**
+     * Find a node by its heading text within a specific file.
+     */
+    public long getNodeByHeading(String filename, String heading)
+            throws OrgNodeNotFoundException, OrgFileNotFoundException {
+        OrgFile file = new OrgFile(filename, resolver);
+        Cursor cursor = resolver.query(OrgData.CONTENT_URI, OrgData.DEFAULT_COLUMNS,
+                OrgData.FILE_ID + "=? AND " + OrgData.NAME + "=?",
+                new String[] { String.valueOf(file.nodeId), heading }, null);
+        try {
+            if (cursor != null && cursor.moveToFirst()) {
+                OrgNode node = new OrgNode(cursor);
+                return node.id;
+            }
+        } finally {
+            if (cursor != null) cursor.close();
+        }
+        throw new OrgNodeNotFoundException("Heading \"" + heading + "\" not found in " + filename);
+    }
+
+    /**
+     * Find a node by its Org-mode :ID: property.
+     */
+    public long getNodeById(String id) throws OrgNodeNotFoundException {
+        Cursor cursor = resolver.query(OrgData.CONTENT_URI, OrgData.DEFAULT_COLUMNS,
+                OrgData.PAYLOAD + " LIKE ?",
+                new String[] { "%:ID: " + id + "%" }, null);
+        try {
+            if (cursor != null && cursor.moveToFirst()) {
+                OrgNode node = new OrgNode(cursor);
+                return node.id;
+            }
+        } finally {
+            if (cursor != null) cursor.close();
+        }
+        throw new OrgNodeNotFoundException("Node with ID \"" + id + "\" not found");
+    }

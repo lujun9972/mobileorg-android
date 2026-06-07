@@ -28,6 +28,7 @@ import com.matburt.mobileorg.Services.CalendarSyncService;
 import com.matburt.mobileorg.Services.RecordingService;
 import com.matburt.mobileorg.Services.TimeclockService;
 import com.matburt.mobileorg.util.OrgFileNotFoundException;
+import com.matburt.mobileorg.Synchronizers.Synchronizer;
 import com.matburt.mobileorg.util.OrgUtils;
 import com.matburt.mobileorg.util.PreferenceUtils;
 
@@ -159,7 +160,7 @@ public class OutlineActionMode implements ActionMode.Callback {
 						new DialogInterface.OnClickListener() {
 							public void onClick(DialogInterface dialog, int id) {
 								repo.deleteNode(node);
-								OrgUtils.announceSyncDone(context);
+								Synchronizer.announceSyncDone(context);
 							}
 						})
 				.setNegativeButton(R.string.no, new DialogInterface.OnClickListener() {
@@ -193,7 +194,7 @@ public class OutlineActionMode implements ActionMode.Callback {
 			repo.archiveNodeToSibling(node);
 		else
 			repo.archiveNode(node);
-		OrgUtils.announceSyncDone(context);
+		Synchronizer.announceSyncDone(context);
 	}
 	
 	private void runDeleteFileNode() {
@@ -225,7 +226,7 @@ public class OutlineActionMode implements ActionMode.Callback {
 			calDeleteIntent.putExtra(CalendarSyncService.FILELIST, new String[] {file.filename});
 			context.startService(calDeleteIntent);
 			
-			OrgUtils.announceSyncDone(context);
+			Synchronizer.announceSyncDone(context);
 		} catch (OrgFileNotFoundException e) {}
 	}
 	

@@ -23,7 +23,7 @@ import com.matburt.mobileorg.OrgData.OrgNode;
 import com.matburt.mobileorg.OrgData.OrgNodeRepository;
 import com.matburt.mobileorg.util.OrgFileNotFoundException;
 import com.matburt.mobileorg.util.OrgRenderer;
-import com.matburt.mobileorg.util.OrgUtils;
+import com.matburt.mobileorg.OrgData.OrgNodeRepository;
 import com.matburt.mobileorg.util.OrgNodeNotFoundException;
 
 public class ViewFragment extends Fragment {
@@ -122,14 +122,15 @@ public class ViewFragment extends Fragment {
 
 	private void handleFileLink(String target) {
 		try {
+			OrgNodeRepository repo = new OrgNodeRepository(resolver);
 			long nodeId;
 			int headingIdx = target.indexOf("::*");
 			if (headingIdx > -1) {
 				String filename = target.substring(0, headingIdx);
 				String heading = target.substring(headingIdx + 2); // skip "::*"
-				nodeId = OrgUtils.getNodeByHeading(filename, heading, resolver);
+				nodeId = repo.getNodeByHeading(filename, heading);
 			} else {
-				nodeId = OrgUtils.getNodeFromPath("file://" + target, resolver);
+				nodeId = repo.getNodeFromPath("file://" + target);
 			}
 			Intent intent = new Intent(getActivity(), ViewActivity.class);
 			intent.putExtra(ViewActivity.NODE_ID, nodeId);
@@ -141,7 +142,7 @@ public class ViewFragment extends Fragment {
 
 	private void handleIdLink(String id) {
 		try {
-			long nodeId = OrgUtils.getNodeById(id, resolver);
+			long nodeId = new OrgNodeRepository(resolver).getNodeById(id);
 			Intent intent = new Intent(getActivity(), ViewActivity.class);
 			intent.putExtra(ViewActivity.NODE_ID, nodeId);
 			startActivity(intent);
@@ -152,7 +153,7 @@ public class ViewFragment extends Fragment {
 
 	private void handleInternalLink(String heading) {
 		try {
-			long nodeId = OrgUtils.getNodeByHeading(currentFilename, heading, resolver);
+			long nodeId = new OrgNodeRepository(resolver).getNodeByHeading(currentFilename, heading);
 			Intent intent = new Intent(getActivity(), ViewActivity.class);
 			intent.putExtra(ViewActivity.NODE_ID, nodeId);
 			startActivity(intent);
@@ -163,7 +164,7 @@ public class ViewFragment extends Fragment {
 
 	private void handleInternalOrgUrl(String url) {
 		try {
-			long nodeId = OrgUtils.getNodeFromPath(url, resolver);
+			long nodeId = new OrgNodeRepository(resolver).getNodeFromPath(url);
 
 			Intent intent = new Intent(getActivity(), ViewActivity.class);
 			intent.putExtra(ViewActivity.NODE_ID, nodeId);

@@ -24,6 +24,7 @@ import com.matburt.mobileorg.OrgData.OrgProviderUtils;
 import com.matburt.mobileorg.R;
 import com.matburt.mobileorg.Services.CalendarSyncService;
 import com.matburt.mobileorg.Services.CalendarWrapper;
+import com.matburt.mobileorg.Synchronizers.Synchronizer;
 import com.matburt.mobileorg.Settings.Synchronizers.SDCardSettingsActivity;
 import com.matburt.mobileorg.Settings.Synchronizers.ScpSettingsActivity;
 import com.matburt.mobileorg.Settings.Synchronizers.WebDAVSettingsActivity;
@@ -332,7 +333,7 @@ public class SettingsActivity extends PreferenceActivity implements
 										int which) {
 									new OrgNodeRepository(getContentResolver())
 											.clearDB();
-									OrgUtils.announceSyncDone(getApplicationContext());
+									Synchronizer.announceSyncDone(getApplicationContext());
 
 									Intent clearCalDBIntent = new Intent(getBaseContext(), CalendarSyncService.class);
 									clearCalDBIntent.putExtra(CalendarSyncService.CLEARDB, true);

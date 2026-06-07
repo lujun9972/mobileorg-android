@@ -23,6 +23,7 @@ import com.matburt.mobileorg.OrgData.OrgNodeRepository;
 import com.matburt.mobileorg.OrgData.OrgNodeDate;
 import com.matburt.mobileorg.OrgData.OrgNodePayload;
 import com.matburt.mobileorg.OrgData.OrgProviderUtils;
+import com.matburt.mobileorg.Synchronizers.Synchronizer;
 import com.matburt.mobileorg.util.MultiMap;
 import com.matburt.mobileorg.util.OrgFileNotFoundException;
 import com.matburt.mobileorg.util.OrgNodeNotFoundException;
@@ -268,7 +269,7 @@ public class CalendarSyncService extends Service implements
 		}
 		
 		query.close();
-		OrgUtils.announceSyncDone(this);
+		Synchronizer.announceSyncDone(this);
 	}
 
 

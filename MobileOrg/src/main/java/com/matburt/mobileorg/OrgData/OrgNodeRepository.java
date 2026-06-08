@@ -48,10 +48,7 @@ public class OrgNodeRepository {
             throw new OrgNodeNotFoundException("Node with id \"" + id + "\" not found");
         OrgNode node = new OrgNode(cursor);
         cursor.close();
-            return node;
-        } finally {
-            cursor.close();
-        }
+        return node;
     }
 
     /** Insert or update the node. Sets node.id on insert. */
@@ -232,10 +229,7 @@ public class OrgNodeRepository {
         for (String nodeName : nodes)
             node = getChild(node.id, nodeName);
 
-            return node;
-        } finally {
-            cursor.close();
-        }
+        return node;
     }
 
     /**
@@ -244,16 +238,10 @@ public class OrgNodeRepository {
      */
     public OrgNode findOriginalNode(OrgNode node) {
         if (node.parentId == -1)
-                return node;
-        } finally {
-            cursor.close();
-        }
+            return node;
 
         if (!getFilename(node).equals(OrgFile.AGENDA_FILE))
-                return node;
-        } finally {
-            cursor.close();
-        }
+            return node;
 
         String nodeIdStr = getNodeId(node);
         if (!nodeIdStr.startsWith("olp:")) {
@@ -277,10 +265,7 @@ public class OrgNodeRepository {
             }
         }
 
-            return node;
-        } finally {
-            cursor.close();
-        }
+        return node;
     }
 
     // =====================================================================
@@ -699,8 +684,7 @@ public class OrgNodeRepository {
         if (cursor == null) return result;
         try {
             while (cursor.moveToNext()) {
-                try {
-            OrgNode node = new OrgNode();
+                OrgNode node = new OrgNode();
                 node.id = cursor.getLong(cursor.getColumnIndexOrThrow(OrgData.ID));
                 node.todo = cursor.getString(cursor.getColumnIndexOrThrow(OrgData.TODO));
                 node.name = cursor.getString(cursor.getColumnIndexOrThrow(OrgData.NAME));

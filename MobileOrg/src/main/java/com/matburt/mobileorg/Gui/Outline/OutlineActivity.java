@@ -332,9 +332,15 @@ public class OutlineActivity extends AppCompatActivity {
 		MenuItem pomoItem = menu.findItem(R.id.menu_pomodoro);
 		if (pomoItem != null) {
 			TimeclockService service = TimeclockService.getInstance();
-			boolean running = service != null && service.isPomodoroRunning();
-			pomoItem.setTitle(running ? getString(R.string.menu_pomodoro_stop) : getString(R.string.menu_pomodoro));
-			pomoItem.setIcon(running ? R.drawable.ic_media_stop : R.drawable.ic_menu_pomodoro);
+			boolean active = service != null && service.isPomodoroActive();
+			boolean timedOut = active && service.isPomodoroTimedOut();
+			if (timedOut) {
+				pomoItem.setTitle(getString(R.string.menu_pomodoro));
+				pomoItem.setIcon(R.drawable.ic_menu_pomodoro);
+			} else {
+				pomoItem.setTitle(active ? getString(R.string.menu_pomodoro_stop) : getString(R.string.menu_pomodoro));
+				pomoItem.setIcon(active ? R.drawable.ic_media_stop : R.drawable.ic_menu_pomodoro);
+			}
 		}
 		syncController.onPrepareOptionsMenu(menu);
 		return super.onPrepareOptionsMenu(menu);
@@ -374,7 +380,9 @@ public class OutlineActivity extends AppCompatActivity {
 			return true;
 		} else if (id == R.id.menu_pomodoro) {
 			TimeclockService service = TimeclockService.getInstance();
-			if (service != null && service.isPomodoroRunning()) {
+			if (service != null && service.isPomodoroTimedOut()) {
+				android.widget.Toast.makeText(this, R.string.pomodoro_waiting_confirm_toast, android.widget.Toast.LENGTH_SHORT).show();
+			} else if (service != null && service.isPomodoroActive() && !service.isPomodoroTimedOut()) {
 				Intent intent = new Intent(this, TimeclockService.class);
 				intent.setAction(TimeclockService.ACTION_POMODORO_STOP);
 				Compat.startService(this, intent);

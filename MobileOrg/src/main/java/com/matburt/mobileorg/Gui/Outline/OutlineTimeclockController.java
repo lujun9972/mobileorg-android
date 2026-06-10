@@ -95,7 +95,16 @@ public class OutlineTimeclockController {
     }
 
     public void showPomodoroDurationPicker() {
+        // Prevent starting while consecutive mode is active
+        TimeclockService service = TimeclockService.getInstance();
+        if (service != null && service.isPomodoroActive()) {
+            android.widget.Toast.makeText(activity, R.string.pomodoro_active_toast,
+                    android.widget.Toast.LENGTH_SHORT).show();
+            return;
+        }
+
         int defaultDuration = PreferenceUtils.getPomodoroDuration();
+        int defaultCount = PreferenceUtils.getPomodoroCountDefault();
 
         LinearLayout layout = new LinearLayout(activity);
         layout.setOrientation(LinearLayout.HORIZONTAL);
@@ -103,6 +112,7 @@ public class OutlineTimeclockController {
         int pad = (int) (24 * activity.getResources().getDisplayMetrics().density);
         layout.setPadding(pad, pad, pad, pad);
 
+        // Duration picker (minutes)
         final NumberPicker minutePicker = new NumberPicker(activity);
         minutePicker.setMinValue(1);
         minutePicker.setMaxValue(120);
@@ -110,21 +120,38 @@ public class OutlineTimeclockController {
         minutePicker.setWrapSelectorWheel(true);
         layout.addView(minutePicker);
 
-        TextView label = new TextView(activity);
-        label.setText(" min");
-        label.setTextSize(18);
-        label.setGravity(Gravity.CENTER);
-        layout.addView(label);
+        TextView minLabel = new TextView(activity);
+        minLabel.setText(" min × ");
+        minLabel.setTextSize(18);
+        minLabel.setGravity(Gravity.CENTER);
+        layout.addView(minLabel);
+
+        // Count picker
+        final NumberPicker countPicker = new NumberPicker(activity);
+        countPicker.setMinValue(1);
+        countPicker.setMaxValue(99);
+        countPicker.setValue(defaultCount);
+        countPicker.setWrapSelectorWheel(true);
+        layout.addView(countPicker);
+
+        TextView countLabel = new TextView(activity);
+        countLabel.setText(" 个");
+        countLabel.setTextSize(18);
+        countLabel.setGravity(Gravity.CENTER);
+        layout.addView(countLabel);
 
         new AlertDialog.Builder(activity)
-                .setTitle(R.string.pomodoro_duration_picker_title)
+                .setTitle(R.string.pomodoro_picker_title)
                 .setView(layout)
                 .setPositiveButton(android.R.string.ok, (dialog, which) -> {
                     minutePicker.clearFocus();
+                    countPicker.clearFocus();
                     int duration = minutePicker.getValue();
+                    int count = countPicker.getValue();
                     Intent intent = new Intent(activity, TimeclockService.class);
                     intent.setAction(TimeclockService.ACTION_POMODORO_START);
                     intent.putExtra(TimeclockService.POMODORO_DURATION, duration);
+                    intent.putExtra(TimeclockService.POMODORO_COUNT, count);
                     Compat.startService(activity, intent);
                 })
                 .setNegativeButton(android.R.string.cancel, null)

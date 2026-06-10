@@ -296,6 +296,18 @@
 <string name="preference_pomodoro_duration">番茄钟时长</string>
 <string name="preference_pomodoro_duration_summary">默认倒计时时长（分钟）</string>
 <string name="pomodoro_duration_picker_title">设置番茄钟时长（分钟）</string>
+<string name="preference_pomodoro_count_default">默认连续番茄数</string>
+<string name="preference_pomodoro_count_default_summary">启动连续番茄时的默认数量</string>
+<string name="preference_pomodoro_short_break">短休息时长</string>
+<string name="preference_pomodoro_short_break_summary">番茄之间的休息时长（分钟）</string>
+<string name="preference_pomodoro_long_break">长休息时长</string>
+<string name="preference_pomodoro_long_break_summary">每 N 个番茄后的长休息时长（分钟）</string>
+<string name="preference_pomodoro_long_break_interval">长休息间隔</string>
+<string name="preference_pomodoro_long_break_interval_summary">每完成多少个番茄后触发长休息</string>
+<string name="pomodoro_picker_title">设置番茄钟</string>
+<string name="pomodoro_count_picker_title">连续番茄数</string>
+<string name="pomodoro_active_toast">番茄钟正在进行中</string>
+<string name="pomodoro_waiting_confirm_toast">番茄钟正在等待确认</string>
 
 <!-- Pomodoro Statistics -->
 <string name="menu_statistics">番茄统计</string>

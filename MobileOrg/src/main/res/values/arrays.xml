@@ -126,6 +126,69 @@
     <item>60</item>
 </string-array>
 
+<string-array name="pomodoro_count_entries">
+    <item>1 个</item>
+    <item>2 个</item>
+    <item>3 个</item>
+    <item>4 个</item>
+    <item>5 个</item>
+    <item>6 个</item>
+    <item>7 个</item>
+    <item>8 个</item>
+    <item>9 个</item>
+    <item>10 个</item>
+</string-array>
+<string-array name="pomodoro_count_values">
+    <item>1</item>
+    <item>2</item>
+    <item>3</item>
+    <item>4</item>
+    <item>5</item>
+    <item>6</item>
+    <item>7</item>
+    <item>8</item>
+    <item>9</item>
+    <item>10</item>
+</string-array>
+
+<string-array name="pomodoro_break_entries">
+    <item>0 分钟（无倒计时）</item>
+    <item>3 分钟</item>
+    <item>5 分钟</item>
+    <item>10 分钟</item>
+    <item>15 分钟</item>
+    <item>20 分钟</item>
+    <item>30 分钟</item>
+</string-array>
+<string-array name="pomodoro_break_values">
+    <item>0</item>
+    <item>3</item>
+    <item>5</item>
+    <item>10</item>
+    <item>15</item>
+    <item>20</item>
+    <item>30</item>
+</string-array>
+
+<string-array name="pomodoro_interval_entries">
+    <item>每 3 个</item>
+    <item>每 4 个</item>
+    <item>每 5 个</item>
+    <item>每 6 个</item>
+    <item>每 8 个</item>
+    <item>每 10 个</item>
+    <item>每 12 个</item>
+</string-array>
+<string-array name="pomodoro_interval_values">
+    <item>3</item>
+    <item>4</item>
+    <item>5</item>
+    <item>6</item>
+    <item>8</item>
+    <item>10</item>
+    <item>12</item>
+</string-array>
+
 <string-array name="week_start_entries">
     <item>@string/monday</item>
     <item>@string/sunday</item>

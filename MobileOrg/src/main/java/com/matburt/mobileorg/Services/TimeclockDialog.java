@@ -64,24 +64,11 @@ public class TimeclockDialog extends FragmentActivity {
 		// Clock section (resolved early for pomodoro stop button check)
 		LinearLayout clockSection = findViewById(R.id.clock_section);
 
-		// Pomodoro section
+		// Pomodoro section — handles all states
 		LinearLayout pomoSection = findViewById(R.id.pomodoro_section);
-		if (service != null && service.isPomodoroRunning()) {
+		if (service != null && service.isPomodoroActive()) {
 			pomoSection.setVisibility(View.VISIBLE);
-			TextView pomoTime = findViewById(R.id.pomodoro_time);
-			String remaining = service.getPomodoroRemainingString();
-			pomoTime.setText("\uD83C\uDF45 " + remaining);
-			if (service.isPomodoroTimedOut()) {
-				pomoTime.setTextColor(Color.RED);
-			}
-			Button stopBtn = findViewById(R.id.pomodoro_stop_button);
-			stopBtn.setOnClickListener(v -> {
-				sendServiceAction(TimeclockService.ACTION_POMODORO_STOP);
-				pomoSection.setVisibility(View.GONE);
-				if (clockSection.getVisibility() != View.VISIBLE) {
-					finish();
-				}
-			});
+			setupPomodoroUI(service, pomoSection, clockSection);
 		} else {
 			pomoSection.setVisibility(View.GONE);
 		}
@@ -115,6 +102,66 @@ public class TimeclockDialog extends FragmentActivity {
 
 		// Auto-close if service already stopped everything
 		maybeFinish();
+	}
+
+	private void setupPomodoroUI(TimeclockService service, LinearLayout pomoSection, LinearLayout clockSection) {
+		TextView pomoTime = findViewById(R.id.pomodoro_time);
+		PomodoroTimer.PomodoroState state = service.getPomodoroState();
+		String progress = service.getPomodoroRoundProgress();
+		String progressSuffix = progress.isEmpty() ? "" : " | " + progress;
+
+		if (state == PomodoroTimer.PomodoroState.WORK) {
+			if (service.isPomodoroTimedOut()) {
+				// WORK timedOut: show completion + Finish button
+				String remaining = service.getPomodoroRemainingString();
+				pomoTime.setText("\uD83C\uDF45 " + remaining + progressSuffix + " 完成");
+				pomoTime.setTextColor(Color.RED);
+				Button stopBtn = findViewById(R.id.pomodoro_stop_button);
+				stopBtn.setText("Finish");
+				stopBtn.setOnClickListener(v -> {
+					sendServiceAction(TimeclockService.ACTION_POMODORO_FINISH);
+					pomoSection.setVisibility(View.GONE);
+					if (clockSection.getVisibility() != View.VISIBLE) {
+						finish();
+					}
+				});
+			} else {
+				// WORK countdown: show remaining + Cancel button
+				String remaining = service.getPomodoroRemainingString();
+				pomoTime.setText("\uD83C\uDF45 " + remaining + progressSuffix);
+				pomoTime.setTextColor(Color.BLACK);
+				Button stopBtn = findViewById(R.id.pomodoro_stop_button);
+				stopBtn.setText("Cancel");
+				stopBtn.setOnClickListener(v -> {
+					sendServiceAction(TimeclockService.ACTION_POMODORO_STOP);
+					pomoSection.setVisibility(View.GONE);
+					if (clockSection.getVisibility() != View.VISIBLE) {
+						finish();
+					}
+				});
+			}
+		} else if (state == PomodoroTimer.PomodoroState.REST) {
+			// REST: show rest countdown + Skip Rest + Cancel
+			String restRemaining = service.getPomodoroRestRemainingString();
+			pomoTime.setText("\u2615 休息 " + restRemaining + progressSuffix + " 完成");
+			pomoTime.setTextColor(Color.BLACK);
+			Button stopBtn = findViewById(R.id.pomodoro_stop_button);
+			stopBtn.setText("跳过休息");
+			stopBtn.setOnClickListener(v -> {
+				sendServiceAction(TimeclockService.ACTION_POMODORO_SKIP_REST);
+				// Don't finish — next round starts immediately
+			});
+		} else if (state == PomodoroTimer.PomodoroState.WAITING_NEXT) {
+			// WAITING_NEXT: show "start next" + Cancel
+			pomoTime.setText("\u25B6 准备下一个" + progressSuffix + " 完成");
+			pomoTime.setTextColor(Color.BLACK);
+			Button stopBtn = findViewById(R.id.pomodoro_stop_button);
+			stopBtn.setText("开始下一个");
+			stopBtn.setOnClickListener(v -> {
+				sendServiceAction(TimeclockService.ACTION_POMODORO_NEXT);
+				// Don't finish — next round starts
+			});
+		}
 	}
 
 	@Override
@@ -249,7 +296,7 @@ public class TimeclockDialog extends FragmentActivity {
 
 	private void maybeFinish() {
 		TimeclockService service = TimeclockService.getInstance();
-		if (service == null || (!service.isPomodoroRunning() && !service.isClockedIn())) {
+		if (service == null || (!service.isPomodoroActive() && !service.isClockedIn())) {
 			finish();
 		}
 	}

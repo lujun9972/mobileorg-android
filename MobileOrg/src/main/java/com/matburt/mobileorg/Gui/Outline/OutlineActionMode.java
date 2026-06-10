@@ -260,6 +260,18 @@ public class OutlineActionMode implements ActionMode.Callback {
 
 	private void showPomodoroDurationPicker() {
 		int defaultDuration = PreferenceUtils.getPomodoroDuration();
+		int defaultCount = PreferenceUtils.getPomodoroCountDefault();
+		// Read POMODORO_COUNT from node property if available
+		if (node != null && node.getPayload() != null) {
+			String propValue = node.getPayload().getProperty("POMODORO_COUNT");
+			if (propValue != null && !propValue.isEmpty()) {
+				try {
+					defaultCount = Integer.parseInt(propValue.trim());
+				} catch (NumberFormatException e) {
+					Log.w("MobileOrg", "[Pomodoro] Invalid POMODORO_COUNT property: " + propValue);
+				}
+			}
+		}
 
 		LinearLayout layout = new LinearLayout(context);
 		layout.setOrientation(LinearLayout.HORIZONTAL);
@@ -267,6 +279,7 @@ public class OutlineActionMode implements ActionMode.Callback {
 		int pad = (int) (24 * context.getResources().getDisplayMetrics().density);
 		layout.setPadding(pad, pad, pad, pad);
 
+		// Duration picker (minutes)
 		final NumberPicker minutePicker = new NumberPicker(context);
 		minutePicker.setMinValue(1);
 		minutePicker.setMaxValue(120);
@@ -274,35 +287,51 @@ public class OutlineActionMode implements ActionMode.Callback {
 		minutePicker.setWrapSelectorWheel(true);
 		layout.addView(minutePicker);
 
-		TextView label = new TextView(context);
-		label.setText(" min");
-		label.setTextSize(18);
-		label.setGravity(Gravity.CENTER);
-		layout.addView(label);
+		TextView minLabel = new TextView(context);
+		minLabel.setText(" min × ");
+		minLabel.setTextSize(18);
+		minLabel.setGravity(Gravity.CENTER);
+		layout.addView(minLabel);
+
+		// Count picker
+		final NumberPicker countPicker = new NumberPicker(context);
+		countPicker.setMinValue(1);
+		countPicker.setMaxValue(99);
+		countPicker.setValue(defaultCount);
+		countPicker.setWrapSelectorWheel(true);
+		layout.addView(countPicker);
+
+		TextView countLabel = new TextView(context);
+		countLabel.setText(" 个");
+		countLabel.setTextSize(18);
+		countLabel.setGravity(Gravity.CENTER);
+		layout.addView(countLabel);
 
 		new AlertDialog.Builder(((android.app.Activity) context))
-				.setTitle(R.string.pomodoro_duration_picker_title)
+				.setTitle(R.string.pomodoro_picker_title)
 				.setView(layout)
 				.setPositiveButton(android.R.string.ok, new DialogInterface.OnClickListener() {
 					@Override
 					public void onClick(DialogInterface dialog, int which) {
 						minutePicker.clearFocus();
+						countPicker.clearFocus();
 						int duration = minutePicker.getValue();
-						Log.d("MobileOrg", "[Pomodoro] User selected duration: " + duration + " min");
-						runPomodoroService(duration);
+						int count = countPicker.getValue();
+						Log.d("MobileOrg", "[Pomodoro] User selected: duration=" + duration + " min, count=" + count);
+						runPomodoroService(duration, count);
 					}
 				})
 				.setNegativeButton(android.R.string.cancel, null)
 				.show();
 	}
 
-	private void runPomodoroService(int durationMinutes) {
-		Log.d("MobileOrg", "[Pomodoro] runPomodoroService: duration=" + durationMinutes + " min");
+	private void runPomodoroService(int durationMinutes, int count) {
+		Log.d("MobileOrg", "[Pomodoro] runPomodoroService: duration=" + durationMinutes + " min, count=" + count);
 
 		Intent intent = new Intent(context, TimeclockService.class);
 		intent.setAction(TimeclockService.ACTION_POMODORO_START);
 		intent.putExtra(TimeclockService.POMODORO_DURATION, durationMinutes);
-		// 不传 NODE_ID，不杀已有 service
+		intent.putExtra(TimeclockService.POMODORO_COUNT, count);
 
 		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
 			context.startForegroundService(intent);

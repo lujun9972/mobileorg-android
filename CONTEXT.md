@@ -33,5 +33,7 @@ See `docs/adr/` for formal records.
 
 ## App Features
 
-- **Pomodoro** (番茄钟) — A countdown timer (default 25 min) that runs independently of any OrgNode. Managed by `TimeclockService`. Records completion when the timer expires (timeout). Does NOT write CLOCK entries to OrgNode payloads.
+- **Pomodoro** (番茄钟) — A countdown timer (default 25 min) that runs independently of any OrgNode. Managed by `TimeclockService`. Records completion when the timer expires (timeout). Does NOT write CLOCK entries to OrgNode payloads. When started from a node context (long-press menu), reads the node's `POMODORO_COUNT` property as the default count for consecutive mode — no further node association after that.
+- **Pomodoro Session** (番茄) — A single completed pomodoro countdown. One row in `pomodoro_sessions` table. Multiple sessions can be chained in **consecutive mode**.
+- **Consecutive Mode** (连续番茄) — Chains N pomodoros with rest breaks between them. States: WORK → REST → (user confirms) → WORK → … → all done. Managed by `PomodoroTimer` state machine.
 - **Clock** (计时) — A task timer that records worked time on a specific OrgNode. Writes `CLOCK:` entries into the node's `:LOGBOOK:` drawer on clock-out. Can run simultaneously with a Pomodoro session.

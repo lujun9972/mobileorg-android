@@ -166,7 +166,7 @@ public class SSHSynchronizer implements SynchronizerInterface {
         StringBuilder contents = null;
         try {
             if (session == null || !session.isConnected()) {
-                Log.e("MobileOrg", "SSH: session is null or disconnected, attempting reconnect");
+                Log.i("MobileOrg", "SSH: session is null or disconnected, attempting reconnect");
                 this.connect();
             }
             Channel channel = session.openChannel("sftp");

@@ -16,7 +16,7 @@ import android.text.TextUtils;
 public class PreferenceUtils {
 	private static final int DEFAULT_FONTSIZE = 14;
 
-	
+
 	public static boolean getCombineBlockAgendas() {
 		Context context = MobileOrgApplication.getContext();
 		try {
@@ -24,7 +24,7 @@ public class PreferenceUtils {
 					.getBoolean("combineBlockAgendas", false);
 		} catch (UnsupportedOperationException e) { return false; }
 	}
-	
+
 	public static String getDefaultTodo() {
 		Context context = MobileOrgApplication.getContext();
 		return PreferenceManager.getDefaultSharedPreferences(context)
@@ -35,16 +35,16 @@ public class PreferenceUtils {
 		Context context = MobileOrgApplication.getContext();
 		String tags = PreferenceManager.getDefaultSharedPreferences(context).getString(
 				"excludeTagsInheritance", null);
-		
+
 		if (tags == null)
 			return null;
-		
+
 		HashSet<String> tagsSet = new HashSet<String>();
 		for (String tag: tags.split(":")) {
 			if(!TextUtils.isEmpty(tag))
 				tagsSet.add(tag);
 		}
-		
+
 		return tagsSet;
 	}
 
@@ -53,12 +53,12 @@ public class PreferenceUtils {
 		try {
 			int fontSize = Integer.parseInt(PreferenceManager.getDefaultSharedPreferences(
 					context).getString("fontSize", "14"));
-			
+
 			if (fontSize > 2)
 				return fontSize;
 		} catch (NumberFormatException e) {
 		}
-		
+
 		return DEFAULT_FONTSIZE;
 	}
 
@@ -86,7 +86,7 @@ public class PreferenceUtils {
 		Context context = MobileOrgApplication.getContext();
 		String syncSource = PreferenceManager.getDefaultSharedPreferences(context)
 		.getString("syncSource", "");
-		
+
 		if(TextUtils.isEmpty(syncSource))
 			return false;
 		else
@@ -116,21 +116,21 @@ public class PreferenceUtils {
 	public static ArrayList<String> getSelectedTodos() {
 		Context context = MobileOrgApplication.getContext();
 	    SharedPreferences appSettings =
-		        PreferenceManager.getDefaultSharedPreferences(context);
-	    
+			        PreferenceManager.getDefaultSharedPreferences(context);
+
 	    ArrayList<String> todos = new ArrayList<String>();
-	    
+
 	    String todoString = appSettings.getString("selectedTodos", "").trim();
 	    if (TextUtils.isEmpty(todoString))
 	    	return todos;
-	    
+
 	    for (String todo : todoString.split(" ")) {
 	    	if (TextUtils.isEmpty(todo))
 	    		continue;
 	    	else
 	    		todos.add(todo);
 	    }
-	    
+
 	    return todos;
 	}
 
@@ -138,5 +138,29 @@ public class PreferenceUtils {
 		Context context = MobileOrgApplication.getContext();
 		return Integer.parseInt(PreferenceManager.getDefaultSharedPreferences(context)
 				.getString("pomodoro_duration", "25"));
+	}
+
+	public static int getPomodoroCountDefault() {
+		Context context = MobileOrgApplication.getContext();
+		return Integer.parseInt(PreferenceManager.getDefaultSharedPreferences(context)
+				.getString("pomodoro_count_default", "1"));
+	}
+
+	public static int getPomodoroShortBreak() {
+		Context context = MobileOrgApplication.getContext();
+		return Integer.parseInt(PreferenceManager.getDefaultSharedPreferences(context)
+				.getString("pomodoro_short_break", "5"));
+	}
+
+	public static int getPomodoroLongBreak() {
+		Context context = MobileOrgApplication.getContext();
+		return Integer.parseInt(PreferenceManager.getDefaultSharedPreferences(context)
+				.getString("pomodoro_long_break", "15"));
+	}
+
+	public static int getPomodoroLongBreakInterval() {
+		Context context = MobileOrgApplication.getContext();
+		return Integer.parseInt(PreferenceManager.getDefaultSharedPreferences(context)
+				.getString("pomodoro_long_break_interval", "4"));
 	}
 }

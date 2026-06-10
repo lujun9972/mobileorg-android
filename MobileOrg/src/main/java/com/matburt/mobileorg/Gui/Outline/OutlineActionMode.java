@@ -262,8 +262,8 @@ public class OutlineActionMode implements ActionMode.Callback {
 		int defaultDuration = PreferenceUtils.getPomodoroDuration();
 		int defaultCount = PreferenceUtils.getPomodoroCountDefault();
 		// Read POMODORO_COUNT from node property if available
-		if (node != null && node.getPayload() != null) {
-			String propValue = node.getPayload().getProperty("POMODORO_COUNT");
+		if (node != null && node.getOrgNodePayload() != null) {
+			String propValue = node.getOrgNodePayload().getProperty("POMODORO_COUNT");
 			if (propValue != null && !propValue.isEmpty()) {
 				try {
 					defaultCount = Integer.parseInt(propValue.trim());

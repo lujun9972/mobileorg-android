@@ -90,7 +90,7 @@ public class TimeclockDialog extends FragmentActivity {
 		stateReceiver = new BroadcastReceiver() {
 			@Override
 			public void onReceive(Context context, Intent intent) {
-				maybeFinish();
+				refreshUI();
 			}
 		};
 		IntentFilter stateFilter = new IntentFilter(TimeclockService.BROADCAST_STATE_CHANGED);
@@ -298,6 +298,39 @@ public class TimeclockDialog extends FragmentActivity {
 		TimeclockService service = TimeclockService.getInstance();
 		if (service == null || (!service.isPomodoroActive() && !service.isClockedIn())) {
 			finish();
+		}
+	}
+
+	private void refreshUI() {
+		TimeclockService service = TimeclockService.getInstance();
+		if (service == null || (!service.isPomodoroActive() && !service.isClockedIn())) {
+			finish();
+			return;
+		}
+
+		LinearLayout clockSection = findViewById(R.id.clock_section);
+		LinearLayout pomoSection = findViewById(R.id.pomodoro_section);
+
+		// Refresh pomodoro section
+		if (service.isPomodoroActive()) {
+			pomoSection.setVisibility(View.VISIBLE);
+			setupPomodoroUI(service, pomoSection, clockSection);
+		} else {
+			pomoSection.setVisibility(View.GONE);
+		}
+
+		// Refresh clock section
+		if (service.isClockedIn()) {
+			clockSection.setVisibility(View.VISIBLE);
+			OrgNode clockNode = service.getClockNode();
+			this.node = clockNode;
+			String name = (clockNode != null) ? clockNode.name : "(unknown)";
+			String elapsed = service.getClockElapsedString();
+			parseElapsedTime(elapsed);
+			TextView textView = findViewById(R.id.timeclock_text);
+			textView.setText(name + " @ " + elapsed);
+		} else {
+			clockSection.setVisibility(View.GONE);
 		}
 	}
 

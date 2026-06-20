@@ -27,14 +27,21 @@ import java.util.regex.Pattern;
 /**
  * Schedules DEADLINE/SCHEDULED reminders and daily overview notifications.
  *
- * On Android 12+ (API 31+), uses setExactAndAllowWhileIdle() for precise timing.
- * The SCHEDULE_EXACT_ALARM permission is declared in manifest; the system grants it
- * by default for pre-installed / existing apps. Falls back to setWindow() with a
- * 10-minute window if permission is not available.
+ * Alarm strategy selection (see {@link #chooseAlarmStrategy(int, boolean)}):
+ * <ul>
+ *   <li>API 31+ with {@code SCHEDULE_EXACT_ALARM} granted (special permission,
+ *       user must enable in system settings — manifest declaration alone is
+ *       insufficient): {@code setExactAndAllowWhileIdle()} for precise timing.</li>
+ *   <li>API 31+ without the permission: fallback to {@code setWindow()} with a
+ *       10-minute window — calling {@code setExact*()} here throws
+ *       {@link SecurityException}.</li>
+ *   <li>API 23-30: {@code setExactAndAllowWhileIdle()} (no special permission needed).</li>
+ *   <li>API &lt; 23: {@code setExact()}.</li>
+ * </ul>
  *
- * Daily overview uses setExact() (one-shot) instead of setRepeating() because
- * setRepeating() has been inexact since API 19. The DailyOverviewReceiver reschedules
- * the next alarm after each fire.
+ * Daily overview uses one-shot alarms (not {@code setRepeating()}, which has been
+ * inexact since API 19). {@code DailyOverviewReceiver} reschedules the next alarm
+ * after each fire.
  */
 public class ReminderScheduler {
     private static final String TAG = "MobileOrg";
@@ -44,6 +51,45 @@ public class ReminderScheduler {
     private static final String EXTRA_DATE_TYPE = "dateType";
     private static final String EXTRA_DATE_STRING = "dateString";
     private static final long SEVEN_DAYS_MS = 7L * 24 * 60 * 60 * 1000;
+    private static final long FALLBACK_WINDOW_MS = 600_000L; // 10 min, enforced minimum on API 31+
+
+    /** Which AlarmManager API to call. See {@link #chooseAlarmStrategy(int, boolean)}. */
+    public enum AlarmStrategy { EXACT_ALLOW_IDLE, EXACT, WINDOW }
+
+    /**
+     * Decide which AlarmManager scheduling API to use.
+     *
+     * On API 31+, {@code setExactAndAllowWhileIdle} / {@code setExact} require the
+     * {@code SCHEDULE_EXACT_ALARM} <em>special</em> permission — granted by the user
+     * in system settings, not merely declared in manifest. When unavailable we must
+     * fall back to {@code setWindow}; calling {@code setExact*()} throws
+     * {@link SecurityException}. On API 23-30 the exact APIs need no special permission.
+     */
+    public static AlarmStrategy chooseAlarmStrategy(int apiLevel, boolean canScheduleExactAlarms) {
+        if (apiLevel >= 31 && !canScheduleExactAlarms) {
+            return AlarmStrategy.WINDOW;
+        }
+        if (apiLevel >= 23) {
+            return AlarmStrategy.EXACT_ALLOW_IDLE;
+        }
+        return AlarmStrategy.EXACT;
+    }
+
+    /** Apply the chosen strategy to an AlarmManager. */
+    private static void applyStrategy(AlarmManager am, AlarmStrategy strategy,
+            int type, long triggerAtMillis, PendingIntent pi) {
+        switch (strategy) {
+            case EXACT_ALLOW_IDLE:
+                am.setExactAndAllowWhileIdle(type, triggerAtMillis, pi);
+                break;
+            case EXACT:
+                am.setExact(type, triggerAtMillis, pi);
+                break;
+            case WINDOW:
+                am.setWindow(type, triggerAtMillis, FALLBACK_WINDOW_MS, pi);
+                break;
+        }
+    }
 
     private static final Pattern DATE_PATTERN = Pattern.compile(
         "(\\d{4})-(\\d{1,2})-(\\d{1,2})(?:[^\\d]*)(?:(\\d{1,2}):(\\d{2}))?");
@@ -161,16 +207,10 @@ public class ReminderScheduler {
         PendingIntent pi = PendingIntent.getBroadcast(context, 0, intent,
             Compat.FLAG_IMMUTABLE);
 
-        // Use setExactAndAllowWhileIdle() on API 31+ for precise daily timing.
         // One-shot alarm; DailyOverviewReceiver reschedules after each fire.
-        if (Build.VERSION.SDK_INT >= 31 && alarmManager.canScheduleExactAlarms()) {
-            alarmManager.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP,
-                triggerAt.getTimeInMillis(), pi);
-        } else {
-            // Fallback: setWindow with 10-minute window (Android 12+ enforces minimum)
-            alarmManager.setWindow(AlarmManager.RTC_WAKEUP,
-                triggerAt.getTimeInMillis(), 600_000L, pi);
-        }
+        applyStrategy(alarmManager,
+            chooseAlarmStrategy(Build.VERSION.SDK_INT, alarmManager.canScheduleExactAlarms()),
+            AlarmManager.RTC_WAKEUP, triggerAt.getTimeInMillis(), pi);
 
         Log.d(TAG, "ReminderScheduler: daily overview scheduled at " + triggerAt.getTime());
     }
@@ -187,20 +227,9 @@ public class ReminderScheduler {
         PendingIntent pi = PendingIntent.getBroadcast(context, 0, intent,
             Compat.FLAG_IMMUTABLE);
 
-        // On API 31+, use setExactAndAllowWhileIdle() for precise reminder timing.
-        // setWindow() with 1-minute window is elongated to 10 minutes by Android 12+,
-        // causing reminders to fire up to 10 minutes late.
-        if (Build.VERSION.SDK_INT >= 31 && alarmManager.canScheduleExactAlarms()) {
-            alarmManager.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP,
-                triggerAtMillis, pi);
-        } else if (Build.VERSION.SDK_INT >= 23) {
-            // API 23-30: setExactAndAllowWhileIdle works without special permission
-            alarmManager.setExactAndAllowWhileIdle(AlarmManager.RTC_WAKEUP,
-                triggerAtMillis, pi);
-        } else {
-            // Pre-API 23: setExact is sufficient
-            alarmManager.setExact(AlarmManager.RTC_WAKEUP, triggerAtMillis, pi);
-        }
+        applyStrategy(alarmManager,
+            chooseAlarmStrategy(Build.VERSION.SDK_INT, alarmManager.canScheduleExactAlarms()),
+            AlarmManager.RTC_WAKEUP, triggerAtMillis, pi);
     }
 
     private static void cancelAlarm(AlarmManager alarmManager, Context context,

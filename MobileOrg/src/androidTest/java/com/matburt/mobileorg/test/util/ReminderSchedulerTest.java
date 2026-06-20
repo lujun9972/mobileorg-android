@@ -1,6 +1,7 @@
 package com.matburt.mobileorg.test.util;
 
 import com.matburt.mobileorg.util.ReminderScheduler;
+import com.matburt.mobileorg.util.ReminderScheduler.AlarmStrategy;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -102,5 +103,43 @@ public class ReminderSchedulerTest {
     @Test
     public void testFormatDateNoMatch() {
         assertEquals("not a date", ReminderScheduler.formatDate("not a date"));
+    }
+
+    // === chooseAlarmStrategy ===
+    // Regression: API 31+ without SCHEDULE_EXACT_ALARM granted must fall back to
+    // setWindow, otherwise AlarmManager.setExactAndAllowWhileIdle throws SecurityException
+    // and all DEADLINE/SCHEDULED reminders fail to register.
+
+    @Test
+    public void testChooseStrategy_api31NoPermission_fallsBackToWindow() {
+        assertEquals(AlarmStrategy.WINDOW,
+            ReminderScheduler.chooseAlarmStrategy(31, false));
+    }
+
+    @Test
+    public void testChooseStrategy_api34NoPermission_fallsBackToWindow() {
+        assertEquals(AlarmStrategy.WINDOW,
+            ReminderScheduler.chooseAlarmStrategy(34, false));
+    }
+
+    @Test
+    public void testChooseStrategy_api31WithPermission_usesExactIdle() {
+        assertEquals(AlarmStrategy.EXACT_ALLOW_IDLE,
+            ReminderScheduler.chooseAlarmStrategy(31, true));
+    }
+
+    @Test
+    public void testChooseStrategy_api23to30_usesExactIdleWithoutPermission() {
+        // API 23-30: setExactAndAllowWhileIdle needs no special permission
+        assertEquals(AlarmStrategy.EXACT_ALLOW_IDLE,
+            ReminderScheduler.chooseAlarmStrategy(30, false));
+        assertEquals(AlarmStrategy.EXACT_ALLOW_IDLE,
+            ReminderScheduler.chooseAlarmStrategy(23, false));
+    }
+
+    @Test
+    public void testChooseStrategy_belowApi23_usesExact() {
+        assertEquals(AlarmStrategy.EXACT,
+            ReminderScheduler.chooseAlarmStrategy(22, false));
     }
 }

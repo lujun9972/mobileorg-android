@@ -64,6 +64,10 @@ public class ReminderScheduler {
      * in system settings, not merely declared in manifest. When unavailable we must
      * fall back to {@code setWindow}; calling {@code setExact*()} throws
      * {@link SecurityException}. On API 23-30 the exact APIs need no special permission.
+     *
+     * Callers must short-circuit {@code AlarmManager.canScheduleExactAlarms()} behind
+     * an {@code SDK_INT >= 31} check — that method does not exist on API ≤ 30 and
+     * throws {@link NoSuchMethodError}. See {@link #canExactAlarms(AlarmManager)}.
      */
     public static AlarmStrategy chooseAlarmStrategy(int apiLevel, boolean canScheduleExactAlarms) {
         if (apiLevel >= 31 && !canScheduleExactAlarms) {
@@ -73,6 +77,16 @@ public class ReminderScheduler {
             return AlarmStrategy.EXACT_ALLOW_IDLE;
         }
         return AlarmStrategy.EXACT;
+    }
+
+    /**
+     * Safe accessor for {@link AlarmManager#canScheduleExactAlarms()} that returns
+     * {@code true} on API ≤ 30 (where exact alarms need no special permission and
+     * the method itself does not exist).
+     */
+    private static boolean canExactAlarms(AlarmManager am) {
+        if (Build.VERSION.SDK_INT < 31) return true;
+        return am.canScheduleExactAlarms();
     }
 
     /** Apply the chosen strategy to an AlarmManager. */
@@ -209,7 +223,7 @@ public class ReminderScheduler {
 
         // One-shot alarm; DailyOverviewReceiver reschedules after each fire.
         applyStrategy(alarmManager,
-            chooseAlarmStrategy(Build.VERSION.SDK_INT, alarmManager.canScheduleExactAlarms()),
+            chooseAlarmStrategy(Build.VERSION.SDK_INT, canExactAlarms(alarmManager)),
             AlarmManager.RTC_WAKEUP, triggerAt.getTimeInMillis(), pi);
 
         Log.d(TAG, "ReminderScheduler: daily overview scheduled at " + triggerAt.getTime());
@@ -228,7 +242,7 @@ public class ReminderScheduler {
             Compat.FLAG_IMMUTABLE);
 
         applyStrategy(alarmManager,
-            chooseAlarmStrategy(Build.VERSION.SDK_INT, alarmManager.canScheduleExactAlarms()),
+            chooseAlarmStrategy(Build.VERSION.SDK_INT, canExactAlarms(alarmManager)),
             AlarmManager.RTC_WAKEUP, triggerAtMillis, pi);
     }
 

@@ -20,6 +20,7 @@ import com.matburt.mobileorg.Gui.Wizard.WizardActivity;
 import com.matburt.mobileorg.OrgData.MobileOrgApplication;
 import com.matburt.mobileorg.OrgData.OrgFileRepository;
 import com.matburt.mobileorg.Services.TimeclockService;
+import com.matburt.mobileorg.Services.TimeclockDialog;
 import com.matburt.mobileorg.Settings.SettingsActivity;
 import com.matburt.mobileorg.util.Compat;
 import com.matburt.mobileorg.util.OrgUtils;
@@ -381,7 +382,8 @@ public class OutlineActivity extends AppCompatActivity {
 		} else if (id == R.id.menu_pomodoro) {
 			TimeclockService service = TimeclockService.getInstance();
 			if (service != null && service.isPomodoroTimedOut()) {
-				android.widget.Toast.makeText(this, R.string.pomodoro_waiting_confirm_toast, android.widget.Toast.LENGTH_SHORT).show();
+				// Jump to TimeclockDialog where user can choose Finish (count) or Cancel (discard)
+				startActivity(new Intent(this, TimeclockDialog.class));
 			} else if (service != null && service.isPomodoroActive() && !service.isPomodoroTimedOut()) {
 				Intent intent = new Intent(this, TimeclockService.class);
 				intent.setAction(TimeclockService.ACTION_POMODORO_STOP);

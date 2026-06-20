@@ -106,6 +106,8 @@ public class TimeclockDialog extends FragmentActivity {
 
 	private void setupPomodoroUI(TimeclockService service, LinearLayout pomoSection, LinearLayout clockSection) {
 		TextView pomoTime = findViewById(R.id.pomodoro_time);
+		Button cancelBtn = findViewById(R.id.pomodoro_cancel_button);
+		cancelBtn.setVisibility(View.GONE);
 		PomodoroTimer.PomodoroState state = service.getPomodoroState();
 		String progress = service.getPomodoroRoundProgress();
 		String progressSuffix = progress.isEmpty() ? "" : " | " + progress;
@@ -120,6 +122,17 @@ public class TimeclockDialog extends FragmentActivity {
 				stopBtn.setText("Finish");
 				stopBtn.setOnClickListener(v -> {
 					sendServiceAction(TimeclockService.ACTION_POMODORO_FINISH);
+					pomoSection.setVisibility(View.GONE);
+					if (clockSection.getVisibility() != View.VISIBLE) {
+						finish();
+					}
+				});
+				// Show Cancel: let user discard this pomodoro without recording it.
+				// Stats are only written on Finish (moved out of timeout handler),
+				// so Cancel here = complete discard, session ends, no count.
+				cancelBtn.setVisibility(View.VISIBLE);
+				cancelBtn.setOnClickListener(v -> {
+					sendServiceAction(TimeclockService.ACTION_POMODORO_STOP);
 					pomoSection.setVisibility(View.GONE);
 					if (clockSection.getVisibility() != View.VISIBLE) {
 						finish();

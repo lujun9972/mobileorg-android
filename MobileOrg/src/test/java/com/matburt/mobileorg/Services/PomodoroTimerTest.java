@@ -167,6 +167,37 @@ public class PomodoroTimerTest {
         assertFalse(t.isTimedOut());
     }
 
+    // --- idempotent finish contract ---
+    // handlePomodoroFinish guards with `if (!isTimedOut()) return;` to prevent
+    // duplicate recordPomodoroSession writes (rapid double-tap on Finish button,
+    // or pending intent dispatch races). These tests lock the contract that
+    // timedOut is reset after every transition out of WORK(timedOut), so the
+    // second finish invocation is correctly blocked.
+
+    @Test
+    public void timedOut_resetsAfterStartRest_blocksSecondFinish() {
+        // WORK(timedOut) → finish → REST: a second finish must be blocked
+        PomodoroTimer t = new PomodoroTimer();
+        t.start(25, 4);
+        t.markTimeout();
+        assertTrue("first finish allowed: timedOut is true", t.isTimedOut());
+
+        t.startRest(5);
+        assertFalse("startRest must reset timedOut so second finish is blocked", t.isTimedOut());
+    }
+
+    @Test
+    public void timedOut_resetsAfterStop_blocksSecondFinish() {
+        // WORK(timedOut) → finish → stop (last round): a second finish must be blocked
+        PomodoroTimer t = new PomodoroTimer();
+        t.start(25, 1);
+        t.markTimeout();
+        assertTrue("first finish allowed: timedOut is true", t.isTimedOut());
+
+        t.stop();
+        assertFalse("stop must reset timedOut so second finish is blocked", t.isTimedOut());
+    }
+
     // --- getRoundProgress() ---
 
     @Test

@@ -307,7 +307,6 @@
 <string name="pomodoro_picker_title">设置番茄钟</string>
 <string name="pomodoro_count_picker_title">连续番茄数</string>
 <string name="pomodoro_active_toast">番茄钟正在进行中</string>
-<string name="pomodoro_waiting_confirm_toast">番茄钟正在等待确认</string>
 
 <!-- Pomodoro Statistics -->
 <string name="menu_statistics">番茄统计</string>

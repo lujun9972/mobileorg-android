@@ -11,6 +11,7 @@ import android.media.MediaPlayer;
 import android.os.Handler;
 import android.os.IBinder;
 import android.os.Looper;
+import android.os.SystemClock;
 import androidx.core.app.NotificationCompat;
 import androidx.core.app.NotificationCompat.Builder;
 import android.text.SpannableStringBuilder;
@@ -65,6 +66,10 @@ public class TimeclockService extends Service {
 	private Runnable updateRunnable;
 	private Runnable timeoutRunnable;
 	private Runnable restTimeoutRunnable;
+	// Diagnostic: records when timeout was scheduled, to measure actual fire delay.
+	// Used to diagnose Handler delays on aggressive vendor ROMs (MIUI/EMUI/ColorOS).
+	private long timeoutScheduledAtElapsed;
+	private long timeoutTargetElapsed;
 
 	public static TimeclockService getInstance() {
 		return sInstance;
@@ -78,6 +83,7 @@ public class TimeclockService extends Service {
 		this.appInst = (MobileOrgApplication) getApplication();
 		this.repo = new OrgNodeRepository(getContentResolver());
 		Log.d("MobileOrg", "[ClockIn] TimeclockService.onCreate: sInstance set");
+		diagLog("onCreate", null);
 	}
 
 	@Override
@@ -92,6 +98,7 @@ public class TimeclockService extends Service {
 		if (intent == null) { stopSelf(); return START_NOT_STICKY; }
 		String action = intent.getAction();
 		if (action == null) action = inferAction(intent);
+		diagLog("onStartCommand", "action=" + action + " flags=" + flags + " startId=" + startId);
 
 		switch (action) {
 			case ACTION_POMODORO_START:
@@ -134,7 +141,46 @@ public class TimeclockService extends Service {
 		return "";
 	}
 
+	/**
+	 * Diagnostic log for pomodoro timing issues. Prints both elapsedRealtime
+	 * (deep-sleep aware, accurate for measuring delays) and currentTimeMillis
+	 * (wall clock, user-correlatable). Grep with: adb logcat -s MobileOrg:V | grep PomodoroDiag
+	 */
+	private void diagLog(String event, String detail) {
+		Log.d("MobileOrg", "[PomodoroDiag] event=" + event
+				+ " elapsed=" + SystemClock.elapsedRealtime()
+				+ " now=" + System.currentTimeMillis()
+				+ " state=" + pomodoroTimer.getState()
+				+ " timedOut=" + pomodoroTimer.isTimedOut()
+				+ " running=" + pomodoroTimer.isRunning()
+				+ (detail != null && !detail.isEmpty() ? " " + detail : ""));
+	}
+
 	// ========== Pomodoro handlers ==========
+
+	/**
+	 * Schedule the one-shot work-phase timeout and record diagnostic timing.
+	 * Shared by handlePomodoroStart (round 1) and handlePomodoroNext (round N+1).
+	 */
+	private void scheduleWorkTimeout() {
+		final long timeoutDelay = pomodoroTimer.getRemainingMillis();
+		timeoutScheduledAtElapsed = SystemClock.elapsedRealtime();
+		timeoutTargetElapsed = timeoutScheduledAtElapsed + timeoutDelay;
+		timeoutRunnable = new Runnable() {
+			@Override
+			public void run() {
+				timeoutRunnable = null;
+				long fireElapsed = SystemClock.elapsedRealtime();
+				diagLog("timeoutRunnableFired", "fireElapsed=" + fireElapsed
+						+ " delayMs=" + (fireElapsed - timeoutTargetElapsed));
+				handlePomodoroTimeout();
+			}
+		};
+		timerHandler.postDelayed(timeoutRunnable, timeoutDelay);
+		diagLog("scheduleTimeout", "delay=" + timeoutDelay
+				+ " targetElapsed=" + timeoutTargetElapsed
+				+ " round=" + pomodoroTimer.getCurrentRound() + "/" + pomodoroTimer.getTotalCount());
+	}
 
 	private void handlePomodoroStart(Intent intent) {
 		int duration = intent.getIntExtra(POMODORO_DURATION, 25);
@@ -146,33 +192,31 @@ public class TimeclockService extends Service {
 			@Override
 			public void run() {
 				if (!pomodoroTimer.isActive() && !clockTimer.isClockedIn()) return;
+				diagLog("updateTick", "remaining=" + pomodoroTimer.getRemainingMillis());
 				updateTime();
 				timerHandler.postDelayed(this, UPDATE_INTERVAL_MS);
 			}
 		};
 		timerHandler.postDelayed(updateRunnable, UPDATE_INTERVAL_MS);
 
-		final long timeoutDelay = pomodoroTimer.getRemainingMillis();
-		timeoutRunnable = new Runnable() {
-			@Override
-			public void run() {
-				timeoutRunnable = null;
-				handlePomodoroTimeout();
-			}
-		};
-		timerHandler.postDelayed(timeoutRunnable, timeoutDelay);
+		scheduleWorkTimeout();
 
-		Log.d("MobileOrg", "[Pomodoro] Started: " + duration + "min × " + count + ", timeout in " + timeoutDelay + "ms");
+		Log.d("MobileOrg", "[Pomodoro] Started: " + duration + "min × " + count);
 		showOrRefreshNotification();
 	}
 
 	private void handlePomodoroTimeout() {
+		diagLog("handlePomodoroTimeout_enter", null);
 		if (!pomodoroTimer.isRunning()) {
 			Log.w("MobileOrg", "[Pomodoro] Timeout received but pomodoro not running, ignoring");
+			diagLog("handlePomodoroTimeout_ignored", "reason=notRunning");
 			return;
 		}
 		pomodoroTimer.markTimeout();
-		repo.recordPomodoroSession(pomodoroTimer.getStartTime(), pomodoroTimer.getDurationMinutes());
+		// NOTE: recordPomodoroSession moved to handlePomodoroFinish. Timeout only
+		// marks completion of the countdown; the session is counted only after the
+		// user explicitly confirms via Finish. This lets the user Cancel (discard)
+		// an unsatisfying pomodoro even after timeout, without polluting stats.
 		Log.d("MobileOrg", "[Pomodoro] Timeout! round=" + pomodoroTimer.getCurrentRound() + "/" + pomodoroTimer.getTotalCount() + ", duration=" + pomodoroTimer.getDurationMinutes() + "min");
 
 		// Show timeout alert notification (same as before)
@@ -216,6 +260,21 @@ public class TimeclockService extends Service {
 	}
 
 	private void handlePomodoroFinish() {
+		// Idempotent guard: only the WORK(timedOut) state can be finished.
+		// Prevents duplicate recordPomodoroSession writes on rapid double-tap of
+		// the Finish button or PendingIntent dispatch races. markTimeout sets
+		// timedOut=true; startRest/stop reset it to false, so the second call returns.
+		if (!pomodoroTimer.isTimedOut()) {
+			diagLog("handlePomodoroFinish_blocked", "reason=notTimedOut");
+			return;
+		}
+		// Record session BEFORE stop()/startRest() — stop() resets startTime,
+		// so we must capture it while still in WORK(timedOut) state.
+		repo.recordPomodoroSession(pomodoroTimer.getStartTime(), pomodoroTimer.getDurationMinutes());
+		diagLog("recordPomodoroSession", "round=" + pomodoroTimer.getCurrentRound()
+				+ "/" + pomodoroTimer.getTotalCount()
+				+ " duration=" + pomodoroTimer.getDurationMinutes() + "min");
+
 		stopAndReleaseAlarmSound();
 		mNM.cancel(TIMEOUT_NOTIFICATION_ID);
 
@@ -269,15 +328,7 @@ public class TimeclockService extends Service {
 		cancelTimersExceptUpdate();
 
 		// Schedule new work timeout
-		final long timeoutDelay = pomodoroTimer.getRemainingMillis();
-		timeoutRunnable = new Runnable() {
-			@Override
-			public void run() {
-				timeoutRunnable = null;
-				handlePomodoroTimeout();
-			}
-		};
-		timerHandler.postDelayed(timeoutRunnable, timeoutDelay);
+		scheduleWorkTimeout();
 
 		startUpdateIfNeeded();
 		Log.d("MobileOrg", "[Pomodoro] Next round: " + pomodoroTimer.getCurrentRound() + "/" + pomodoroTimer.getTotalCount());
@@ -389,6 +440,7 @@ public class TimeclockService extends Service {
 	}
 
 	private void cancelTimers() {
+		diagLog("cancelTimers", null);
 		if (updateRunnable != null) {
 			timerHandler.removeCallbacks(updateRunnable);
 			updateRunnable = null;
@@ -404,6 +456,7 @@ public class TimeclockService extends Service {
 	}
 
 	private void cancelTimersExceptUpdate() {
+		diagLog("cancelTimersExceptUpdate", null);
 		if (timeoutRunnable != null) {
 			timerHandler.removeCallbacks(timeoutRunnable);
 			timeoutRunnable = null;
@@ -460,8 +513,9 @@ public class TimeclockService extends Service {
 			// WORK countdown: Cancel button
 			addCancelAction(builder);
 		} else if (pomoState == PomodoroTimer.PomodoroState.WORK && pomoTimedOut) {
-			// WORK timed out: Finish button
+			// WORK timed out: Finish (count this pomodoro) + Cancel (discard, don't count)
 			addFinishAction(builder);
+			addCancelAction(builder);
 		} else if (pomoState == PomodoroTimer.PomodoroState.REST) {
 			// REST: Skip rest + Cancel
 			addSkipRestAction(builder);

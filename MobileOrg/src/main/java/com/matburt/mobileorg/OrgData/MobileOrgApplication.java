@@ -3,6 +3,7 @@ package com.matburt.mobileorg.OrgData;
 import android.app.Application;
 import android.app.NotificationManager;
 import android.content.Context;
+import android.os.StrictMode;
 import android.util.Log;
 
 import androidx.multidex.MultiDex;
@@ -14,6 +15,7 @@ import com.matburt.mobileorg.R;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.PrintWriter;
+import java.lang.reflect.Method;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.Locale;
@@ -30,6 +32,24 @@ public class MobileOrgApplication extends Application {
 
 	@Override
 	public void onCreate() {
+		// TEMP: re-enable StrictMode to capture the allocation stack of a leaked cursor.
+		// /tmp/mobileorg.log still shows "A resource failed to call CursorWrapperInner.close"
+		// after the fix in commit 6714c14a — that fix covered one path but at least one
+		// leak remains. penaltyLog prints the allocation site; CloseGuard must be
+		// explicitly enabled via reflection because it defaults to disabled on user builds.
+		// Remove once the leak is located.
+		StrictMode.setVmPolicy(new StrictMode.VmPolicy.Builder()
+				.detectLeakedClosableObjects()
+				.penaltyLog()
+				.build());
+		try {
+			Class<?> closeGuard = Class.forName("dalvik.system.CloseGuard");
+			Method setEnabled = closeGuard.getMethod("setEnabled", boolean.class);
+			setEnabled.invoke(null, true);
+		} catch (Exception e) {
+			Log.w("MobileOrg", "CloseGuard.setEnabled failed: " + e);
+		}
+
 		Thread.setDefaultUncaughtExceptionHandler(new Thread.UncaughtExceptionHandler() {
 			private final Thread.UncaughtExceptionHandler defaultHandler = Thread.getDefaultUncaughtExceptionHandler();
 			@Override

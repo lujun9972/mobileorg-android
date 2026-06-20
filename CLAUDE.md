@@ -116,6 +116,7 @@ All guards use `Build.VERSION.SDK_INT >= Build.VERSION_CODES.O` pattern.
 
 ## Known Pitfalls
 
+- **Cursor leak on not-found exception path**: `OrgFileRepository.getById/getByFilename` and `OrgNodeRepository.getById` opened a cursor, then threw `Org*NotFoundException` without closing it. The "not found" branch is the *normal* path for `getByFilename(CAPTURE_FILE)` when no captures exist — `OutlineActivity.onResume() → refreshTitle() → getChangesCount() → getByFilename()` runs every resume, leaking one cursor each time. Finalizer warned `A resource failed to call AbstractCursor.close / CursorWrapperInner.close`. StrictMode (`detectLeakedClosableObjects()` + `penaltyLog()`) pinned the allocation stack in one cycle. Fix: close cursor in the throw branch. General rule: when a method opens a Closeable then can throw before the normal close(), close it in the throw branch (or use try-finally).
 - **Singleton state**: DB, Parser, Synchronizer are singletons, not thread-safe. Sync thread accesses DB while UI reads it — potential race conditions.
 - **RecyclerView + extra items**: `OutlineAdapter` adds 2 header items. Position-to-index must subtract `numExtraItems`.
 - **`OrgNodeListActivity`**: No `onSaveInstanceState` — rotation can cause issues.

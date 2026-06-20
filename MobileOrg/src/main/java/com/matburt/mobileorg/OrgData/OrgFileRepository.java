@@ -92,8 +92,10 @@ public class OrgFileRepository {
     public OrgFile getById(long id) throws OrgFileNotFoundException {
         Cursor cursor = resolver.query(Files.buildIdUri(id),
                 Files.DEFAULT_COLUMNS, null, null, null);
-        if (cursor == null || cursor.getCount() < 1)
+        if (cursor == null || cursor.getCount() < 1) {
+            if (cursor != null) cursor.close();
             throw new OrgFileNotFoundException("File with id \"" + id + "\" not found");
+        }
         OrgFile file = new OrgFile();
         file.set(cursor);
         cursor.close();
@@ -103,8 +105,10 @@ public class OrgFileRepository {
     public OrgFile getByFilename(String filename) throws OrgFileNotFoundException {
         Cursor cursor = resolver.query(Files.CONTENT_URI,
                 Files.DEFAULT_COLUMNS, Files.FILENAME + "=?", new String[] {filename}, null);
-        if (cursor == null || cursor.getCount() <= 0)
+        if (cursor == null || cursor.getCount() <= 0) {
+            if (cursor != null) cursor.close();
             throw new OrgFileNotFoundException("File \"" + filename + "\" not found");
+        }
         OrgFile file = new OrgFile();
         file.set(cursor);
         cursor.close();

@@ -44,8 +44,10 @@ public class OrgNodeRepository {
     public OrgNode getById(long id) throws OrgNodeNotFoundException {
         Cursor cursor = resolver.query(OrgData.buildIdUri(id),
                 OrgData.DEFAULT_COLUMNS, null, null, null);
-        if (cursor == null || !cursor.moveToFirst())
+        if (cursor == null || !cursor.moveToFirst()) {
+            if (cursor != null) cursor.close();
             throw new OrgNodeNotFoundException("Node with id \"" + id + "\" not found");
+        }
         OrgNode node = new OrgNode(cursor);
         cursor.close();
         return node;

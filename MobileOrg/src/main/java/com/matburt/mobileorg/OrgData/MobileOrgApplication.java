@@ -3,7 +3,6 @@ package com.matburt.mobileorg.OrgData;
 import android.app.Application;
 import android.app.NotificationManager;
 import android.content.Context;
-import android.os.StrictMode;
 import android.util.Log;
 
 import androidx.multidex.MultiDex;
@@ -31,13 +30,6 @@ public class MobileOrgApplication extends Application {
 
 	@Override
 	public void onCreate() {
-		// TEMP: StrictMode to diagnose cursor leak (2 cursors reported by finalizer in /tmp/mobileorg.log)
-		// Remove after the leak is located.
-		StrictMode.setVmPolicy(new StrictMode.VmPolicy.Builder()
-				.detectLeakedClosableObjects()
-				.penaltyLog()
-				.build());
-
 		Thread.setDefaultUncaughtExceptionHandler(new Thread.UncaughtExceptionHandler() {
 			private final Thread.UncaughtExceptionHandler defaultHandler = Thread.getDefaultUncaughtExceptionHandler();
 			@Override

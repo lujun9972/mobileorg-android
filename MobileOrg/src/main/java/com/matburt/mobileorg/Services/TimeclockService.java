@@ -193,6 +193,7 @@ public class TimeclockService extends Service {
 			public void run() {
 				if (!pomodoroTimer.isActive() && !clockTimer.isClockedIn()) return;
 				diagLog("updateTick", "remaining=" + pomodoroTimer.getRemainingMillis());
+				checkTimeoutFallback();
 				updateTime();
 				timerHandler.postDelayed(this, UPDATE_INTERVAL_MS);
 			}
@@ -205,11 +206,41 @@ public class TimeclockService extends Service {
 		showOrRefreshNotification();
 	}
 
+	/**
+	 * Defensive timeout fallback: if the one-shot timeoutRunnable was delayed
+	 * by Doze/ROM power management (observed 25-min delay on MIUI/xaga), detect
+	 * the timeout from the periodic updateTick instead. Idempotent — safe every
+	 * tick; handlePomodoroTimeout guards on isRunning() && !isTimedOut().
+	 */
+	private void checkTimeoutFallback() {
+		// WORK phase: one-shot timeoutRunnable may be delayed by Doze/ROM
+		if (pomodoroTimer.isRunning() && !pomodoroTimer.isTimedOut()
+				&& pomodoroTimer.getRemainingMillis() <= 0) {
+			diagLog("timeoutFallbackFired",
+					"remaining=" + pomodoroTimer.getRemainingMillis()
+							+ " (timeoutRunnable delayed by Doze)");
+			handlePomodoroTimeout();
+			return;
+		}
+		// REST phase: one-shot restTimeoutRunnable has the same Doze exposure.
+		// handleRestTimeout is idempotent via state transition (REST→WAITING_NEXT).
+		if (pomodoroTimer.isResting()
+				&& pomodoroTimer.getRestRemainingMillis() <= 0) {
+			diagLog("restTimeoutFallbackFired",
+					"remaining=" + pomodoroTimer.getRestRemainingMillis());
+			handleRestTimeout();
+		}
+	}
+
 	private void handlePomodoroTimeout() {
 		diagLog("handlePomodoroTimeout_enter", null);
-		if (!pomodoroTimer.isRunning()) {
-			Log.w("MobileOrg", "[Pomodoro] Timeout received but pomodoro not running, ignoring");
-			diagLog("handlePomodoroTimeout_ignored", "reason=notRunning");
+		// Idempotent guard: markTimeout sets timedOut=true but keeps running=true,
+		// so a delayed timeoutRunnable firing after a fallback checkTimeoutFallback
+		// would re-enter here without the isTimedOut() check. Block re-entry.
+		if (!pomodoroTimer.isRunning() || pomodoroTimer.isTimedOut()) {
+			Log.w("MobileOrg", "[Pomodoro] Timeout ignored: not running or already timed out");
+			diagLog("handlePomodoroTimeout_ignored",
+					"reason=" + (!pomodoroTimer.isRunning() ? "notRunning" : "alreadyTimedOut"));
 			return;
 		}
 		pomodoroTimer.markTimeout();

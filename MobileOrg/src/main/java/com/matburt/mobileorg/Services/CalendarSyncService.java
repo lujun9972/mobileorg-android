@@ -219,16 +219,22 @@ public class CalendarSyncService extends Service implements
 		refreshPreferences();
 
 		Cursor query = calendarWrapper.getCalendarCursor(filename);
+		if (query == null)
+			return new MultiMap<CalendarEntry>();
 
 		MultiMap<CalendarEntry> map = new MultiMap<CalendarEntry>();
 		CalendarEntriesParser entriesParser = new CalendarEntriesParser(calendarWrapper.calendar.events,
-				query);
+				query, false);
 
-		while (!query.isAfterLast()) {
-			CalendarEntry entry = entriesParser.getEntryFromCursor(query);
-			map.put(entry.dtStart, entry);
+		try {
+			while (!query.isAfterLast()) {
+				CalendarEntry entry = entriesParser.getEntryFromCursor(query);
+				map.put(entry.dtStart, entry);
 
-			query.moveToNext();
+				query.moveToNext();
+			}
+		} finally {
+			query.close();
 		}
 
 		return map;

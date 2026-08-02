@@ -13,8 +13,14 @@ public class CalendarEntriesParser {
 	private int descriptionColumn;
 	private int locationColumn;
 	private int allDayColumn;
+	private final boolean includePayload;
 
-	public CalendarEntriesParser(intEvents events, Cursor cursor) {		
+	public CalendarEntriesParser(intEvents events, Cursor cursor) {
+		this(events, cursor, true);
+	}
+
+	public CalendarEntriesParser(intEvents events, Cursor cursor, boolean includePayload) {
+		this.includePayload = includePayload;
 		dtStartColumn = cursor.getColumnIndexOrThrow(events.DTSTART);
 		dtEndColumn = cursor.getColumnIndexOrThrow(events.DTEND);
 		titleColumn = cursor.getColumnIndexOrThrow(events.TITLE);
@@ -26,15 +32,17 @@ public class CalendarEntriesParser {
 
 	public CalendarEntry getEntryFromCursor(Cursor cursor) {
 		CalendarEntry entry = new CalendarEntry();
-		
+
 		entry.dtStart = cursor.getLong(dtStartColumn);
 		entry.dtEnd = cursor.getLong(dtEndColumn);
 		entry.title = cursor.getString(titleColumn);
 		entry.id = cursor.getLong(idColumn);
-		entry.description = cursor.getString(descriptionColumn);
-		entry.location = cursor.getString(locationColumn);
+		if (includePayload) {
+			entry.description = cursor.getString(descriptionColumn);
+			entry.location = cursor.getString(locationColumn);
+		}
 		entry.allDay = cursor.getInt(allDayColumn);
-		
+
 		return entry;
 	}
 }

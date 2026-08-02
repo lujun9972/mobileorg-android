@@ -151,3 +151,5 @@ Five canonical roles use default names: `needs-triage`, `needs-info`, `ready-for
 ### Domain docs
 
 Single-context layout: one `CONTEXT.md` at repo root + `docs/adr/`. See `docs/agents/domain.md`.
+
+- **CalendarSyncService.getCalendarEntries loads full payload into MultiMap → OOM**: After sync parses large org files (929KB home.org), heap is already near 256MB limit. `getCalendarEntries()` then loads ALL calendar entries for a file into a `MultiMap<CalendarEntry>`, each containing the full org `description` payload (can be 245KB+). The `description` and `location` fields are never used for matching (equals() only compares dtStart/dtEnd/title) nor for removal (only entry.id needed). Fix: add `includePayload` flag to `CalendarEntriesParser`, skip `description`/`location` when `false`. Also fix the cursor leak in the same method — cursor was opened but never closed. General rule: when loading data purely for dedup/matching, only load the fields used by equals(). Also always close cursors in finally blocks.

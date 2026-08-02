@@ -223,7 +223,7 @@ public class LocationFragment extends Fragment {
 		if (!TextUtils.isEmpty(selection)) {
 			return new OrgFileRepository(resolver).getOrgNode(new OrgFileRepository(resolver).getOrCreateFileFromAlias(selection));
 		} else
-			throw new IllegalStateException("Can't determine location");
+			return null;
 	}
 	
 	private OrgNode getSelectedNodeId(int index) {
@@ -241,7 +241,7 @@ public class LocationFragment extends Fragment {
 				OrgNode child = repo.getChild(parent.id, selection);
 				return child;
 			} catch (OrgNodeNotFoundException e) {
-				throw new IllegalStateException("Can't determine location");
+				return null;
 			}
 		} else {
 			return getSelectedNodeId(--index);

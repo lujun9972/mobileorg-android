@@ -45,6 +45,7 @@ public class TimeclockService extends Service {
 	public static final String BROADCAST_STATE_CHANGED = "com.matburt.mobileorg.TIMECLOCK_STATE_CHANGED";
 	private static final String CHANNEL_ID = "mobileorg_timeclock";
 	private static final String TIMEOUT_CHANNEL_ID = "mobileorg_timeclock_alarm";
+	private static final String REST_CHANNEL_ID = "mobileorg_timeclock_rest";
 	private static final int TIMEOUT_NOTIFICATION_ID = 1338;
 	private static final long UPDATE_INTERVAL_MS = 60L * 1000L;
 
@@ -346,13 +347,37 @@ public class TimeclockService extends Service {
 		pomodoroTimer.setWaitingNext();
 		Log.d("MobileOrg", "[Pomodoro] Rest ended, waiting for user to start next");
 
-		// Send confirmation notification (notification sound + vibration, not alarm)
+		// Send notification with sound + vibration (separate channel from work timeout,
+		// which uses setSound(null,null) for MediaPlayer-based alarm)
+		if (Compat.isAtLeastO()) {
+			NotificationChannel restChannel = new NotificationChannel(
+					REST_CHANNEL_ID, "Pomodoro Rest Alert", NotificationManager.IMPORTANCE_HIGH);
+			restChannel.setDescription("Alerts when pomodoro rest period ends");
+			restChannel.enableVibration(true);
+			mNM.createNotificationChannel(restChannel);
+		}
+
+		PendingIntent contentIntent = PendingIntent.getActivity(this, 1,
+				new Intent(this, TimeclockDialog.class), Compat.FLAG_IMMUTABLE);
+
+		NotificationCompat.Builder restBuilder = new NotificationCompat.Builder(this, REST_CHANNEL_ID)
+				.setSmallIcon(R.drawable.timeclock_icon)
+				.setContentTitle("\u2615 休息结束")
+				.setContentText("准备开始下一个番茄钟")
+				.setPriority(NotificationCompat.PRIORITY_HIGH)
+				.setAutoCancel(true)
+				.setContentIntent(contentIntent)
+				.setDefaults(Notification.DEFAULT_SOUND | Notification.DEFAULT_VIBRATE);
+
+		mNM.notify(TIMEOUT_NOTIFICATION_ID, restBuilder.build());
+
 		notifyStateChanged();
 		showOrRefreshNotification();
 	}
 
 	private void handlePomodoroNext() {
 		stopAndReleaseAlarmSound();
+		mNM.cancel(TIMEOUT_NOTIFICATION_ID);
 		int duration = pomodoroTimer.getDurationMinutes();
 		pomodoroTimer.advanceToNextWork(duration);
 

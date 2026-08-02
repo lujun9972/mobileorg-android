@@ -113,10 +113,16 @@ public class OutlineSyncController {
     }
 
     private void stopSyncAnimation(MenuItem item) {
-        if (item == null) return;
+        if (item == null) {
+            Log.w("MobileOrg", "[SyncUI] stopSyncAnimation: item is null, cannot stop animation");
+            return;
+        }
         View actionView = item.getActionView();
         if (actionView != null) {
             actionView.clearAnimation();
+            Log.d("MobileOrg", "[SyncUI] stopSyncAnimation: animation cleared");
+        } else {
+            Log.d("MobileOrg", "[SyncUI] stopSyncAnimation: actionView already null, nothing to clear");
         }
         item.setActionView(null);
     }

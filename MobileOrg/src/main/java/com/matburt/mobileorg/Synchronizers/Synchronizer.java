@@ -28,6 +28,7 @@ import android.net.NetworkInfo;
 import android.preference.PreferenceManager;
 
 import com.matburt.mobileorg.util.PreferenceUtils;
+import com.matburt.mobileorg.Services.SyncService;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -378,6 +379,10 @@ public class Synchronizer {
 	// =====================================================================
 
 	public static void announceSyncDone(Context context) {
+		// Clear flag BEFORE broadcasting so that onPrepareOptionsMenu,
+		// which reads isSyncRunning, does not restore the animation
+		// after stopSyncAnimation has already cleared it.
+		SyncService.isSyncRunning = false;
 		Intent intent = new Intent(SYNC_UPDATE);
 		intent.putExtra(SYNC_DONE, true);
 		intent.setPackage(context.getPackageName());

@@ -22,6 +22,14 @@ import androidx.test.ext.junit.runners.AndroidJUnit4;
 
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
+import static org.junit.Assert.assertTrue;
+
+import com.matburt.mobileorg.OrgData.OrgFile;
+import com.matburt.mobileorg.OrgData.OrgFileRepository;
+import com.matburt.mobileorg.OrgData.OrgNode;
+import com.matburt.mobileorg.test.util.OrgTestUtils;
+import com.matburt.mobileorg.util.OrgNodeNotFoundException;
+import com.matburt.mobileorg.util.FileUtils;
 
 @RunWith(AndroidJUnit4.class)
 public class UndoTest extends ProviderTestCase2<OrgProvider> {
@@ -102,5 +110,60 @@ public class UndoTest extends ProviderTestCase2<OrgProvider> {
 	@Test
 	public void testDescribeLatestBatchNullWhenEmpty() {
 		assertNull(editRepo.describeLatestBatch());
+	}
+
+	private OrgNode createNodeInDefaultFile() throws OrgNodeNotFoundException {
+		OrgFile file = OrgTestUtils.getDefaultOrgFile();
+		new OrgFileRepository(resolver).write(file);
+		OrgNode fileNode = repo.getById(file.nodeId);
+		OrgNode node = OrgTestUtils.getDefaultOrgNode();
+		node.fileId = fileNode.fileId;
+		node.parentId = fileNode.id;
+		repo.write(node);
+		return node;
+	}
+
+	@Test
+	public void testGenerateEditsAssignsSameBatch() throws OrgNodeNotFoundException {
+		OrgNode node = createNodeInDefaultFile();
+
+		OrgNode newNode = repo.getById(node.id);
+		newNode.name = node.name + "2";
+		newNode.todo = "DONE";
+		repo.generateApplyWriteEdits(node, newNode, "");
+
+		ArrayList<OrgEdit> edits = editRepo.getBatchEdits(editRepo.getLatestBatchId());
+		assertEquals(2, edits.size());
+		long batch = edits.get(0).batchId;
+		assertEquals(batch, edits.get(1).batchId);
+	}
+
+	@Test
+	public void testAddLogbookAssignsBatch() throws OrgNodeNotFoundException {
+		OrgNode node = createNodeInDefaultFile();
+		long before = editRepo.getLatestBatchId() == null ? 0 : editRepo.getLatestBatchId();
+
+		repo.addLogbook(node, 1000L, 2000L, "00:16");
+
+		Long after = editRepo.getLatestBatchId();
+		assertTrue(after != null && after > before);
+		OrgNode reloaded = repo.getById(node.id);
+		assertTrue(reloaded.getPayload().contains("CLOCK:"));
+	}
+
+	@Test
+	public void testCaptureFileEditHasNoBatch() throws OrgNodeNotFoundException {
+		OrgFile capture = new OrgFileRepository(resolver).getOrCreateCaptureFile();
+		OrgNode captureNode = new OrgFileRepository(resolver).getOrgNode(capture);
+		OrgNode node = OrgTestUtils.getDefaultOrgNode();
+		node.fileId = captureNode.fileId;
+		node.parentId = captureNode.id;
+		repo.write(node);
+
+		OrgNode newNode = repo.getById(node.id);
+		newNode.name = node.name + "2";
+		repo.generateApplyWriteEdits(node, newNode, "");
+
+		assertEquals(null, editRepo.getLatestBatchId());
 	}
 }

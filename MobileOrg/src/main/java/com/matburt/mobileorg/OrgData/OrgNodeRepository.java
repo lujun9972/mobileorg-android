@@ -346,32 +346,45 @@ public class OrgNodeRepository {
      */
     public ArrayList<OrgEdit> generateApplyEditNodes(OrgNode oldNode, OrgNode newNode, String olpPath) {
         ArrayList<OrgEdit> edits = new ArrayList<OrgEdit>();
+        long batchId = new OrgEditRepository(resolver).nextBatchId();
 
         if (!oldNode.name.equals(newNode.name)) {
-            edits.add(new OrgEdit(oldNode, OrgEdit.TYPE.HEADING, newNode.name, resolver));
+            OrgEdit e = new OrgEdit(oldNode, OrgEdit.TYPE.HEADING, newNode.name, resolver);
+            e.batchId = batchId;
+            edits.add(e);
             oldNode.name = newNode.name;
         }
         if (newNode.todo != null && !oldNode.todo.equals(newNode.todo)) {
-            edits.add(new OrgEdit(oldNode, OrgEdit.TYPE.TODO, newNode.todo, resolver));
+            OrgEdit e = new OrgEdit(oldNode, OrgEdit.TYPE.TODO, newNode.todo, resolver);
+            e.batchId = batchId;
+            edits.add(e);
             oldNode.todo = newNode.todo;
         }
         if (newNode.priority != null && !oldNode.priority.equals(newNode.priority)) {
-            edits.add(new OrgEdit(oldNode, OrgEdit.TYPE.PRIORITY, newNode.priority, resolver));
+            OrgEdit e = new OrgEdit(oldNode, OrgEdit.TYPE.PRIORITY, newNode.priority, resolver);
+            e.batchId = batchId;
+            edits.add(e);
             oldNode.priority = newNode.priority;
         }
         if (newNode.getPayload() != null && !newNode.getPayload().equals(oldNode.getPayload())) {
-            edits.add(new OrgEdit(oldNode, OrgEdit.TYPE.BODY, newNode.getPayload(), resolver));
+            OrgEdit e = new OrgEdit(oldNode, OrgEdit.TYPE.BODY, newNode.getPayload(), resolver);
+            e.batchId = batchId;
+            edits.add(e);
             oldNode.setPayload(newNode.getPayload());
         }
         if (oldNode.tags != null && !oldNode.tags.equals(newNode.tags)) {
-            edits.add(new OrgEdit(oldNode, OrgEdit.TYPE.TAGS, newNode.tags, resolver));
+            OrgEdit e = new OrgEdit(oldNode, OrgEdit.TYPE.TAGS, newNode.tags, resolver);
+            e.batchId = batchId;
+            edits.add(e);
             oldNode.tags = newNode.tags;
         }
         if (newNode.parentId != oldNode.parentId) {
             OrgNode parent = getParentSafe(newNode, olpPath);
             String newId = getNodeId(parent);
 
-            edits.add(new OrgEdit(oldNode, OrgEdit.TYPE.REFILE, newId, resolver));
+            OrgEdit e = new OrgEdit(oldNode, OrgEdit.TYPE.REFILE, newId, resolver);
+            e.batchId = batchId;
+            edits.add(e);
             oldNode.parentId = newNode.parentId;
             oldNode.fileId = newNode.fileId;
             oldNode.level = parent.level + 1;
@@ -495,6 +508,7 @@ public class OrgNodeRepository {
         boolean generateEdits = !getFilename(node).equals(FileUtils.CAPTURE_FILE);
         if (generateEdits) {
             OrgEdit edit = new OrgEdit(node, OrgEdit.TYPE.BODY, newPayload, resolver);
+            edit.batchId = new OrgEditRepository(resolver).nextBatchId();
             edit.write(resolver);
         }
         node.setPayload(newPayload);

@@ -22,37 +22,38 @@ public class OrgEdit {
 		DELETE,
 		ADDHEADING
 	};
-	
+
 	public TYPE type = null;
 	public String nodeId = "";
 	public String title = "";
 	public String oldValue = "";
 	public String newValue = "";
-		
+	public long batchId = -1;
+
 	public OrgEdit() {
 	}
-	
+
 	public OrgEdit(OrgNode node, TYPE type, ContentResolver resolver) {
 		this.title = node.name;
 		this.nodeId = new OrgNodeRepository(resolver).getNodeId(node);
 		this.type = type;
-		
+
 		setOldValue(node);
 	}
-	
+
 	public OrgEdit(OrgNode node, TYPE type, String newValue, ContentResolver resolver) {
 		this.title = node.name;
 		this.nodeId = new OrgNodeRepository(resolver).getNodeId(node);
 		this.type = type;
 		this.newValue = newValue;
-		
+
 		setOldValue(node);
 	}
-	
+
 	public OrgEdit(Cursor cursor) {
 		set(cursor);
 	}
-	
+
 	public void set(Cursor cursor) {
 		if (cursor != null && cursor.getCount() > 0) {
 			if(cursor.isBeforeFirst() || cursor.isAfterLast())
@@ -61,10 +62,13 @@ public class OrgEdit {
 			this.title = cursor.getString(cursor.getColumnIndexOrThrow(Edits.TITLE));
 			this.oldValue = cursor.getString(cursor.getColumnIndexOrThrow(Edits.OLD_VALUE));
 			this.newValue = cursor.getString(cursor.getColumnIndexOrThrow(Edits.NEW_VALUE));
+			int batchIdx = cursor.getColumnIndex(Edits.BATCH_ID);
+			if (batchIdx >= 0 && !cursor.isNull(batchIdx))
+				this.batchId = cursor.getLong(batchIdx);
 			setType(cursor.getString(cursor.getColumnIndexOrThrow(Edits.TYPE)));
 		}
 	}
-	
+
 	private void setOldValue(OrgNode node) {
 		switch(type) {
 		case TODO:
@@ -86,12 +90,12 @@ public class OrgEdit {
 			break;
 		}
 	}
-	
-	
+
+
 	public void setType(String string) {
 		this.type = TYPE.valueOf(string.toUpperCase());
 	}
-	
+
 	public String getType() {
 		return type.name().toLowerCase();
 	}
@@ -99,39 +103,40 @@ public class OrgEdit {
 	public long write(ContentResolver resolver) {
 		if(this.type == null)
 			return -1;
-		
+
 		ContentValues values = new ContentValues();
 		values.put(Edits.TYPE, getType());
 		values.put(Edits.DATA_ID, nodeId);
 		values.put(Edits.TITLE, title);
 		values.put(Edits.OLD_VALUE, oldValue);
 		values.put(Edits.NEW_VALUE, newValue);
-		
+		values.put(Edits.BATCH_ID, batchId > 0 ? batchId : null);
+
 		Uri uri = resolver.insert(Edits.CONTENT_URI, values);
 		return Long.parseLong(Edits.getId(uri));
 	}
-	
+
 	public String toString() {
 		if (nodeId.indexOf("olp:") != 0)
 			nodeId = "id:" + nodeId;
-		
+
 		StringBuilder result = new StringBuilder();
 		result.append("* F(edit:" + getType() + ") [[" + nodeId + "]["
 				+ title.trim() + "]]\n");
 		result.append("** Old value\n" + oldValue.trim() + "\n");
 		result.append("** New value\n" + newValue.trim() + "\n");
 		result.append("** End of edit" + "\n\n");
-				
+
 		return result.toString().replace(":ORIGINAL_ID:", ":ID:");
 	}
 
 	public boolean compare(OrgEdit edit) {
 		return type.equals(edit.type) && oldValue.equals(edit.oldValue)
 				&& newValue.equals(edit.newValue) && title.equals(edit.title)
-				&& nodeId.equals(edit.nodeId);
+				&& nodeId.equals(edit.nodeId) && batchId == edit.batchId;
 	}
 
-	public static String editsToString(ContentResolver resolver) {		
+	public static String editsToString(ContentResolver resolver) {
 		Cursor cursor = resolver.query(Edits.CONTENT_URI,
 				Edits.DEFAULT_COLUMNS, null, null, null);
 		cursor.moveToFirst();
@@ -141,7 +146,7 @@ public class OrgEdit {
 			result.append(new OrgEdit(cursor).toString());
 			cursor.moveToNext();
 		}
-		
+
 		cursor.close();
 		return result.toString();
 	}

@@ -10,7 +10,7 @@ import com.matburt.mobileorg.OrgData.OrgContract.OrgData;
 
 public class OrgDatabase extends SQLiteOpenHelper {
 	private static final String DATABASE_NAME = "MobileOrg.db";
-	private static final int DATABASE_VERSION = 6;
+	private static final int DATABASE_VERSION = 7;
 
 	private int orgdata_nameColumn;
 	private int orgdata_todoColumn;
@@ -20,10 +20,10 @@ public class OrgDatabase extends SQLiteOpenHelper {
 	private int orgdata_parentidColumn;
 	private int orgdata_fileidColumn;
 	private int orgdata_levelColumn;
-	
+
 	private InsertHelper orgdataInsertHelper;
 	private SQLiteStatement addPayloadStatement;
-	
+
 	public interface Tables {
 		String EDITS = "edits";
 		String FILES = "files";
@@ -33,11 +33,11 @@ public class OrgDatabase extends SQLiteOpenHelper {
 		String ORGDATA = "orgdata";
 		String POMODORO_SESSIONS = "pomodoro_sessions";
 	}
-	
+
 	public OrgDatabase(Context context) {
 		super(context, DATABASE_NAME, null, DATABASE_VERSION);
 	}
-	
+
 	@Override
 	public void onCreate(SQLiteDatabase db) {
 		db.execSQL("CREATE TABLE IF NOT EXISTS files("
@@ -65,7 +65,8 @@ public class OrgDatabase extends SQLiteOpenHelper {
 				+ "data_id integer,"
 				+ "old_value text,"
 				+ "new_value text,"
-				+ "changed integer)");
+				+ "changed integer,"
+				+ "batch_id integer)");
 		db.execSQL("CREATE TABLE IF NOT EXISTS orgdata ("
 				+ "_id integer primary key autoincrement,"
 				+ "parent_id integer default -1,"
@@ -85,7 +86,7 @@ public class OrgDatabase extends SQLiteOpenHelper {
 		db.execSQL("CREATE INDEX IF NOT EXISTS idx_pomodoro_completed "
 				+ "ON pomodoro_sessions(completed_at)");
 	}
-	
+
 	@Override
 	public void onUpgrade(SQLiteDatabase db, int oldVersion, int newVersion) {
 		switch (newVersion) {
@@ -96,7 +97,7 @@ public class OrgDatabase extends SQLiteOpenHelper {
 			db.execSQL("DROP TABLE IF EXISTS edits");
 			db.execSQL("DROP TABLE IF EXISTS orgdata");
 			break;
-			
+
 		case 5:
 			db.execSQL("alter table orgdata add tags_inherited text");
 			break;
@@ -109,10 +110,13 @@ public class OrgDatabase extends SQLiteOpenHelper {
 			db.execSQL("CREATE INDEX IF NOT EXISTS idx_pomodoro_completed "
 					+ "ON pomodoro_sessions(completed_at)");
 			break;
+		case 7:
+			db.execSQL("alter table edits add batch_id integer");
+			break;
 		}
 		onCreate(db);
 	}
-	
+
 	public long fastInsertNode(OrgNode node) {
 		prepareOrgdataInsert();
 		orgdataInsertHelper.bind(orgdata_parentidColumn, node.parentId);
@@ -125,17 +129,17 @@ public class OrgDatabase extends SQLiteOpenHelper {
 		orgdataInsertHelper.bind(orgdata_levelColumn, node.level);
 		return orgdataInsertHelper.execute();
 	}
-		
+
 	public void fastInsertNodePayload(Long id, final String payload) {
 		if(addPayloadStatement == null)
 			addPayloadStatement = getWritableDatabase()
 					.compileStatement("UPDATE orgdata SET payload=? WHERE _id=?");
-		
+
 		addPayloadStatement.bindString(1, payload);
 		addPayloadStatement.bindLong(2, id);
 		addPayloadStatement.execute();
 	}
-	
+
 	private void prepareOrgdataInsert() {
 		if(this.orgdataInsertHelper == null) {
 			this.orgdataInsertHelper = new InsertHelper(getWritableDatabase(), Tables.ORGDATA);
@@ -150,11 +154,11 @@ public class OrgDatabase extends SQLiteOpenHelper {
 		}
 		orgdataInsertHelper.prepareForInsert();
 	}
-	
+
 	public void beginTransaction() {
 		getWritableDatabase().beginTransaction();
 	}
-	
+
 	public void endTransaction() {
 		getWritableDatabase().setTransactionSuccessful();
 		getWritableDatabase().endTransaction();

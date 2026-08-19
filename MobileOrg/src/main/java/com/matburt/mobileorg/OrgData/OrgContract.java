@@ -11,6 +11,7 @@ public class OrgContract {
 		String TITLE = "title";
 		String OLD_VALUE = "old_value";
 		String NEW_VALUE = "new_value";
+		String BATCH_ID = "batch_id";
 	}
 	
 	interface OrgDataColumns {
@@ -108,7 +109,7 @@ public class OrgContract {
 				BASE_CONTENT_URI.buildUpon().appendPath(PATH_EDITS).build();
 		
 		public static final String[] DEFAULT_COLUMNS = { ID, DATA_ID, TITLE,
-				TYPE, OLD_VALUE, NEW_VALUE };
+				TYPE, OLD_VALUE, NEW_VALUE, BATCH_ID };
 		
 		public static String getId(Uri uri) {
 			return uri.getPathSegments().get(1);

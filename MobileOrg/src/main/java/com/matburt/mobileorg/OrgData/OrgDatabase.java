@@ -66,7 +66,8 @@ public class OrgDatabase extends SQLiteOpenHelper {
 				+ "old_value text,"
 				+ "new_value text,"
 				+ "changed integer,"
-				+ "batch_id integer)");
+				+ "batch_id integer,"
+				+ "db_id integer)");
 		db.execSQL("CREATE TABLE IF NOT EXISTS orgdata ("
 				+ "_id integer primary key autoincrement,"
 				+ "parent_id integer default -1,"
@@ -112,6 +113,7 @@ public class OrgDatabase extends SQLiteOpenHelper {
 			break;
 		case 7:
 			db.execSQL("alter table edits add batch_id integer");
+			db.execSQL("alter table edits add db_id integer");
 			break;
 		}
 		onCreate(db);

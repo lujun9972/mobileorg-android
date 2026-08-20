@@ -29,6 +29,7 @@ public class OrgEdit {
 	public String oldValue = "";
 	public String newValue = "";
 	public long batchId = -1;
+	public long dbId = -1;
 
 	public OrgEdit() {
 	}
@@ -37,6 +38,7 @@ public class OrgEdit {
 		this.title = node.name;
 		this.nodeId = new OrgNodeRepository(resolver).getNodeId(node);
 		this.type = type;
+		this.dbId = node.id;
 
 		setOldValue(node);
 	}
@@ -46,6 +48,7 @@ public class OrgEdit {
 		this.nodeId = new OrgNodeRepository(resolver).getNodeId(node);
 		this.type = type;
 		this.newValue = newValue;
+		this.dbId = node.id;
 
 		setOldValue(node);
 	}
@@ -65,6 +68,9 @@ public class OrgEdit {
 			int batchIdx = cursor.getColumnIndex(Edits.BATCH_ID);
 			if (batchIdx >= 0 && !cursor.isNull(batchIdx))
 				this.batchId = cursor.getLong(batchIdx);
+			int dbIdx = cursor.getColumnIndex(Edits.DB_ID);
+			if (dbIdx >= 0 && !cursor.isNull(dbIdx))
+				this.dbId = cursor.getLong(dbIdx);
 			setType(cursor.getString(cursor.getColumnIndexOrThrow(Edits.TYPE)));
 		}
 	}
@@ -111,6 +117,7 @@ public class OrgEdit {
 		values.put(Edits.OLD_VALUE, oldValue);
 		values.put(Edits.NEW_VALUE, newValue);
 		values.put(Edits.BATCH_ID, batchId > 0 ? batchId : null);
+		values.put(Edits.DB_ID, dbId >= 0 ? dbId : null);
 
 		Uri uri = resolver.insert(Edits.CONTENT_URI, values);
 		return Long.parseLong(Edits.getId(uri));

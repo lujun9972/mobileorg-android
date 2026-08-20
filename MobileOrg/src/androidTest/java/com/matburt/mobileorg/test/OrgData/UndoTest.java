@@ -23,12 +23,14 @@ import androidx.test.ext.junit.runners.AndroidJUnit4;
 import static org.junit.Assert.assertEquals;
 import static org.junit.Assert.assertNull;
 import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.assertFalse;
 
 import com.matburt.mobileorg.OrgData.OrgFile;
 import com.matburt.mobileorg.OrgData.OrgFileRepository;
 import com.matburt.mobileorg.OrgData.OrgNode;
 import com.matburt.mobileorg.test.util.OrgTestUtils;
 import com.matburt.mobileorg.util.OrgNodeNotFoundException;
+import com.matburt.mobileorg.util.OrgFileNotFoundException;
 import com.matburt.mobileorg.util.FileUtils;
 
 @RunWith(AndroidJUnit4.class)
@@ -165,5 +167,113 @@ public class UndoTest extends ProviderTestCase2<OrgProvider> {
 		repo.generateApplyWriteEdits(node, newNode, "");
 
 		assertEquals(null, editRepo.getLatestBatchId());
+	}
+
+	// =====================================================================
+	// Task 4: undoLatestBatch tests
+	// =====================================================================
+
+	@Test
+	public void testUndoRestoresFieldsAndDeletesBatch() throws OrgNodeNotFoundException, OrgFileNotFoundException {
+		OrgNode node = createNodeInDefaultFile();
+		String origName = node.name;
+		String origTodo = node.todo;
+
+		OrgNode newNode = repo.getById(node.id);
+		newNode.name = "changed";
+		newNode.todo = "DONE";
+		repo.generateApplyWriteEdits(node, newNode, "");
+
+		// generateApplyWriteEdits 只生成 edit 行，不修改 DB
+		// 模拟 EditActivityControllerEdit.saveEdits 的完整流程
+		repo.write(node);  // 把 mutate 后的节点写入 DB
+		OrgNode edited = repo.getById(node.id);
+		assertEquals("changed", edited.name);
+		assertEquals("DONE", edited.todo);
+
+		assertEquals(OrgEditRepository.UndoResult.SUCCESS, editRepo.undoLatestBatch());
+
+		OrgNode restored = repo.getById(node.id);
+		assertEquals(origName, restored.name);
+		assertEquals(origTodo, restored.todo);
+		assertEquals(null, editRepo.getLatestBatchId());
+	}
+
+	@Test
+	public void testUndoLifoOrder() throws OrgNodeNotFoundException {
+		OrgNode node = createNodeInDefaultFile();
+		String origName = node.name;
+		String origTodo = node.todo;
+
+		// 批次1：改 TODO
+		OrgNode n1 = repo.getById(node.id);
+		n1.todo = "DONE";  // 改成不同的值
+		OrgNode oldNode1 = repo.getById(node.id);
+		repo.generateApplyWriteEdits(oldNode1, n1, "");
+		repo.write(oldNode1);  // 写入 DB
+		long batch1 = editRepo.getLatestBatchId();
+
+		// 批次2：改标题
+		OrgNode n2 = repo.getById(node.id);
+		n2.name = "second";
+		OrgNode oldNode2 = repo.getById(node.id);
+		repo.generateApplyWriteEdits(oldNode2, n2, "");
+		repo.write(oldNode2);  // 写入 DB
+		long batch2 = editRepo.getLatestBatchId();
+		assertTrue(batch2 > batch1);
+
+		assertEquals(OrgEditRepository.UndoResult.SUCCESS, editRepo.undoLatestBatch());
+		OrgNode after = repo.getById(node.id);
+		assertEquals(origName, after.name);          // 批次2（改名）被撤
+		assertEquals("DONE", after.todo);            // 批次1仍在
+
+		assertEquals(OrgEditRepository.UndoResult.SUCCESS, editRepo.undoLatestBatch());
+		OrgNode done = repo.getById(node.id);
+		assertEquals(origTodo, done.todo);          // 批次1也被撤
+		assertEquals(null, editRepo.getLatestBatchId());
+	}
+
+	@Test
+	public void testUndoBodyEditRemovesClock() throws OrgNodeNotFoundException {
+		OrgNode node = createNodeInDefaultFile();
+		String origPayload = repo.getById(node.id).getPayload();
+
+		repo.addLogbook(node, 1000L, 2000L, "00:16");
+		assertTrue(repo.getById(node.id).getPayload().contains("CLOCK:"));
+
+		assertEquals(OrgEditRepository.UndoResult.SUCCESS, editRepo.undoLatestBatch());
+
+		OrgNode restored = repo.getById(node.id);
+		assertEquals(origPayload, restored.getPayload());
+	}
+
+	@Test
+	public void testUndoNodeMissingKeepsBatch() throws OrgNodeNotFoundException {
+		OrgNode node = createNodeInDefaultFile();
+		OrgNode newNode = repo.getById(node.id);
+		newNode.name = "changed";
+		OrgNode oldNode = repo.getById(node.id);
+		repo.generateApplyWriteEdits(oldNode, newNode, "");
+
+		repo.deleteNode(node);  // 结构操作，产生无批次 DELETE 行且节点从 DB 删除
+
+		assertEquals(OrgEditRepository.UndoResult.NODE_MISSING, editRepo.undoLatestBatch());
+		Long latest = editRepo.getLatestBatchId();
+		assertTrue(latest != null);  // 批次保留，未被弹出
+	}
+
+	@Test
+	public void testUndoNothingToUndo() {
+		assertEquals(OrgEditRepository.UndoResult.NOTHING_TO_UNDO, editRepo.undoLatestBatch());
+	}
+
+	@Test
+	public void testEditStoresDbId() throws OrgNodeNotFoundException {
+		OrgNode node = createNodeInDefaultFile();
+		OrgNode newNode = repo.getById(node.id);
+		newNode.name = node.name + "2";
+		repo.generateApplyWriteEdits(repo.getById(node.id), newNode, "");
+		ArrayList<OrgEdit> edits = editRepo.getBatchEdits(editRepo.getLatestBatchId());
+		assertEquals(node.id, edits.get(0).dbId);
 	}
 }

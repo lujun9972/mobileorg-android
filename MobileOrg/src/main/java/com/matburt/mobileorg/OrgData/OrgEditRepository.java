@@ -6,6 +6,7 @@ import android.content.ContentResolver;
 import android.database.Cursor;
 
 import com.matburt.mobileorg.OrgData.OrgContract.Edits;
+import com.matburt.mobileorg.util.OrgNodeNotFoundException;
 
 public class OrgEditRepository {
 
@@ -70,5 +71,44 @@ public class OrgEditRepository {
 		default:       verb = "编辑内容";   break;
 		}
 		return verb + " '" + first.title + "'";
+	}
+
+	/**
+	 * Pop the latest batch: restore old values to the node, then delete the
+	 * batch's edit rows. Undo never generates new edits.
+	 */
+	public UndoResult undoLatestBatch() {
+		Long batchId = getLatestBatchId();
+		if (batchId == null)
+			return UndoResult.NOTHING_TO_UNDO;
+
+		ArrayList<OrgEdit> edits = getBatchEdits(batchId);
+		if (edits.isEmpty())
+			return UndoResult.NOTHING_TO_UNDO;
+
+		OrgNodeRepository nodeRepo = new OrgNodeRepository(resolver);
+		OrgNode node;
+		try {
+			node = nodeRepo.getById(edits.get(0).dbId);
+		} catch (OrgNodeNotFoundException e) {
+			return UndoResult.NODE_MISSING;
+		}
+
+		for (OrgEdit edit : edits) {
+			switch (edit.type) {
+			case HEADING:  node.name = edit.oldValue;      break;
+			case TODO:     node.todo = edit.oldValue;      break;
+			case PRIORITY: node.priority = edit.oldValue;  break;
+			case TAGS:     node.tags = edit.oldValue;      break;
+			case BODY:     node.setPayload(edit.oldValue); break;
+			default:
+				return UndoResult.NOTHING_TO_UNDO;  // 防御：批次含不可撤类型
+			}
+		}
+
+		nodeRepo.updateAllNodes(node);
+		resolver.delete(Edits.CONTENT_URI, Edits.BATCH_ID + "=?",
+				new String[]{String.valueOf(batchId)});
+		return UndoResult.SUCCESS;
 	}
 }

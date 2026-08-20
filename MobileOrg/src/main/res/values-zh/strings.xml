@@ -154,7 +154,9 @@
   <string name="preference_calendar_show_habits">显示习惯</string>
   <string name="preference_calendar_show_done_summary">在日历中显示已完成条目</string>
   <string name="preference_calendar_show_done">显示己完成</string>
+  <string name="undo_menu">撤销</string>
+  <string name="undo_node_missing">节点已删除，无法撤销</string>
   <string name="edit_date_start">开始</string>
   <string name="edit_date_end">结束</string>
-  <string name="edit_date_date">日期</string>  
+  <string name="edit_date_date">日期</string>
 </resources>

@@ -504,6 +504,17 @@ public class OrgNodeRepository {
         writePayloadWithEdits(node, rawPayload.toString());
     }
 
+    /**
+     * Record a finished voice recording as ONE payload change (logbook entry +
+     * file link), so it lands in a single undo batch.
+     */
+    public void addRecording(OrgNode node, long startTime, long endTime, String elapsedTime, String filePath) {
+        StringBuilder rawPayload = new StringBuilder(node.getPayload());
+        rawPayload = OrgNodePayload.addLogbook(rawPayload, startTime, endTime, elapsedTime);
+        rawPayload.append("\n[[file:").append(filePath).append("]]");
+        writePayloadWithEdits(node, rawPayload.toString());
+    }
+
     private void writePayloadWithEdits(OrgNode node, String newPayload) {
         boolean generateEdits = !getFilename(node).equals(FileUtils.CAPTURE_FILE);
         if (generateEdits) {

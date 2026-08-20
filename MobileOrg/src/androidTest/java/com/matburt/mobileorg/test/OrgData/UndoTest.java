@@ -276,4 +276,23 @@ public class UndoTest extends ProviderTestCase2<OrgProvider> {
 		ArrayList<OrgEdit> edits = editRepo.getBatchEdits(editRepo.getLatestBatchId());
 		assertEquals(node.id, edits.get(0).dbId);
 	}
+
+	@Test
+	public void testRecordingSingleBatchSingleEdit() throws OrgNodeNotFoundException {
+		OrgNode node = createNodeInDefaultFile();
+		String origPayload = repo.getById(node.id).getPayload();
+
+		repo.addRecording(node, 1000L, 2000L, "00:16", "/sdcard/rec.aac");
+
+		String payload = repo.getById(node.id).getPayload();
+		assertTrue(payload.contains("CLOCK:"));
+		assertTrue(payload.contains("[[file:/sdcard/rec.aac]]"));
+
+		Long batchId = editRepo.getLatestBatchId();
+		assertTrue(batchId != null);
+		assertEquals(1, editRepo.getBatchEdits(batchId).size());
+
+		assertEquals(OrgEditRepository.UndoResult.SUCCESS, editRepo.undoLatestBatch());
+		assertEquals(origPayload, repo.getById(node.id).getPayload());
+	}
 }

@@ -203,8 +203,7 @@ public class RecordingService extends Service {
         String elapsedTime = formatElapsedTime(elapsedMillis);
 
         ContentResolver resolver = getContentResolver();
-        new OrgNodeRepository(resolver).addLogbook(node, startTime, endTime, elapsedTime);
-        new OrgNodeRepository(resolver).appendFileLink(node, recordingFilePath);
+        new OrgNodeRepository(resolver).addRecording(node, startTime, endTime, elapsedTime, recordingFilePath);
 
         Intent stoppedIntent = new Intent(BROADCAST_STOPPED);
         stoppedIntent.setPackage(getPackageName());

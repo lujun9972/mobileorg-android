@@ -93,10 +93,7 @@ public class OutlineActivity extends AppCompatActivity {
 
 		setupList();
 
-		syncController = new OutlineSyncController(this, () -> {
-			refreshDisplay();
-			invalidateOptionsMenu();
-		}, this::setupFilterBar);
+		syncController = new OutlineSyncController(this, this::refreshDisplay, this::setupFilterBar);
 		syncController.onCreate();
 
 		timeclockController = new OutlineTimeclockController(this);

@@ -4,10 +4,13 @@ import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.net.Uri;
 import android.os.Bundle;
 import android.preference.PreferenceManager;
+import android.view.View;
 import android.widget.RadioButton;
 import android.widget.RadioGroup;
+import android.widget.Toast;
 import android.view.ViewTreeObserver;
 
 import com.matburt.mobileorg.R;
@@ -15,6 +18,7 @@ import com.matburt.mobileorg.Gui.Wizard.Wizards.SSHWizard;
 import com.matburt.mobileorg.Gui.Wizard.Wizards.Wizard;
 import com.matburt.mobileorg.Settings.SettingsActivity;
 import com.matburt.mobileorg.util.OrgUtils;
+import com.matburt.mobileorg.util.SyncConfigHelper;
 
 public class WizardActivity extends Activity implements RadioGroup.OnCheckedChangeListener, ViewTreeObserver.OnGlobalLayoutListener  {
 
@@ -24,6 +28,8 @@ public class WizardActivity extends Activity implements RadioGroup.OnCheckedChan
 	private RadioGroup syncGroup;
 
 	private int syncWebDav, syncSdCard, syncNull, syncSSH;
+
+	private static final int REQUEST_IMPORT_CONFIG = 2003;
 
 	@Override
 	public void onCreate(Bundle savedInstanceState) {
@@ -44,10 +50,25 @@ public class WizardActivity extends Activity implements RadioGroup.OnCheckedChan
 		syncNull = ((RadioButton) findViewById(R.id.sync_null)).getId();
 		syncSSH = ((RadioButton) findViewById(R.id.sync_ssh)).getId();
 		
+		findViewById(R.id.wizard_import_button).setOnClickListener(
+				new View.OnClickListener() {
+					@Override
+					public void onClick(View view) {
+						onImportConfigClicked();
+					}
+				});
+
 		ViewTreeObserver observer = wizardView.getViewTreeObserver();
-		if (observer.isAlive()) { 
+		if (observer.isAlive()) {
 		  observer.addOnGlobalLayoutListener(this);
 		}
+	}
+
+	private void onImportConfigClicked() {
+		Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
+		intent.addCategory(Intent.CATEGORY_OPENABLE);
+		intent.setType(SyncConfigHelper.EXPORT_MIME);
+		startActivityForResult(intent, REQUEST_IMPORT_CONFIG);
 	}
 
 	private void selectPrevSource(Context context) {
@@ -93,9 +114,23 @@ public class WizardActivity extends Activity implements RadioGroup.OnCheckedChan
 		if (requestCode == SSHWizard.SSH_CHOOSE_PUB) {
 			if (resultCode == RESULT_OK) {
 				String filePath = data.getData().getPath();
-				
+
 				if (activeWizard instanceof SSHWizard)
 					((SSHWizard) activeWizard).setPubFile(filePath);
+			}
+		} else if (requestCode == REQUEST_IMPORT_CONFIG) {
+			if (resultCode == RESULT_OK && data != null && data.getData() != null) {
+				Uri uri = data.getData();
+				String error = SyncConfigHelper.importConfig(this, uri);
+				if (error == null) {
+					Toast.makeText(this, R.string.wizard_import_config_success,
+							Toast.LENGTH_SHORT).show();
+					finish();
+				} else {
+					Toast.makeText(this,
+							getString(R.string.sync_config_import_failed, error),
+							Toast.LENGTH_SHORT).show();
+				}
 			}
 		}
 	}

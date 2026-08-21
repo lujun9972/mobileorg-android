@@ -51,21 +51,37 @@ public class OrgUtils {
 		String subject = intent
 				.getStringExtra("android.intent.extra.SUBJECT");
 		String text = intent.getStringExtra("android.intent.extra.TEXT");
+		if (text == null)
+			text = intent.getStringExtra("android.intent.extra.PROCESS_TEXT");
 
-		if(text != null && subject != null) {
+		if (text != null && subject != null && !subject.isEmpty()) {
 			subject = "[[" + text + "][" + subject + "]]";
 			text = "";
+		} else if (text != null) {
+			subject = generateTitle(text);
 		}
-		
-		if(subject == null)
+
+		if (subject == null)
 			subject = "";
-		if(text == null)
+		if (text == null)
 			text = "";
 
 		OrgNode node = new OrgNode();
 		node.name = subject;
 		node.setPayload(text);
 		return node;
+	}
+
+	private static String generateTitle(String text) {
+		for (String line : text.split("\n")) {
+			String trimmed = line.trim();
+			if (trimmed.isEmpty())
+				continue;
+			if (trimmed.length() <= 40)
+				return trimmed;
+			return trimmed.substring(0, 40) + "…";
+		}
+		return "";
 	}
 
     public static String getStringFromResource(int resource, Context context) {

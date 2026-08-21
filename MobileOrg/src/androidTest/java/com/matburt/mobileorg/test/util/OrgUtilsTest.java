@@ -39,6 +39,30 @@ public class OrgUtilsTest {
 	}
 
 	@Test
+	public void testMailtoSchemeStillBecomesOrgLink() {
+		OrgNode node = OrgUtils.getCaptureIntentContents(
+				sendIntent("地址", "mailto:someone@example.com"));
+		assertEquals("[[mailto:someone@example.com][地址]]", node.name);
+		assertEquals("", node.getPayload());
+	}
+
+	@Test
+	public void testSubjectWithNonUrlTextKeepsSubjectAndFullBody() {
+		OrgNode node = OrgUtils.getCaptureIntentContents(
+				sendIntent("从书中引用 天才基本法", "第一行内容\n第二行内容\n第三行内容"));
+		assertEquals("从书中引用 天才基本法", node.name);
+		assertEquals("第一行内容\n第二行内容\n第三行内容", node.getPayload());
+	}
+
+	@Test
+	public void testSubjectWithSingleLineNonUrlText() {
+		OrgNode node = OrgUtils.getCaptureIntentContents(
+				sendIntent("书名", "单行选中文字"));
+		assertEquals("书名", node.name);
+		assertEquals("单行选中文字", node.getPayload());
+	}
+
+	@Test
 	public void testTextOnlyGeneratesTitleFromFirstLine() {
 		OrgNode node = OrgUtils.getCaptureIntentContents(
 				sendIntent(null, "首行做标题\n第二行内容"));

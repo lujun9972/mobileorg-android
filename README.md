@@ -24,7 +24,8 @@ This fork brings the original project (API 17) up to modern Android standards �
 - **Auto-sync**: Periodic background synchronization
 - **DEADLINE/SCHEDULED reminders**: Exact-time notifications for upcoming deadlines and scheduled items
 - **Daily overview**: Morning summary notification of today's scheduled items and upcoming deadlines
-- **Sync config backup**: Export/import sync settings via system file picker (SAF), survives app reinstall
+- **Undo**: Undo the most recent edit batch (LIFO) from the outline menu — field edits, TODO changes, body/logbook edits, and voice-recording attachments each form one batch
+- **Sync config backup**: Export/import sync settings via system file picker (SAF), survives app reinstall; the first-run wizard also offers direct import from a config file
 - **Homescreen widgets**: Agenda widget and capture shortcut widget
 - **Theme support**: Light and dark themes with theme-aware UI colors
 
@@ -73,6 +74,21 @@ MobileOrg/src/main/java/com/matburt/mobileorg/
 [GNU General Public License v2.0](LICENSE.txt)
 
 ## Changelog
+
+### v2.9.0
+
+- **Undo**: Menu-driven undo of the latest edit batch (LIFO). Field-level edits are grouped into labeled batches; structural operations (add/delete node) stay outside undo. A finished voice recording is written as a single batch.
+- **Wizard config import**: "Import from config file" button on the first-run wizard page — restores previously exported sync settings without manual setup.
+- **Fix**: Sync spinner could rotate forever when the options menu was rebuilt mid-sync.
+
+### v2.8.2
+
+- Fix: crash when pressing Back in EditActivity with inconsistent location data
+
+### v2.8.1
+
+- **Consecutive pomodoro mode**: automatic work/rest cycles with a dedicated REST notification channel
+- Fixes: REST end notification silent, sync animation stuck, CalendarSyncService OOM on large org files, pomodoro timeout delayed by Doze on vendor ROMs, ReminderScheduler SecurityException on Android 12+ without exact-alarm grant, cursor leak in repositories
 
 ### v2.8.0
 

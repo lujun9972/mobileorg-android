@@ -51,6 +51,13 @@ public class OrgUtils {
 		String subject = intent
 				.getStringExtra("android.intent.extra.SUBJECT");
 		String text = intent.getStringExtra("android.intent.extra.TEXT");
+		android.util.Log.d("MobileOrgCap", "[DEBUG-share] subject="
+				+ (subject == null ? "null"
+						: subject.length() + ":<" + subject.substring(0, Math.min(50, subject.length())) + ">")
+				+ " text=" + (text == null ? "null"
+						: text.length() + " chars/" + text.split("\n").length + " lines")
+				+ " processText=" + (intent.getStringExtra("android.intent.extra.PROCESS_TEXT") == null
+						? "null" : "present"));
 		if (text == null)
 			text = intent.getStringExtra("android.intent.extra.PROCESS_TEXT");
 

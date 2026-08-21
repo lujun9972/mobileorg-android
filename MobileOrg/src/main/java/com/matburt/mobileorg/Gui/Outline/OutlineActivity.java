@@ -9,6 +9,7 @@ import android.view.Menu;
 import android.view.MenuInflater;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.Toast;
 import android.widget.TextView;
 
 import androidx.appcompat.app.AppCompatActivity;
@@ -19,6 +20,7 @@ import com.matburt.mobileorg.Gui.Statistics.StatisticsActivity;
 import com.matburt.mobileorg.Gui.Wizard.WizardActivity;
 import com.matburt.mobileorg.OrgData.MobileOrgApplication;
 import com.matburt.mobileorg.OrgData.OrgFileRepository;
+import com.matburt.mobileorg.OrgData.OrgEditRepository;
 import com.matburt.mobileorg.Services.TimeclockService;
 import com.matburt.mobileorg.Services.TimeclockDialog;
 import com.matburt.mobileorg.Settings.SettingsActivity;
@@ -343,6 +345,17 @@ public class OutlineActivity extends AppCompatActivity {
 				pomoItem.setIcon(active ? R.drawable.ic_media_stop : R.drawable.ic_menu_pomodoro);
 			}
 		}
+		// Undo menu item: show description or disable if nothing to undo
+		MenuItem undoItem = menu.findItem(R.id.menu_undo);
+		String undoDesc = new OrgEditRepository(getContentResolver()).describeLatestBatch();
+		if (undoDesc != null) {
+			undoItem.setEnabled(true);
+			undoItem.setTitle("撤销：" + undoDesc);
+		} else {
+			undoItem.setEnabled(false);
+			undoItem.setTitle(R.string.undo_menu);
+		}
+
 		syncController.onPrepareOptionsMenu(menu);
 		return super.onPrepareOptionsMenu(menu);
 	}
@@ -394,6 +407,14 @@ public class OutlineActivity extends AppCompatActivity {
 			return true;
 		} else if (id == R.id.menu_statistics) {
 			startActivity(new Intent(this, StatisticsActivity.class));
+			return true;
+		} else if (id == R.id.menu_undo) {
+			OrgEditRepository.UndoResult result =
+					new OrgEditRepository(getContentResolver()).undoLatestBatch();
+			if (result == OrgEditRepository.UndoResult.NODE_MISSING)
+				Toast.makeText(this, R.string.undo_node_missing, Toast.LENGTH_SHORT).show();
+			invalidateOptionsMenu();
+			refreshDisplay();
 			return true;
 		}
 		return false;

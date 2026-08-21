@@ -143,6 +143,12 @@ public class OutlineSyncController {
                 startSyncAnimation(synchronizerMenuItem);
             } else if (syncDone) {
                 stopSyncAnimation(synchronizerMenuItem);
+                // Sync consumes edit batches — refresh the undo menu state
+                // after the animation is stopped. Never invalidate on
+                // progress events: a mid-sync menu rebuild discards the
+                // presented action view generation, leaving an orphaned
+                // spinner that stopSyncAnimation cannot reach.
+                activity.invalidateOptionsMenu();
                 onRefreshDisplay.run();
                 onSetupFilterBar.run();
 

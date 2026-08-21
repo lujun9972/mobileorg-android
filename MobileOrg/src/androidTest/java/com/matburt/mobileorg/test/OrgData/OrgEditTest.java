@@ -140,4 +140,42 @@ public class OrgEditTest extends ProviderTestCase2<OrgProvider> {
 		String editsString = OrgEdit.editsToString(resolver);
 		assertEquals(correctEditString.trim(), editsString.trim());
 	}
+
+	@Test
+	public void testBatchIdRoundTrip() {
+		OrgEdit edit = new OrgEdit();
+		edit.title = "title";
+		edit.newValue = "new";
+		edit.oldValue = "old";
+		edit.type = OrgEdit.TYPE.HEADING;
+		edit.nodeId = "node id";
+		edit.batchId = 42;
+		long editId = edit.write(resolver);
+
+		Cursor cursor = resolver.query(Edits.buildIdUri(editId),
+				Edits.DEFAULT_COLUMNS, null, null, null);
+		cursor.moveToFirst();
+		OrgEdit inserted = new OrgEdit(cursor);
+		cursor.close();
+		assertEquals(42, inserted.batchId);
+		assertTrue(edit.compare(inserted));
+	}
+
+	@Test
+	public void testBatchIdNullWhenUnset() {
+		OrgEdit edit = new OrgEdit();
+		edit.title = "t";
+		edit.newValue = "n";
+		edit.oldValue = "o";
+		edit.type = OrgEdit.TYPE.TODO;
+		edit.nodeId = "id";
+		long editId = edit.write(resolver);
+
+		Cursor cursor = resolver.query(Edits.buildIdUri(editId),
+				Edits.DEFAULT_COLUMNS, null, null, null);
+		cursor.moveToFirst();
+		OrgEdit inserted = new OrgEdit(cursor);
+		cursor.close();
+		assertEquals(-1, inserted.batchId);
+	}
 }

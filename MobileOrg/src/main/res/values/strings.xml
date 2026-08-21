@@ -329,5 +329,7 @@
 <string name="duration_minutes_format">%d 分钟</string>
 
 <!-- others -->
+<string name="undo_menu">Undo</string>
+<string name="undo_node_missing">Node was deleted; cannot undo</string>
 
 </resources>

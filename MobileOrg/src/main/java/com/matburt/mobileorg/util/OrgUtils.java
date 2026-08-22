@@ -182,10 +182,10 @@ public class OrgUtils {
 			if (total == 0)
 				continue;
 			if (isFrac)
-				lines[i] = cookie.group(1) + "[" + done + "/" + total + "] ";
+				lines[i] = cookie.group(1) + "[" + done + "/" + total + "]";
 			else
 				lines[i] = cookie.group(1) + "["
-						+ Math.round(100.0 * done / total) + "%] ";
+						+ Math.round(100.0 * done / total) + "%]";
 		}
 		return String.join("\n", lines);
 	}

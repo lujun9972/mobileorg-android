@@ -49,7 +49,7 @@ public class OrgUtils {
 	}
 	
 	private static final Pattern URL_PATTERN = Pattern
-			.compile("^[a-zA-Z][a-zA-Z0-9+.-]*://\\S+$");
+			.compile("^[a-zA-Z][a-zA-Z0-9+.-]*:(//)?\\S+$");
 
 	public static OrgNode getCaptureIntentContents(Intent intent) {
 		String subject = intent

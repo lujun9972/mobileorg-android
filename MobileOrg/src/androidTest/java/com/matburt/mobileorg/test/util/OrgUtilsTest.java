@@ -154,4 +154,44 @@ public class OrgUtilsTest {
 		assertEquals("标题\n  - [X] a\n- [X] b",
 				OrgUtils.toggleCheckboxLine(payload, 1));
 	}
+
+	@Test
+	public void testCookieFractionUpdated() {
+		String payload = "- 任务 [0/2]\n  - [ ] a\n  - [X] b\n";
+		assertEquals("- 任务 [1/2]\n  - [ ] a\n  - [X] b\n",
+				OrgUtils.refreshCookies(payload));
+	}
+
+	@Test
+	public void testCookiePercentUpdated() {
+		String payload = "- 任务 [0%]\n  - [X] a\n  - [ ] b\n";
+		assertEquals("- 任务 [50%]\n  - [X] a\n  - [ ] b\n",
+				OrgUtils.refreshCookies(payload));
+	}
+
+	@Test
+	public void testCookieNoCheckboxBlockUnchanged() {
+		String payload = "- 任务 [0/2]\n正文行\n";
+		assertEquals(payload, OrgUtils.refreshCookies(payload));
+	}
+
+	@Test
+	public void testCookieNoCookieLineUnchanged() {
+		String payload = "- [ ] a\n- [X] b";
+		assertEquals(payload, OrgUtils.refreshCookies(payload));
+	}
+
+	@Test
+	public void testCookieNestedDescendantsCounted() {
+		String payload = "- 父 [0/0]\n  - [ ] a\n    - [X] deep\n";
+		assertEquals("- 父 [1/2]\n  - [ ] a\n    - [X] deep\n",
+				OrgUtils.refreshCookies(payload));
+	}
+
+	@Test
+	public void testCookieStopsAtLowerIndentSibling() {
+		String payload = "- 任务A [0/1]\n  - [X] a\n- 任务B [0/1]\n  - [ ] b\n";
+		assertEquals("- 任务A [1/1]\n  - [X] a\n- 任务B [0/1]\n  - [ ] b\n",
+				OrgUtils.refreshCookies(payload));
+	}
 }

@@ -193,7 +193,7 @@ public class ViewFragment extends Fragment {
 			newNode.setPayload(OrgUtils.refreshCookies(
 					OrgUtils.toggleCheckboxLine(oldNode.getPayload(), rawLine)));
 			repo.generateApplyWriteEdits(oldNode, newNode, "");
-			repo.updateAllNodes(oldNode);
+			repo.updateAllNodes(newNode);
 			if (getActivity() instanceof OnNodeChangedListener)
 				((OnNodeChangedListener) getActivity()).onNodeChanged();
 		} catch (Exception e) {

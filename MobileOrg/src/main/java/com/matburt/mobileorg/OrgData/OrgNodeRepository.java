@@ -75,6 +75,10 @@ public class OrgNodeRepository {
         updateNode(node);
 
         String nodeId = getNodeId(node);
+        // Capture-style nodes (no :ID:, unresolvable olp) make getNodeId return "".
+        // An empty LIKE pattern would match every row and overwrite the whole table.
+        if (nodeId == null || nodeId.isEmpty())
+            return;
         if (!nodeId.startsWith("olp:")) {
             String nodeIdQuery = "%" + nodeId + "%";
             resolver.update(OrgData.CONTENT_URI, getSimpleContentValues(node),
@@ -246,7 +250,7 @@ public class OrgNodeRepository {
             return node;
 
         String nodeIdStr = getNodeId(node);
-        if (!nodeIdStr.startsWith("olp:")) {
+        if (nodeIdStr != null && !nodeIdStr.isEmpty() && !nodeIdStr.startsWith("olp:")) {
             String nodeIdQuery = OrgData.PAYLOAD + " LIKE '%" + nodeIdStr + "%'";
             try {
                 OrgFile agendaFile = fileRepo.getByFilename(OrgFile.AGENDA_FILE);
@@ -396,7 +400,10 @@ public class OrgNodeRepository {
     /** Compare old and new node, generate and persist OrgEdit entries. */
     public void generateApplyWriteEdits(OrgNode oldNode, OrgNode newNode, String olpPath) {
         ArrayList<OrgEdit> edits = generateApplyEditNodes(oldNode, newNode, olpPath);
-        boolean generateEdits = !getFilename(oldNode).equals(FileUtils.CAPTURE_FILE);
+        // Orphaned nodes (fileId=-1) have no filename; an edit on them would carry
+        // an empty nodeId and corrupt the sync upload. Skip them like capture nodes.
+        boolean generateEdits = oldNode.fileId != -1
+                && !getFilename(oldNode).equals(FileUtils.CAPTURE_FILE);
 
         if (generateEdits)
             for (OrgEdit edit : edits)

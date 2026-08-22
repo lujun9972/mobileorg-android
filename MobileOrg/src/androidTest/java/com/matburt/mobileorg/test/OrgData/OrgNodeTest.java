@@ -277,4 +277,43 @@ public class OrgNodeTest extends ProviderTestCase2<OrgProvider> {
 				node.getPayload().contains("[[file:" + filePath + "]]"));
 	}
 
+	/**
+	 * Regression: capture-style nodes are saved with default parentId=-1 / fileId=-1
+	 * and no :ID: property (see EditActivityControllerCreate.saveEdits). For such a
+	 * node getNodeId() returns "", and updateAllNodes must NOT fall through to a
+	 * PAYLOAD LIKE '%%' update that would overwrite every row in the table.
+	 */
+	@Test
+	public void testUpdateAllNodesOnCaptureStyleNodeMustNotOverwriteTable()
+			throws OrgNodeNotFoundException {
+		OrgFileRepository fileRepo = new OrgFileRepository(resolver);
+		OrgFile file = fileRepo.getOrCreateFile("normal.org", "normal");
+
+		OrgNode normalNode = OrgTestUtils.getDefaultOrgNode();
+		normalNode.parentId = file.nodeId;
+		normalNode.fileId = file.id;
+		normalNode.name = "正常标题";
+		normalNode.setPayload("正常 payload");
+		repo.write(normalNode);
+
+		OrgNode captureNode = new OrgNode();
+		captureNode.name = "Checkbox测试";
+		captureNode.level = 1;
+		captureNode.setPayload("- [ ] item");
+		repo.write(captureNode);
+
+		assertEquals("", repo.getNodeId(captureNode));
+
+		OrgNode updated = repo.getById(captureNode.id);
+		updated.setPayload("- [X] item");
+		repo.updateAllNodes(updated);
+
+		assertEquals("- [X] item", repo.getById(captureNode.id).getPayload());
+
+		OrgNode after = repo.getById(normalNode.id);
+		assertEquals("正常标题", after.name);
+		assertEquals("正常 payload", after.getPayload());
+		assertEquals("normal", repo.getById(file.nodeId).name);
+	}
+
 }

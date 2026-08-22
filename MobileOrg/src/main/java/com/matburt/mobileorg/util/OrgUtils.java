@@ -7,6 +7,7 @@ import java.io.InputStreamReader;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 import android.app.Activity;
@@ -129,5 +130,22 @@ public class OrgUtils {
 			}
 		}
 		return null;
+	}
+
+	public static final Pattern CHECKBOX_LINE = Pattern
+			.compile("^(\\s*[-+]\\s+)\\[( |X|x)\\]\\s*(.*)$");
+
+	public static String toggleCheckboxLine(String payload, int rawLineIdx) {
+		if (payload == null || rawLineIdx < 0)
+			return payload;
+		String[] lines = payload.split("\n", -1);
+		if (rawLineIdx >= lines.length)
+			return payload;
+		Matcher m = CHECKBOX_LINE.matcher(lines[rawLineIdx]);
+		if (!m.find())
+			return payload;
+		String mark = m.group(2).trim().isEmpty() ? "[X]" : "[ ]";
+		lines[rawLineIdx] = m.group(1) + mark + " " + m.group(3);
+		return String.join("\n", lines);
 	}
 }

@@ -7,6 +7,9 @@ import com.matburt.mobileorg.Gui.Theme.DefaultTheme;
 import com.matburt.mobileorg.OrgData.OrgNode;
 import com.matburt.mobileorg.OrgData.OrgNodeRepository;
 
+import java.util.ArrayList;
+import java.util.List;
+import java.util.regex.Matcher;
 import java.util.regex.Pattern;
 
 /**
@@ -80,6 +83,10 @@ public class OrgRenderer {
 	 * Preserves: ALL #+ lines (including #+BEGIN_SRC blocks)
 	 */
 	String preClean(String rawPayload) {
+		return preClean(rawPayload, null);
+	}
+
+	String preClean(String rawPayload, List<Integer> rawLineMap) {
 		if (rawPayload == null || rawPayload.isEmpty()) {
 			return "";
 		}
@@ -89,7 +96,8 @@ public class OrgRenderer {
 		boolean inProperties = false;
 		boolean inLogbook = false;
 
-		for (String line : lines) {
+		for (int i = 0; i < lines.length; i++) {
+			String line = lines[i];
 			String trimmed = line.trim();
 
 			if (trimmed.equals(":PROPERTIES:")) {
@@ -126,6 +134,9 @@ public class OrgRenderer {
 				continue;
 			}
 
+			if (rawLineMap != null) {
+				rawLineMap.add(i);
+			}
 			result.append(line).append("\n");
 		}
 
@@ -136,6 +147,10 @@ public class OrgRenderer {
 	 * Main rendering method - state machine that converts cleaned org text to HTML.
 	 */
 	String render(String cleanedPayload) {
+		return render(cleanedPayload, null, -1);
+	}
+
+	String render(String cleanedPayload, List<Integer> rawLineMap, long nodeId) {
 		if (cleanedPayload == null || cleanedPayload.trim().isEmpty()) {
 			return "";
 		}
@@ -222,10 +237,32 @@ public class OrgRenderer {
 							inUnorderedList = true;
 							inOrderedList = false;
 						}
-						String content = htmlEncode(trimmed.substring(1).trim());
-						content = applyInlineMarkup(content);
-						content = convertLinks(content);
-						result.append("<li>").append(content).append("</li>\n");
+						Matcher cb = OrgUtils.CHECKBOX_LINE.matcher(line);
+						boolean isCb = cb.find();
+						if (isCb && rawLineMap != null && nodeId >= 0
+								&& i < rawLineMap.size()) {
+							String symbol = cb.group(2).trim().isEmpty() ? "☐" : "☑";
+							String content = htmlEncode(cb.group(3).trim());
+							content = applyInlineMarkup(content);
+							content = convertLinks(content);
+							result.append("<li><a href=\"orgcheckbox:").append(nodeId)
+									.append(":").append(rawLineMap.get(i))
+									.append("\">").append(symbol).append("</a> ")
+									.append(content).append("</li>\n");
+						} else if (isCb) {
+							// 无映射/无 nodeId（兼容路径）：纯符号不可点击
+							String symbol = cb.group(2).trim().isEmpty() ? "☐" : "☑";
+							String content = htmlEncode(cb.group(3).trim());
+							content = applyInlineMarkup(content);
+							content = convertLinks(content);
+							result.append("<li>").append(symbol).append(" ")
+									.append(content).append("</li>\n");
+						} else {
+							String content = htmlEncode(trimmed.substring(1).trim());
+							content = applyInlineMarkup(content);
+							content = convertLinks(content);
+							result.append("<li>").append(content).append("</li>\n");
+						}
 						break;
 					}
 
@@ -509,8 +546,9 @@ public class OrgRenderer {
 
 		String payload = node.getPayload();
 		if (payload != null && !payload.trim().isEmpty()) {
-			String cleaned = preClean(payload);
-			String rendered = render(cleaned);
+			List<Integer> map = new ArrayList<>();
+			String cleaned = preClean(payload, map);
+			String rendered = render(cleaned, map, node.id);
 			result.append(rendered).append("\n<br/>\n");
 		}
 
@@ -523,8 +561,9 @@ public class OrgRenderer {
 			return wrapInTemplate("");
 		}
 
-		String cleaned = preClean(payload);
-		String rendered = render(cleaned);
+		List<Integer> map = new ArrayList<>();
+		String cleaned = preClean(payload, map);
+		String rendered = render(cleaned, map, node.id);
 		return wrapInTemplate(rendered);
 	}
 

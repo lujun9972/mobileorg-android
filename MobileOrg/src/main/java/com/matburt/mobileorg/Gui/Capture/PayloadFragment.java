@@ -163,8 +163,10 @@ public class PayloadFragment extends ViewFragment {
 		EditHost editActivity = (EditHost) getActivity();
 		OrgNode node = editActivity.getController().getOrgNode();
 		node.setPayload(this.payload.get());
+		OrgNode previewNode = new OrgNode(node);
+		previewNode.id = -1; // 编辑器预览不支持 checkbox 写回，渲染为纯符号
 		OrgRenderer renderer = new OrgRenderer(resolver, getActivity());
-		String html = renderer.payloadToHTML(node);
+		String html = renderer.payloadToHTML(previewNode);
 		displayHtml(html);
 
 		webView.setVisibility(View.VISIBLE);

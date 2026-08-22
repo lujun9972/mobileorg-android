@@ -7,6 +7,7 @@ import java.io.InputStreamReader;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.regex.Pattern;
 
 import android.app.Activity;
 import android.content.Context;
@@ -47,23 +48,22 @@ public class OrgUtils {
 		spinner.setSelection(pos, true);
 	}
 	
+	private static final Pattern URL_PATTERN = Pattern
+			.compile("^[a-zA-Z][a-zA-Z0-9+.-]*://\\S+$");
+
 	public static OrgNode getCaptureIntentContents(Intent intent) {
 		String subject = intent
 				.getStringExtra("android.intent.extra.SUBJECT");
 		String text = intent.getStringExtra("android.intent.extra.TEXT");
-		android.util.Log.d("MobileOrgCap", "[DEBUG-share] subject="
-				+ (subject == null ? "null"
-						: subject.length() + ":<" + subject.substring(0, Math.min(50, subject.length())) + ">")
-				+ " text=" + (text == null ? "null"
-						: text.length() + " chars/" + text.split("\n").length + " lines")
-				+ " processText=" + (intent.getStringExtra("android.intent.extra.PROCESS_TEXT") == null
-						? "null" : "present"));
 		if (text == null)
 			text = intent.getStringExtra("android.intent.extra.PROCESS_TEXT");
 
 		if (text != null && subject != null && !subject.isEmpty()) {
-			subject = "[[" + text + "][" + subject + "]]";
-			text = "";
+			if (isUrlLike(text)) {
+				subject = "[[" + text + "][" + subject + "]]";
+				text = "";
+			}
+			// 非 URL（如 ReadEra 引用）：SUBJECT 作标题，正文保留全文
 		} else if (text != null) {
 			subject = generateTitle(text);
 		}
@@ -77,6 +77,10 @@ public class OrgUtils {
 		node.name = subject;
 		node.setPayload(text);
 		return node;
+	}
+
+	private static boolean isUrlLike(String text) {
+		return URL_PATTERN.matcher(text.trim()).matches();
 	}
 
 	private static String generateTitle(String text) {

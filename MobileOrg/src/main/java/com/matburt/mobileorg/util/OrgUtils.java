@@ -148,4 +148,57 @@ public class OrgUtils {
 		lines[rawLineIdx] = m.group(1) + mark + " " + m.group(3);
 		return String.join("\n", lines);
 	}
+
+	private static final Pattern COOKIE_FRACTION = Pattern
+			.compile("^(\\s*[-+]+.*\\s)\\[(\\d*)/(\\d*)\\]\\s*$");
+	private static final Pattern COOKIE_PERCENT = Pattern
+			.compile("^(\\s*[-+]+.*\\s)\\[(\\d+)%\\]\\s*$");
+
+	public static String refreshCookies(String payload) {
+		if (payload == null)
+			return payload;
+		String[] lines = payload.split("\n", -1);
+		for (int i = 0; i < lines.length; i++) {
+			Matcher frac = COOKIE_FRACTION.matcher(lines[i]);
+			Matcher pct = COOKIE_PERCENT.matcher(lines[i]);
+			boolean isFrac = frac.find();
+			if (!isFrac && !pct.find())
+				continue;
+			Matcher cookie = isFrac ? frac : pct;
+			int cookieIndent = indentWidth(lines[i]);
+			int done = 0;
+			int total = 0;
+			for (int j = i + 1; j < lines.length; j++) {
+				String l = lines[j];
+				if (!l.trim().isEmpty() && indentWidth(l) <= cookieIndent)
+					break;
+				Matcher m = CHECKBOX_LINE.matcher(l);
+				if (m.find()) {
+					total++;
+					if (!m.group(2).trim().isEmpty())
+						done++;
+				}
+			}
+			if (total == 0)
+				continue;
+			if (isFrac)
+				lines[i] = cookie.group(1) + "[" + done + "/" + total + "] ";
+			else
+				lines[i] = cookie.group(1) + "["
+						+ Math.round(100.0 * done / total) + "%] ";
+		}
+		return String.join("\n", lines);
+	}
+
+	private static int indentWidth(String line) {
+		int n = 0;
+		for (int i = 0; i < line.length(); i++) {
+			char c = line.charAt(i);
+			if (c == ' ' || c == '\t')
+				n++;
+			else
+				break;
+		}
+		return n;
+	}
 }

@@ -23,6 +23,7 @@ import com.matburt.mobileorg.OrgData.OrgNode;
 import com.matburt.mobileorg.OrgData.OrgNodeRepository;
 import com.matburt.mobileorg.util.OrgFileNotFoundException;
 import com.matburt.mobileorg.util.OrgRenderer;
+import com.matburt.mobileorg.util.OrgUtils;
 import com.matburt.mobileorg.OrgData.OrgNodeRepository;
 import com.matburt.mobileorg.util.OrgNodeNotFoundException;
 
@@ -95,6 +96,10 @@ public class ViewFragment extends Fragment {
 			}
 			if (url.startsWith("orginternal:")) {
 				handleInternalLink(url.substring("orginternal:".length()));
+				return true;
+			}
+			if (url.startsWith("orgcheckbox:")) {
+				handleCheckboxToggle(url.substring("orgcheckbox:".length()));
 				return true;
 			}
 			// Keep existing file:// handling for backward compatibility
@@ -170,6 +175,29 @@ public class ViewFragment extends Fragment {
 			intent.putExtra(ViewActivity.NODE_ID, nodeId);
 			startActivity(intent);
 		} catch (OrgFileNotFoundException e) {
+		}
+	}
+
+	public interface OnNodeChangedListener {
+		void onNodeChanged();
+	}
+
+	private void handleCheckboxToggle(String ref) {
+		try {
+			String[] parts = ref.split(":");
+			long nodeId = Long.parseLong(parts[0]);
+			int rawLine = Integer.parseInt(parts[1]);
+			OrgNodeRepository repo = new OrgNodeRepository(resolver);
+			OrgNode oldNode = repo.getById(nodeId);
+			OrgNode newNode = new OrgNode(oldNode);
+			newNode.setPayload(OrgUtils.refreshCookies(
+					OrgUtils.toggleCheckboxLine(oldNode.getPayload(), rawLine)));
+			repo.generateApplyWriteEdits(oldNode, newNode, "");
+			repo.updateAllNodes(oldNode);
+			if (getActivity() instanceof OnNodeChangedListener)
+				((OnNodeChangedListener) getActivity()).onNodeChanged();
+		} catch (Exception e) {
+			Toast.makeText(getActivity(), R.string.node_not_found, Toast.LENGTH_SHORT).show();
 		}
 	}
 }

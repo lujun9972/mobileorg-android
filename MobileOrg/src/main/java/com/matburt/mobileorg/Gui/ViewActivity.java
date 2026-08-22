@@ -15,7 +15,8 @@ import com.matburt.mobileorg.util.OrgNodeNotFoundException;
 import com.matburt.mobileorg.util.OrgUtils;
 import com.matburt.mobileorg.util.PreferenceUtils;
 
-public class ViewActivity extends AppCompatActivity {
+public class ViewActivity extends AppCompatActivity
+		implements ViewFragment.OnNodeChangedListener {
 	public static String NODE_ID = "node_id";
 
 	private ContentResolver resolver;
@@ -23,6 +24,7 @@ public class ViewActivity extends AppCompatActivity {
 
 	private long nodeId;
 	private OrgNode node;
+	private int lastLevel = 0;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
@@ -52,12 +54,22 @@ public class ViewActivity extends AppCompatActivity {
 	}
 
 	public void viewNode(int levelOfRecursion) {
+		this.lastLevel = levelOfRecursion;
 		if(node != null) {
 			nodeViewFragment.display(node, levelOfRecursion, resolver);
 			String path = new OrgNodeRepository(resolver).getOlpId(node);
 			if(path.startsWith("olp:"))
 				path = path.substring("olp:".length());
 			getSupportActionBar().setTitle(path);
+		}
+	}
+
+	@Override
+	public void onNodeChanged() {
+		try {
+			this.node = new OrgNodeRepository(resolver).getById(nodeId);
+			viewNode(lastLevel);
+		} catch (OrgNodeNotFoundException e) {
 		}
 	}
 

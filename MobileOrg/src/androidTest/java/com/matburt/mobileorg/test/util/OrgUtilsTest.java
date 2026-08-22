@@ -116,4 +116,42 @@ public class OrgUtilsTest {
 		assertEquals("选中的句子", node.name);
 		assertEquals("选中的句子", node.getPayload());
 	}
+
+	@Test
+	public void testToggleUncheckedToChecked() {
+		assertEquals("- [X] 买菜",
+				OrgUtils.toggleCheckboxLine("- [ ] 买菜", 0));
+	}
+
+	@Test
+	public void testToggleCheckedToUnchecked() {
+		assertEquals("- [ ] 买菜",
+				OrgUtils.toggleCheckboxLine("- [X] 买菜", 0));
+		assertEquals("- [ ] 买菜",
+				OrgUtils.toggleCheckboxLine("- [x] 买菜", 0));
+	}
+
+	@Test
+	public void testTogglePlusMarker() {
+		assertEquals("+ [X] 买菜",
+				OrgUtils.toggleCheckboxLine("+ [ ] 买菜", 0));
+	}
+
+	@Test
+	public void testToggleNonCheckboxLineUnchanged() {
+		assertEquals("普通文本", OrgUtils.toggleCheckboxLine("普通文本", 0));
+	}
+
+	@Test
+	public void testToggleLineOutOfRangeUnchanged() {
+		String payload = "- [ ] a";
+		assertEquals(payload, OrgUtils.toggleCheckboxLine(payload, 9));
+	}
+
+	@Test
+	public void testTogglePreservesOtherLines() {
+		String payload = "标题\n  - [ ] a\n- [X] b";
+		assertEquals("标题\n  - [X] a\n- [X] b",
+				OrgUtils.toggleCheckboxLine(payload, 1));
+	}
 }

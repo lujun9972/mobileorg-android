@@ -182,7 +182,7 @@ public class ViewFragment extends Fragment {
 		void onNodeChanged();
 	}
 
-	private void handleCheckboxToggle(String ref) {
+	protected void handleCheckboxToggle(String ref) {
 		try {
 			String[] parts = ref.split(":");
 			long nodeId = Long.parseLong(parts[0]);

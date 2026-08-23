@@ -13,12 +13,15 @@ import android.widget.EditText;
 import android.widget.ImageButton;
 import android.widget.RelativeLayout;
 
+import android.widget.Toast;
+
 import com.matburt.mobileorg.R;
 import com.matburt.mobileorg.Gui.ViewFragment;
 import com.matburt.mobileorg.Gui.Theme.DefaultTheme;
 import com.matburt.mobileorg.OrgData.OrgNode;
 import com.matburt.mobileorg.OrgData.OrgNodePayload;
 import com.matburt.mobileorg.util.OrgRenderer;
+import com.matburt.mobileorg.util.OrgUtils;
 
 public class PayloadFragment extends ViewFragment {
 	private static final String PAYLOAD = "payload";
@@ -164,13 +167,30 @@ public class PayloadFragment extends ViewFragment {
 		OrgNode node = editActivity.getController().getOrgNode();
 		node.setPayload(this.payload.get());
 		OrgNode previewNode = new OrgNode(node);
-		previewNode.id = -1; // 编辑器预览不支持 checkbox 写回，渲染为纯符号
 		OrgRenderer renderer = new OrgRenderer(resolver, getActivity());
 		String html = renderer.payloadToHTML(previewNode);
 		displayHtml(html);
 
 		webView.setVisibility(View.VISIBLE);
 		editButton.setVisibility(View.VISIBLE);
+	}
+
+	/**
+	 * 编辑器预览的 checkbox 点击：toggle 作用于内存工作副本（含所有未保存
+	 * 修改），经 saveEdits() 整体落库——单一真相源，无双写冲突。
+	 */
+	@Override
+	protected void handleCheckboxToggle(String ref) {
+		try {
+			String[] parts = ref.split(":");
+			int rawLine = Integer.parseInt(parts[1]);
+			setPayload(OrgUtils.refreshCookies(
+					OrgUtils.toggleCheckboxLine(payload.get(), rawLine)));
+			((EditHost) getActivity()).saveEdits();
+			switchToView();
+		} catch (Exception e) {
+			Toast.makeText(getActivity(), R.string.node_not_found, Toast.LENGTH_SHORT).show();
+		}
 	}
 	
 	private OnClickListener editListener = new OnClickListener() {

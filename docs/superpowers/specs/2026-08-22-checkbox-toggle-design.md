@@ -50,9 +50,24 @@ ViewFragment 新增回调接口（宿主实现），点击写回后回调；View
 - `refreshCookies`：简单块计数更新、百分比格式保持、嵌套后代统计、无 cookie 不动。
 - 渲染：checkbox 行输出 `☐`/`☑` 与链接格式；preClean 删除 PROPERTIES 行后映射行号正确（不错位）。
 
+### 6. 编辑窗口预览点击（EditActivity / PayloadFragment）
+
+**背景**：`viewOnClick` 配置默认 false 时，outline 点击叶子节点进入的是 EditActivity（而非 ViewActivity）——编辑窗口预览是用户的主入口，必须支持点击。
+
+**数据流（与 ViewActivity 路径的关键差异——写工作副本而非 DB）**：
+
+- `PayloadFragment.switchToView()` 渲染预览时不再设 `previewNode.id = -1`，改用 controller 的真实 node.id，渲染可点击链接（id=-1 时 render() 自然降级为纯符号，覆盖 Create 模式新节点）。
+- 点击回调流程：`toggleCheckboxLine(payload.get(), rawLine)` 作用于**内存工作副本**（含未点 ActionBar 保存的全部修改）→ `refreshCookies` → `setPayload()` 更新工作副本 → `editActivity.saveEdits()` 整体落库（不 finish）→ 重新 `switchToView()` 刷新预览。
+- **单一真相源**：toggle 与渲染都作用于工作副本，无双写冲突；点击即保存 = 所有 tab 未保存修改（标题/tags）连带落库。
+- **取消语义自洽**：点击落库后 `hasEdits()` 为 false，返回不再弹"放弃修改？"。
+- 行号映射天然正确：rawLineMap 基于 switchToView 时传入的工作副本生成，toggle 也作用于同一字符串。
+- undo/同步兼容：saveEdits 生成 BODY edit（非 capture 节点），与 ViewActivity 路径一致。
+- `saveEdits()` 内的 `announceSyncDone` 保留（后台 Outline 收到是 no-op：停止不存在的动画）。
+
+**ViewActivity 路径保留**：两处语义一致（点击即生效），不冲突。
+
 ## 范围外
 
 - 有序列表 checkbox（`1. [ ]`）。
 - heading 级 cookie（node.name 的 `[2/3]` 统计）。
-- EditActivity 正文编辑器内的 checkbox 快捷切换。
 - 子节点 TODO 状态 → 父 cookie 联动。

@@ -67,7 +67,10 @@ public class OrgNodeRepository {
     }
 
     private void updateNode(OrgNode node) {
-        resolver.update(OrgData.buildIdUri(node.id), getContentValues(node), null, null);
+        int count = resolver.update(OrgData.buildIdUri(node.id), getContentValues(node), null, null);
+        android.util.Log.d("DEBUG-cbt", "updateNode id=" + node.id + " rows=" + count
+                + " payloadHead=" + (node.getPayload() != null && node.getPayload().contains("\n")
+                        ? node.getPayload().substring(0, node.getPayload().indexOf("\n")) : node.getPayload()));
     }
 
     /** Update this node and all other nodes sharing the same :ID: property. */
@@ -81,8 +84,9 @@ public class OrgNodeRepository {
             return;
         if (!nodeId.startsWith("olp:")) {
             String nodeIdQuery = "%" + nodeId + "%";
-            resolver.update(OrgData.CONTENT_URI, getSimpleContentValues(node),
+            int count = resolver.update(OrgData.CONTENT_URI, getSimpleContentValues(node),
                     OrgData.PAYLOAD + " LIKE ?", new String[]{nodeIdQuery});
+            android.util.Log.d("DEBUG-cbt", "updateAllNodes LIKE nodeId=" + nodeId + " rows=" + count);
         }
     }
 

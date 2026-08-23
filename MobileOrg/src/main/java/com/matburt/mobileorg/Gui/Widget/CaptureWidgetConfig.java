@@ -23,11 +23,6 @@ public class CaptureWidgetConfig extends AppCompatActivity implements EditHost {
 	private EditText titleView;
 	private EditActivityControllerCaptureWidget controller;
 
-	/** Widget 配置无 PayloadFragment 预览，checkbox 点击路径不会到达。 */
-	@Override
-	public void saveEdits() {
-	}
-
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);

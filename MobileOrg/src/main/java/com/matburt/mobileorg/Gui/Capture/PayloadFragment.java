@@ -176,8 +176,9 @@ public class PayloadFragment extends ViewFragment {
 	}
 
 	/**
-	 * 编辑器预览的 checkbox 点击：toggle 作用于内存工作副本（含所有未保存
-	 * 修改），经 saveEdits() 整体落库——单一真相源，无双写冲突。
+	 * 编辑器预览的 checkbox 点击：toggle 只暂存到内存工作副本（含所有未
+	 * 保存修改），不落库。由 ActionBar 保存统一落库——一次编辑会话的多次
+	 * 点击整合为一个 undo 批次。暂存后返回会触发"放弃修改？"确认。
 	 */
 	@Override
 	protected void handleCheckboxToggle(String ref) {
@@ -186,7 +187,6 @@ public class PayloadFragment extends ViewFragment {
 			int rawLine = Integer.parseInt(parts[1]);
 			setPayload(OrgUtils.refreshCookies(
 					OrgUtils.toggleCheckboxLine(payload.get(), rawLine)));
-			((EditHost) getActivity()).saveEdits();
 			switchToView();
 		} catch (Exception e) {
 			Toast.makeText(getActivity(), R.string.node_not_found, Toast.LENGTH_SHORT).show();

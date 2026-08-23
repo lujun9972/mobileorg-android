@@ -57,14 +57,15 @@ ViewFragment 新增回调接口（宿主实现），点击写回后回调；View
 **数据流（与 ViewActivity 路径的关键差异——写工作副本而非 DB）**：
 
 - `PayloadFragment.switchToView()` 渲染预览时不再设 `previewNode.id = -1`，改用 controller 的真实 node.id，渲染可点击链接（id=-1 时 render() 自然降级为纯符号，覆盖 Create 模式新节点）。
-- 点击回调流程：`toggleCheckboxLine(payload.get(), rawLine)` 作用于**内存工作副本**（含未点 ActionBar 保存的全部修改）→ `refreshCookies` → `setPayload()` 更新工作副本 → `editActivity.saveEdits()` 整体落库（不 finish）→ 重新 `switchToView()` 刷新预览。
-- **单一真相源**：toggle 与渲染都作用于工作副本，无双写冲突；点击即保存 = 所有 tab 未保存修改（标题/tags）连带落库。
-- **取消语义自洽**：点击落库后 `hasEdits()` 为 false，返回不再弹"放弃修改？"。
+- 点击回调流程：`toggleCheckboxLine(payload.get(), rawLine)` 作用于**内存工作副本**（含未点 ActionBar 保存的全部修改）→ `refreshCookies` → `setPayload()` 暂存到工作副本 → 重新 `switchToView()` 刷新预览。**不落库**。
+- **暂存语义**：点击只修改工作副本，DB 落库统一由 ActionBar 保存（`EditActivity.saveEdits()`）完成。一次编辑会话内可多次点击 checkbox（或混合其他 tab 修改），保存时整合为**一个 undo 批次**——撤销一次恢复整批，而非逐次撤销。
+- **单一真相源**：toggle 与渲染都作用于工作副本，无双写冲突。
+- **取消语义自洽**：暂存后 `hasEdits()` 为 true（工作副本 ≠ DB），返回弹"放弃修改？"确认——与手改正文后取消的语义一致。
 - 行号映射天然正确：rawLineMap 基于 switchToView 时传入的工作副本生成，toggle 也作用于同一字符串。
-- undo/同步兼容：saveEdits 生成 BODY edit（非 capture 节点），与 ViewActivity 路径一致。
-- `saveEdits()` 内的 `announceSyncDone` 保留（后台 Outline 收到是 no-op：停止不存在的动画）。
+- undo/同步兼容：ActionBar 保存生成 BODY edit（非 capture 节点），与 ViewActivity 路径一致。
+- `EditHost` 接口保持最小（仅 `getController()`）：点击路径不需要 Activity 落库能力。
 
-**ViewActivity 路径保留**：两处语义一致（点击即生效），不冲突。
+**ViewActivity 路径差异**：ViewActivity 点击即落库（无编辑会话概念）；EditActivity 点击暂存、保存时落库（undo 粒度 = 一次编辑会话）。
 
 ## 范围外
 

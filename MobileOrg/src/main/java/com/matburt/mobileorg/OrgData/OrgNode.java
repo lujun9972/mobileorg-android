@@ -35,6 +35,9 @@ public class OrgNode {
 	}
 
 	public OrgNode(OrgNode node) {
+		this.id = node.id;
+		this.parentId = node.parentId;
+		this.fileId = node.fileId;
 		this.level = node.level;
 		this.priority = node.priority;
 		this.todo = node.todo;

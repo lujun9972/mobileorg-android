@@ -99,7 +99,6 @@ public class ViewFragment extends Fragment {
 				return true;
 			}
 			if (url.startsWith("orgcheckbox:")) {
-				Log.d("DEBUG-cbt", "url intercepted: " + url);
 				handleCheckboxToggle(url.substring("orgcheckbox:".length()));
 				return true;
 			}
@@ -190,25 +189,14 @@ public class ViewFragment extends Fragment {
 			int rawLine = Integer.parseInt(parts[1]);
 			OrgNodeRepository repo = new OrgNodeRepository(resolver);
 			OrgNode oldNode = repo.getById(nodeId);
-			Log.d("DEBUG-cbt", "toggle enter ref=" + ref + " nodeId=" + nodeId
-					+ " rawLine=" + rawLine + " payloadLine="
-					+ (oldNode.getPayload() != null
-							? oldNode.getPayload().split("\n", -1)[Math.min(rawLine,
-									oldNode.getPayload().split("\n", -1).length - 1)]
-							: "null"));
 			OrgNode newNode = new OrgNode(oldNode);
 			newNode.setPayload(OrgUtils.refreshCookies(
 					OrgUtils.toggleCheckboxLine(oldNode.getPayload(), rawLine)));
-			Log.d("DEBUG-cbt", "toggle done newPayloadHead="
-					+ (newNode.getPayload() != null
-							? newNode.getPayload().split("\n")[rawLine] : "null"));
 			repo.generateApplyWriteEdits(oldNode, newNode, "");
 			repo.updateAllNodes(newNode);
-			Log.d("DEBUG-cbt", "toggle persisted");
 			if (getActivity() instanceof OnNodeChangedListener)
 				((OnNodeChangedListener) getActivity()).onNodeChanged();
 		} catch (Exception e) {
-			Log.e("DEBUG-cbt", "toggle failed", e);
 			Toast.makeText(getActivity(), R.string.node_not_found, Toast.LENGTH_SHORT).show();
 		}
 	}

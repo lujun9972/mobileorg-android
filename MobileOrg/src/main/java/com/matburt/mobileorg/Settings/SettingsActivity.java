@@ -362,7 +362,10 @@ public class SettingsActivity extends PreferenceActivity implements
 		public boolean onPreferenceClick(Preference preference) {
 			Intent intent = new Intent(Intent.ACTION_OPEN_DOCUMENT);
 			intent.addCategory(Intent.CATEGORY_OPENABLE);
-			intent.setType(SyncConfigHelper.EXPORT_MIME);
+			// Older Android MimeTypeMap doesn't map ".json" → file MIME unknown
+			// → greyed out in SAF picker. Accept any file; wrong picks fail
+			// JSON parsing with an error toast in importConfig().
+			intent.setType("*/*");
 			startActivityForResult(intent, REQUEST_IMPORT_CONFIG);
 			return false;
 		}

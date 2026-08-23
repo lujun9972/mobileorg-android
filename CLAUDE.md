@@ -131,6 +131,7 @@ APK 输出：`MobileOrg/build/outputs/apk/debug/`
 - **OrgData 是内部类**：`OrgData` 是 `OrgContract.OrgData`，不是独立类。从 `OrgData` 包外 import 时用 `import com.matburt.mobileorg.OrgData.OrgContract.OrgData`。短形式 `import ...OrgData.OrgData` 只在 `OrgData` 包内可用。
 - **跨包静态方法必须 public**：包私有（`static` 无 `public`）方法对其他包的类不可见。`util/` 中的工具方法若被 `Services/` 调用，必须 `public static`。
 - **同步配置导出/导入必须用 SAF**：直接 `FileWriter` 到 `getExternalFilesDir()` 会在卸载后丢失；`getExternalStoragePublicDirectory()` 在 API 29+（Scoped Storage）报 EACCES。用 `ACTION_CREATE_DOCUMENT` / `ACTION_OPEN_DOCUMENT`（Storage Access Framework）让用户选位置，配置才能在重装后保留。
+- **ACTION_OPEN_DOCUMENT 按扩展名 MIME 过滤会置灰老设备上的文件** *(2026-08-23 验证，MI PAD 4 / Android 9)*：导入配置的 intent 设 `setType("application/json")` 后，`.json` 文件在 SAF 选择器中灰色不可选——老版 Android 的 `MimeTypeMap` 不映射 `.json` 扩展名，文件 MIME 未知，被过滤器排除。修复：打开类 intent 用 `setType("*/*")`（选错文件由解析层报错 toast 兜底）；`ACTION_CREATE_DOCUMENT` 创建新文件不受影响，可保留精确 MIME。
 - **卸载 app 前必须确认无未同步数据**：本地 capture/edit 只存在于 app 私有 SQLite 数据库。`adb uninstall` 永久删除，无法恢复。务必先提醒用户同步或导出数据。
 - **批量正则重构必须经 CI 验证才算完成**：批量查找替换可能过于激进。`== false` 正则 `(\b\S+) == false\b` 捕获了 `if(` 前缀产生 `!if(expr)` 和 `!while(expr)`。`return true/false` 模式的非贪婪 `(.+?)` 匹配了意外目标，如 `if (entry.get(name))` → `return entry.get(name))`。每次只推一个 commit 并等 CI——不要在未验证时堆积多个机械变更。
 - **删除常量/字段必须 grep 整个仓库包括测试**：从主源码移除符号时，同时搜索 `src/main/` 和 `src/androidTest/`。测试常引用相同常量（`Synchronizer.CAPTURE_FILE`），测试 import 损坏会导致构建步骤发现不了的 CI 失败。

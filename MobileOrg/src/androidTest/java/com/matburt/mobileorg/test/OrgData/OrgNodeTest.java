@@ -278,6 +278,33 @@ public class OrgNodeTest extends ProviderTestCase2<OrgProvider> {
 	}
 
 	/**
+	 * Regression: OrgNode(OrgNode) copy constructor used to drop id/parentId/fileId.
+	 * ViewFragment.handleCheckboxToggle copies the node, mutates the payload, then
+	 * persists via updateAllNodes — with id=-1 the id-URI update matched 0 rows and
+	 * (after the empty-nodeId guard) the LIKE fallback was skipped too, silently
+	 * losing the write. Mirrors the real caller sequence: getById → copy → mutate →
+	 * updateAllNodes → re-read.
+	 */
+	@Test
+	public void testCopyConstructorKeepsIdentityAndWritesBack()
+			throws OrgNodeNotFoundException {
+		OrgNode node = OrgTestUtils.getDefaultOrgNode();
+		node.setPayload("- [ ] 买菜");
+		repo.write(node);
+
+		OrgNode oldNode = repo.getById(node.id);
+		OrgNode newNode = new OrgNode(oldNode);
+		assertEquals(node.id, newNode.id);
+		assertEquals(node.parentId, newNode.parentId);
+		assertEquals(node.fileId, newNode.fileId);
+
+		newNode.setPayload("- [X] 买菜");
+		repo.updateAllNodes(newNode);
+
+		assertEquals("- [X] 买菜", repo.getById(node.id).getPayload());
+	}
+
+	/**
 	 * Regression: capture-style nodes are saved with default parentId=-1 / fileId=-1
 	 * and no :ID: property (see EditActivityControllerCreate.saveEdits). For such a
 	 * node getNodeId() returns "", and updateAllNodes must NOT fall through to a

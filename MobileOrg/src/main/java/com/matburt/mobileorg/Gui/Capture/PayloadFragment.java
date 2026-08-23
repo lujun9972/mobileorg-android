@@ -165,8 +165,11 @@ public class PayloadFragment extends ViewFragment {
 
 		EditHost editActivity = (EditHost) getActivity();
 		OrgNode node = editActivity.getController().getOrgNode();
-		node.setPayload(this.payload.get());
 		OrgNode previewNode = new OrgNode(node);
+		// 工作副本只写到渲染副本。绝不能 set 到 controller 的基准 node 上：
+		// saveEdits() 以 node.payload 为 diff 基准，污染后 BODY diff 恒空，
+		// 不生成 OrgEdit（表现为：落库成功但 undo 菜单不出现）。
+		previewNode.setPayload(this.payload.get());
 		OrgRenderer renderer = new OrgRenderer(resolver, getActivity());
 		String html = renderer.payloadToHTML(previewNode);
 		displayHtml(html);

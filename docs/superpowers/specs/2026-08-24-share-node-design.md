@@ -44,7 +44,7 @@ outline_node*.xml  ─┘        │                                  ├─ get
 | `res/menu/outline_node.xml`、`res/menu/outline_node_uneditable.xml` | 加 `menu_share` 项（分享只读，uneditable 菜单也加） |
 | `Gui/Outline/OutlineActionMode.java` | `onActionItemClicked` 加 `menu_share` case |
 | `Gui/ViewActivity.java` | `onCreateOptionsMenu` 加分享项（overflow）；`onOptionsItemSelected` 用 **itemId** 判断——现有代码用 `order` 0-4 判断递归层级（ViewActivity.java:103），新项必须避开 |
-| `res/values/strings.xml` | `menu_share` = "Share node" |
+| `res/values/strings.xml` | `menu_share` = "Share node"、`share_node_not_found` = "Node not found"、`share_truncated` = "Content too long, truncated to 400000 chars" |
 | 新文件 `res/drawable/ic_menu_share.xml` | Material share vector；`<vector>` 必须用 `xmlns:android`（用 `res-auto` 会 AAPT 构建失败，见 CLAUDE.md） |
 
 ### 关键方法规格

@@ -117,6 +117,8 @@ public class OutlineActionMode implements ActionMode.Callback {
 			runArchiveNode(false);
 		} else if (id == R.id.menu_archive_tosibling) {
 			runArchiveNode(true);
+		} else if (id == R.id.menu_share) {
+			OrgUtils.shareNode(context, node.id);
 		} else if (id == R.id.menu_view) {
 			runViewNodeActivity();
 		} else if (id == R.id.menu_recover) {

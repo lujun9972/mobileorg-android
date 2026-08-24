@@ -76,14 +76,18 @@ public class ViewActivity extends AppCompatActivity
 	@Override
 	public boolean onCreateOptionsMenu(Menu menu) {
 		super.onCreateOptionsMenu(menu);
-		
+
 		SubMenu subMenu = menu.addSubMenu(R.string.menu_advanced);
 		MenuItem subMenuItem = subMenu.getItem();
 		subMenuItem.setIcon(R.drawable.ic_menu_view);
 		subMenuItem.setShowAsAction(MenuItem.SHOW_AS_ACTION_ALWAYS);
-		
+
 		setupRecursionSubmenu(subMenu);
-		
+
+		MenuItem shareItem = menu.add(Menu.NONE, R.id.menu_share, 5, R.string.menu_share);
+		shareItem.setIcon(R.drawable.ic_menu_share);
+		shareItem.setShowAsAction(MenuItem.SHOW_AS_ACTION_NEVER);
+
 		return true;
 	}
 	
@@ -99,6 +103,10 @@ public class ViewActivity extends AppCompatActivity
 
 	@Override
 	public boolean onOptionsItemSelected(MenuItem item) {
+		if (item.getItemId() == R.id.menu_share) {
+			OrgUtils.shareNode(this, nodeId);
+			return true;
+		}
 		int order = item.getOrder();
 		if (order >= 0 && order <= 4) {
 			viewNode(order);

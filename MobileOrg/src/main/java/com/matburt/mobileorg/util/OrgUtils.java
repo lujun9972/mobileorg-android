@@ -16,15 +16,48 @@ import android.content.Intent;
 import android.text.TextUtils;
 import android.widget.ArrayAdapter;
 import android.widget.Spinner;
+import android.widget.Toast;
 
 import com.matburt.mobileorg.R;
 import com.matburt.mobileorg.OrgData.OrgNode;
+import com.matburt.mobileorg.OrgData.OrgNodeRepository;
 
 public class OrgUtils {
-	
+
+	public static final int MAX_SHARE_LENGTH = 400000;
+
 	public static String getTimestamp() {
-		SimpleDateFormat sdf = new SimpleDateFormat("[yyyy-MM-dd EEE HH:mm]");		
+		SimpleDateFormat sdf = new SimpleDateFormat("[yyyy-MM-dd EEE HH:mm]");
 		return sdf.format(new Date());
+	}
+
+	/**
+	 * Serialize the node's subtree and hand it to the system share sheet
+	 * (ACTION_SEND, text/plain). Shows a toast and returns silently if the
+	 * node no longer exists; truncates overly large text to stay under the
+	 * Binder transaction limit.
+	 */
+	public static void shareNode(Context context, long nodeId) {
+		OrgNodeRepository repo = new OrgNodeRepository(context.getContentResolver());
+		OrgNode node;
+		String text;
+		try {
+			node = repo.getById(nodeId);
+			text = repo.getSubtreeText(nodeId);
+		} catch (OrgNodeNotFoundException e) {
+			Toast.makeText(context, R.string.share_node_not_found, Toast.LENGTH_SHORT).show();
+			return;
+		}
+		if (text.length() > MAX_SHARE_LENGTH) {
+			text = text.substring(0, MAX_SHARE_LENGTH);
+			Toast.makeText(context, R.string.share_truncated, Toast.LENGTH_SHORT).show();
+		}
+		Intent intent = new Intent(Intent.ACTION_SEND);
+		intent.setType("text/plain");
+		intent.putExtra(Intent.EXTRA_TEXT, text);
+		intent.putExtra(Intent.EXTRA_SUBJECT, node.name);
+		context.startActivity(Intent.createChooser(intent,
+				context.getString(R.string.menu_share)));
 	}
 
     public static void setupSpinnerWithEmpty(Spinner spinner, ArrayList<String> data,

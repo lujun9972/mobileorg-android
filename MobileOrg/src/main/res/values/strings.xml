@@ -82,6 +82,9 @@
     <string name="menu_addscheduled">Add Scheduled</string>
     <string name="menu_timestamp">Add Timestamp</string>
     <string name="menu_view">View</string>
+    <string name="menu_share">Share node</string>
+    <string name="share_node_not_found">Node not found</string>
+    <string name="share_truncated">Content too long, truncated to 400000 chars</string>
     <string name="menu_delete">Delete</string>
     <string name="menu_delete_file">Delete File</string>
     <string name="menu_advanced">Advanced</string>

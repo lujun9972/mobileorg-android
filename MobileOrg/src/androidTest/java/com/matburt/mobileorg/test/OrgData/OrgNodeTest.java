@@ -69,6 +69,17 @@ public class OrgNodeTest extends ProviderTestCase2<OrgProvider> {
 	}
 
 	@Test
+	public void testToStringWithLevelOverride() {
+		OrgNode node = new OrgNode();
+		node.name = "title";
+		node.todo = "TODO";
+		node.level = 3;
+
+		assertEquals("* TODO title", node.toString(1));
+		assertEquals("** TODO title", node.toString(2));
+	}
+
+	@Test
 	public void testAddNodeSimple() throws OrgNodeNotFoundException {
 		OrgNode node = OrgTestUtils.getDefaultOrgNode();
 		repo.write(node);

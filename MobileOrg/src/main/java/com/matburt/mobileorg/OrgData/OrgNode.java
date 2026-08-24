@@ -148,9 +148,18 @@ public class OrgNode {
 	}
 
 	public String toString() {
+		return toString(this.level);
+	}
+
+	/**
+	 * Serialize with an explicit star count. Used to normalize subtree levels
+	 * when sharing: the subtree root becomes level 1 regardless of its depth
+	 * in the source file.
+	 */
+	public String toString(long level) {
 		StringBuilder result = new StringBuilder();
 
-		for(int i = 0; i < level; i++)
+		for(long i = 0; i < level; i++)
 			result.append("*");
 		result.append(" ");
 

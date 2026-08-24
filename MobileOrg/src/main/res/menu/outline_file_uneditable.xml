@@ -22,5 +22,10 @@
         android:icon="@drawable/ic_menu_archive"
         app:showAsAction="ifRoom"
         android:title="@string/menu_recover"/>
+    <item
+        android:id="@+id/menu_share"
+        android:icon="@drawable/ic_menu_share"
+        app:showAsAction="ifRoom"
+        android:title="@string/menu_share"/>
 
 </menu>

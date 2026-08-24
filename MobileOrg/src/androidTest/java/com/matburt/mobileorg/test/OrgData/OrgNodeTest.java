@@ -354,4 +354,75 @@ public class OrgNodeTest extends ProviderTestCase2<OrgProvider> {
 		assertEquals("normal", repo.getById(file.nodeId).name);
 	}
 
+	@Test
+	public void testGetSubtreeTextNormalizesLevels() throws OrgNodeNotFoundException {
+		OrgNode root = OrgTestUtils.getDefaultOrgNode();
+		root.name = "root";
+		root.level = 2;
+		repo.write(root);
+		OrgNode child = OrgTestUtils.getDefaultOrgNode();
+		child.name = "child";
+		child.parentId = root.id;
+		child.level = 3;
+		repo.write(child);
+		OrgNode grandchild = OrgTestUtils.getDefaultOrgNode();
+		grandchild.name = "grandchild";
+		grandchild.parentId = child.id;
+		grandchild.level = 4;
+		repo.write(grandchild);
+
+		String text = repo.getSubtreeText(root.id);
+		assertTrue(text.startsWith("* TODO root\n"));
+		assertTrue(text.contains("** TODO child\n"));
+		assertTrue(text.contains("*** TODO grandchild\n"));
+	}
+
+	@Test
+	public void testGetSubtreeTextFullContent() throws OrgNodeNotFoundException {
+		OrgNode root = OrgTestUtils.getComplexOrgNode();
+		root.name = "complex root";
+		root.level = 1;
+		root.setPayload("   SCHEDULED: <2026-08-24 一 09:00>\n   some body");
+		repo.write(root);
+		OrgNode child = OrgTestUtils.getDefaultOrgNode();
+		child.name = "plain child";
+		child.parentId = root.id;
+		child.level = 2;
+		repo.write(child);
+
+		String text = repo.getSubtreeText(root.id);
+		assertTrue(text.contains("[#C]"));
+		assertTrue(text.contains(":tag1:tag2::tag3:"));
+		assertTrue(text.contains("SCHEDULED: <2026-08-24 一 09:00>"));
+		assertTrue(text.contains("** TODO plain child"));
+	}
+
+	@Test
+	public void testGetSubtreeTextExcludesInheritedTags() throws OrgNodeNotFoundException {
+		OrgNode root = OrgTestUtils.getDefaultOrgNode();
+		root.name = "parent";
+		root.tags = "work";
+		root.level = 1;
+		repo.write(root);
+		OrgNode child = OrgTestUtils.getDefaultOrgNode();
+		child.name = "child";
+		child.parentId = root.id;
+		child.level = 2;
+		child.tags_inherited = "work";
+		repo.write(child);
+
+		String text = repo.getSubtreeText(root.id);
+		assertTrue(text.contains("* TODO parent :work:"));
+		assertFalse(text.contains("** TODO child :work:"));
+		assertTrue(text.contains("** TODO child\n"));
+	}
+
+	@Test
+	public void testGetSubtreeTextNodeNotFound() {
+		try {
+			repo.getSubtreeText(-1);
+			fail("Expected OrgNodeNotFoundException");
+		} catch (OrgNodeNotFoundException e) {}
+	}
+
 }

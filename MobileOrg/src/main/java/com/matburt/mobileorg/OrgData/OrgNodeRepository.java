@@ -537,6 +537,26 @@ public class OrgNodeRepository {
     // Serialization
     // =====================================================================
 
+    /**
+     * Serialize a node and its entire subtree to org-format text with levels
+     * normalized: the subtree root is level 1 (single star) regardless of its
+     * depth in the source file. Payload kept verbatim; inherited tags are not
+     * written (org semantics: they don't persist to file).
+     * @throws OrgNodeNotFoundException nodeId invalid
+     */
+    public String getSubtreeText(long nodeId) throws OrgNodeNotFoundException {
+        OrgNode root = getById(nodeId);
+        StringBuilder result = new StringBuilder();
+        appendSubtree(result, root, root.level);
+        return result.toString();
+    }
+
+    private void appendSubtree(StringBuilder result, OrgNode node, long rootLevel) {
+        result.append(node.toString(node.level - rootLevel + 1)).append("\n");
+        for (OrgNode child : getChildren(node.id))
+            appendSubtree(result, child, rootLevel);
+    }
+
     /** Serialize a node and its entire subtree to org-format text. */
     public StringBuilder nodesToString(long nodeId, long level) {
         StringBuilder result = new StringBuilder();

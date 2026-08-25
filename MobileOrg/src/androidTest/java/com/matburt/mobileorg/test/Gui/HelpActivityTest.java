@@ -81,4 +81,30 @@ public class HelpActivityTest {
             SystemClock.sleep(100);
         assertTrue(detail.pageFinished);
     }
+
+    @Test
+    public void detailInternalLinkNavigationLoadsTargetAsset() throws Throwable {
+        Intent intent = new Intent();
+        intent.putExtra(HelpDetailActivity.EXTRA_ASSET_PATH, "help/en/quick-start.html");
+        HelpDetailActivity detail = detailRule.launchActivity(intent);
+        long deadline = System.currentTimeMillis() + 5000;
+        while (!detail.pageFinished && System.currentTimeMillis() < deadline)
+            SystemClock.sleep(100);
+        assertTrue(detail.pageFinished);
+
+        // 模拟用户点击站内链接：shouldOverrideUrlLoading 应接管并加载目标 asset
+        // （JS 合成 click 在部分 WebView 版本不触发导航回调，故直接驱动回调本身）
+        detail.pageFinished = false;
+        Instrumentation instrumentation = InstrumentationRegistry.getInstrumentation();
+        final boolean[] handled = new boolean[1];
+        instrumentation.runOnMainSync(() -> handled[0] = detail.getWebViewClientForTest()
+                .shouldOverrideUrlLoading(null, "file:///android_asset/help/en/sync.html"));
+        assertTrue("站内链接应由客户端接管加载", handled[0]);
+        deadline = System.currentTimeMillis() + 8000;
+        while (!detail.pageFinished && System.currentTimeMillis() < deadline)
+            SystemClock.sleep(100);
+        assertTrue("目标页面应完成加载", detail.pageFinished);
+        // historyUrl=null 时 getUrl() 恒为 about:blank，以实际加载路径断言导航目标
+        assertEquals("help/en/sync.html", detail.lastLoadedAssetPath);
+    }
 }

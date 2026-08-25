@@ -23,10 +23,14 @@ import java.io.InputStreamReader;
 public class HelpDetailActivity extends AppCompatActivity {
 
     public static final String EXTRA_ASSET_PATH = "asset_path";
+    private static final String INTERNAL_LINK_BASE = "file:///android_asset/help/";
 
     private WebView webView;
+    private HelpWebViewClient webViewClient;
     @VisibleForTesting // 测试轮询用（测试在 test.Gui 包，须 public）
     public boolean pageFinished;
+    @VisibleForTesting // 断言站内链接导航实际加载的页面（getUrl 在 historyUrl=null 时恒为 about:blank）
+    public String lastLoadedAssetPath;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -35,7 +39,8 @@ public class HelpDetailActivity extends AppCompatActivity {
         setContentView(R.layout.activity_help_detail);
 
         webView = findViewById(R.id.help_webview);
-        webView.setWebViewClient(new HelpWebViewClient());
+        webViewClient = new HelpWebViewClient();
+        webView.setWebViewClient(webViewClient);
         webView.getSettings().setBuiltInZoomControls(true);
         webView.setBackgroundColor(
                 DefaultTheme.getTheme(this).defaultBackground);
@@ -49,12 +54,16 @@ public class HelpDetailActivity extends AppCompatActivity {
     }
 
     private void loadAsset(String assetPath) {
+        lastLoadedAssetPath = assetPath;
         try {
             String html = readAsset(assetPath);
             if (OrgUtils.isDarkTheme())
                 html = html.replace("<html", "<html class=\"dark\"");
-            webView.loadDataWithBaseURL(
-                    "file:///android_asset/help/", html, "text/html", "UTF-8", null);
+            // baseUrl 取 assetPath 所在目录，使页面内相对链接（sync.html 等）
+            // 解析到同 locale 子目录；css/图片在 html 中以 ../ 引用根目录共享资源
+            String baseUrl = "file:///android_asset/"
+                    + assetPath.substring(0, assetPath.lastIndexOf('/') + 1);
+            webView.loadDataWithBaseURL(baseUrl, html, "text/html", "UTF-8", null);
         } catch (IOException e) {
             displayError();
         }
@@ -86,9 +95,19 @@ public class HelpDetailActivity extends AppCompatActivity {
                 "text/html", "UTF-8", null);
     }
 
-    private class HelpWebViewClient extends WebViewClient {
+    @VisibleForTesting // 测试直接驱动站内链接导航（JS 合成点击不触发回调）
+    public HelpWebViewClient getWebViewClientForTest() {
+        return webViewClient;
+    }
+
+    public class HelpWebViewClient extends WebViewClient {
         @Override
         public boolean shouldOverrideUrlLoading(WebView view, String url) {
+            if (url.startsWith(INTERNAL_LINK_BASE)) {
+                // 站内链接：经 loadAsset 重新加载，保留 dark class 注入与加载失败兜底
+                loadAsset(url.substring("file:///android_asset/".length()));
+                return true;
+            }
             if (url.startsWith("file://"))
                 return false;
             try {

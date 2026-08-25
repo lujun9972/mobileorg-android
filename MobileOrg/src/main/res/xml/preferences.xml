@@ -275,6 +275,11 @@
                 android:targetPackage="com.matburt.mobileorg"
                 android:targetClass="com.matburt.mobileorg.Gui.Wizard.WizardActivity" />
         </Preference>
+        <Preference android:title="@string/help_title">
+            <intent
+                android:targetPackage="com.matburt.mobileorg"
+                android:targetClass="com.matburt.mobileorg.Gui.Help.HelpActivity" />
+        </Preference>
         <Preference
             android:key="clearDB"
             android:title="@string/preference_clear_db" />

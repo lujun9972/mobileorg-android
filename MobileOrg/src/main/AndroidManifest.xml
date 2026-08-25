@@ -228,6 +228,9 @@
             android:name=".Gui.Statistics.StatisticsActivity"
             android:parentActivityName=".Gui.Outline.OutlineActivity" />
 
+        <activity android:name=".Gui.Help.HelpActivity" />
+        <activity android:name=".Gui.Help.HelpDetailActivity" />
+
         <receiver android:name=".Gui.Widget.CaptureWidgetProvider"
             android:exported="true"
             android:label="MobileOrg Capture" >

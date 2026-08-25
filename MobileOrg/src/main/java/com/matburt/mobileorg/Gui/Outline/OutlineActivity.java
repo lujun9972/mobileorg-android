@@ -3,7 +3,6 @@ package com.matburt.mobileorg.Gui.Outline;
 import android.app.AlertDialog;
 import android.content.DialogInterface;
 import android.content.Intent;
-import android.net.Uri;
 import android.os.Bundle;
 import android.view.Menu;
 import android.view.MenuInflater;
@@ -16,6 +15,7 @@ import androidx.appcompat.app.AppCompatActivity;
 
 import com.matburt.mobileorg.R;
 import com.matburt.mobileorg.Gui.Agenda.AgendasActivity;
+import com.matburt.mobileorg.Gui.Help.HelpActivity;
 import com.matburt.mobileorg.Gui.Statistics.StatisticsActivity;
 import com.matburt.mobileorg.Gui.Wizard.WizardActivity;
 import com.matburt.mobileorg.OrgData.MobileOrgApplication;
@@ -431,10 +431,8 @@ public class OutlineActivity extends AppCompatActivity {
 	}
 
 	public void runHelp(View view) {
-		Intent intent = new Intent(Intent.ACTION_VIEW,
-				Uri.parse("https://github.com/matburt/mobileorg-android/wiki"));
-    	startActivity(intent);
-    }
+		startActivity(new Intent(this, HelpActivity.class));
+	}
 
     public void runSynchronize(View view) {
 		syncController.runSynchronize();

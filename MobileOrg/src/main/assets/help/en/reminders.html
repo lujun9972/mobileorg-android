@@ -8,5 +8,13 @@
 </head>
 <body>
 <h1>Reminders</h1>
+<h2>Automatic Reminders</h2>
+<p>MobileOrg automatically scans all nodes for DEADLINE and SCHEDULED dates and sends notifications before they're due. Reminders are registered after sync and on device boot; only nodes with active TODO states trigger reminders.</p>
+
+<h2>Configuring Reminders</h2>
+<p>Enable reminders in Settings → Reminders and configure advance times (DEADLINE defaults to 3 days ahead, SCHEDULED defaults to same day) and daily overview time (fixed time each day to summarize due items). The daily overview notification categorizes and lists "Today's Scheduled" and "Upcoming Deadlines" items.</p>
+
+<h2>Android 12+ Exact Alarm Restrictions</h2>
+<p>Since Android 12 (API 31), exact alarm permission is a special permission—you must manually grant it in system settings. If not granted, reminders fall back to inexact mode (10-minute window) and may fire several minutes late. When first using, we recommend granting SCHEDULE_EXACT_ALARM permission in system settings.</p>
 </body>
 </html>

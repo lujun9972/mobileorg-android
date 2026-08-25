@@ -8,5 +8,16 @@
 </head>
 <body>
 <h1>Pomodoro &amp; Timeclock</h1>
+<h2>Starting Pomodoro</h2>
+<p>Tap the 🍅 icon in the main menu to start a pomodoro timer. Choose duration (1-120 minutes) and number of rounds (1-99). The timer counts down and plays an alarm when complete.</p>
+
+<h2>Single and Consecutive Mode</h2>
+<p>In single mode (1 round), you can Finish (count toward stats) or Cancel (discard) when done. Consecutive mode (2+ rounds) automatically advances to the next round; after every 4 completed rounds (the 4th, 8th, 12th… round) you get a long break (the interval is configurable in settings), others are short breaks. When rest ends, tap "Start Next" to continue.</p>
+
+<h2>Timeout Alarm and Timeclock</h2>
+<p>The timeout alarm uses the USAGE_ALARM audio stream, so it rings even when your phone is muted. The "Dismiss Alarm" button on the notification only stops the alarm sound—it doesn't cancel the pomodoro session. Timeclock (clock in/out) records to the node's LOGBOOK property for task timing.</p>
+
+<h2>Editing Duration</h2>
+<p>In the pomodoro dialog, adjust the elapsed time (hours + minutes with NumberPicker). The OK button only updates the display value; it saves to the database only when you tap Save. Tap Cancel to exit without changes.</p>
 </body>
 </html>

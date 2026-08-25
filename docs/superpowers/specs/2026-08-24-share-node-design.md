@@ -41,7 +41,7 @@ outline_node*.xml  ─┘        │                                  ├─ get
 | `OrgData/OrgNode.java` | `toString()` 抽出 `toString(int level)` 重载，原方法委托 `toString(this.level)`，行为不变 |
 | `OrgData/OrgNodeRepository.java` | 新增 `getSubtreeText(long nodeId)`：递归序列化子树，星号数 = `node.level − root.level + 1` |
 | `util/OrgUtils.java` | 新增 `public static shareNode(Context, long nodeId)`：查节点 → 序列化 → 截断防御 → 分享面板 |
-| `res/menu/outline_node.xml`、`res/menu/outline_node_uneditable.xml` | 加 `menu_share` 项（分享只读，uneditable 菜单也加） |
+| `res/menu/outline_node.xml`、`res/menu/outline_node_uneditable.xml`、`res/menu/outline_file.xml`、`res/menu/outline_file_uneditable.xml` | 加 `menu_share` 项。OutlineActionMode 长按时在 4 套菜单中选择（可编辑节点/不可编辑节点/文件节点/agenda 文件节点），分享是只读操作，4 套全加（初版规格漏了 file 两套，真机手测发现 agenda 节点走 `outline_file_uneditable` 分支，2026-08-25 补齐） |
 | `Gui/Outline/OutlineActionMode.java` | `onActionItemClicked` 加 `menu_share` case |
 | `Gui/ViewActivity.java` | `onCreateOptionsMenu` 加分享项（overflow）；`onOptionsItemSelected` 用 **itemId** 判断——现有代码用 `order` 0-4 判断递归层级（ViewActivity.java:103），新项必须避开 |
 | `res/values/strings.xml` | `menu_share` = "Share node"、`share_node_not_found` = "Node not found"、`share_truncated` = "Content too long, truncated to 400000 chars" |

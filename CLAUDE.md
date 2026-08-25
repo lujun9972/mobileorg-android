@@ -65,6 +65,7 @@ APK 输出：`MobileOrg/build/outputs/apk/debug/`
 - **NotificationCompat.Builder**：所有 Builder 构造函数必须传 CHANNEL_ID（如 `new NotificationCompat.Builder(context, CHANNEL_ID)`）。否则通知没有 channel 引用，在 API 26+ 以 `CannotPostForegroundServiceNotificationException` 崩溃。
 - **运行时权限**：日历权限（`READ_CALENDAR`、`WRITE_CALENDAR`）是危险权限，访问 CalendarProvider 前必须检查。`CalendarSyncService` 在 `onCreate()`/`onStartCommand()` 中检查，未授权则 stop self。新增任何危险权限使用时，务必添加运行时检查——API 23+ 上仅 manifest 声明是不够的。
 - **菜单 XML showAsAction**：项目使用 AppCompat（`AppCompatActivity`），所有菜单 XML 必须用 `app:showAsAction`（来自 `xmlns:app="http://schemas.android.com/apk/res-auto"`）而非 `android:showAsAction`。后者会被 AppCompat Toolbar/ActionBar 静默忽略，导致菜单图标不显示。
+- **OutlineActionMode 长按菜单有 4 套** *(2026-08-25 分享功能手测发现)*：`onCreateActionMode()` 按节点类型在 4 套菜单 XML 中选择——`outline_node`（可编辑节点）、`outline_node_uneditable`（不可编辑节点）、`outline_file`（文件节点）、`outline_file_uneditable`（agenda 文件节点）。给长按菜单加项时必须审计 4 套是否都该加——只加 node 两套时，agenda 类节点（实际走 `outline_file_uneditable` 分支）没有菜单项，且无任何报错。
 - **Service 提前 return → onDestroy NPE**：在 `onCreate()`/`onStartCommand()` 中添加提前 return（如权限检查）后，Android 仍会调用 `onDestroy()`。被跳过的代码中本应初始化的字段，在 `onDestroy()` 中使用前必须判空。
 - **主线程禁止网络操作**：Synchronizer 构造函数在 `SyncService.getSynchronizer()` 中于主线程调用。构造函数中绝不做网络 I/O（SSH 连接、HTTP 请求）。所有网络操作必须在后台同步线程。
 - **sendBroadcast 必须用 setPackage()**：targetSdk 34 下，隐式广播可能无法投递到 `RECEIVER_NOT_EXPORTED` 的 receiver。`sendBroadcast()` 前务必 `intent.setPackage(context.getPackageName())` 使其显式化。适用于所有 `OrgUtils.announceSync*()` 方法。

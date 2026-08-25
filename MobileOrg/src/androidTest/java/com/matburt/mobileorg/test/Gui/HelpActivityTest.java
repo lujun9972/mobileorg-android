@@ -31,6 +31,10 @@ public class HelpActivityTest {
     public ActivityTestRule<HelpActivity> activityRule =
             new ActivityTestRule<>(HelpActivity.class);
 
+    @Rule
+    public ActivityTestRule<HelpDetailActivity> detailRule = new ActivityTestRule<>(
+            HelpDetailActivity.class, true, false);
+
     @Test
     public void listShowsAllTopics() {
         RecyclerView rv = activityRule.getActivity()
@@ -66,10 +70,6 @@ public class HelpActivityTest {
         assertEquals(expectedPath,
                 detail.getIntent().getStringExtra(HelpDetailActivity.EXTRA_ASSET_PATH));
     }
-
-    @Rule
-    public ActivityTestRule<HelpDetailActivity> detailRule = new ActivityTestRule<>(
-            HelpDetailActivity.class, true, false);
 
     @Test
     public void detailLoadsAssetHtml() throws Throwable {

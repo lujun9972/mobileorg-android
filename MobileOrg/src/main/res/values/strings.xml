@@ -348,5 +348,6 @@
 <string name="help_about_repo">Fork: https://github.com/lujun9972/mobileorg-android</string>
 <string name="help_about_license">Licensed under Apache License 2.0</string>
 <string name="help_detail_error">Help document failed to load.</string>
+<string name="help_link_no_handler">No app found to open this link</string>
 
 </resources>

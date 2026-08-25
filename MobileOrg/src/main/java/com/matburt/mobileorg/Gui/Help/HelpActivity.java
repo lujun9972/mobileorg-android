@@ -2,6 +2,7 @@ package com.matburt.mobileorg.Gui.Help;
 
 import android.content.Intent;
 import android.content.pm.PackageInfo;
+import android.content.pm.PackageManager;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.ViewGroup;
@@ -34,7 +35,7 @@ public class HelpActivity extends AppCompatActivity {
         try {
             PackageInfo info = getPackageManager().getPackageInfo(getPackageName(), 0);
             version.setText(getString(R.string.help_about_version, info.versionName));
-        } catch (Exception e) {
+        } catch (PackageManager.NameNotFoundException e) {
             version.setText("");
         }
     }

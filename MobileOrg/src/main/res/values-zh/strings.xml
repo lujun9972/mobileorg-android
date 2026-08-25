@@ -173,4 +173,5 @@
   <string name="help_about_repo">Fork：https://github.com/lujun9972/mobileorg-android</string>
   <string name="help_about_license">基于 Apache 2.0 协议发布</string>
   <string name="help_detail_error">帮助文档加载失败。</string>
+  <string name="help_link_no_handler">没有应用可以打开此链接</string>
 </resources>

@@ -6,13 +6,14 @@ import android.net.Uri;
 import android.os.Bundle;
 import android.webkit.WebView;
 import android.webkit.WebViewClient;
+import android.widget.Toast;
 
+import androidx.annotation.VisibleForTesting;
 import androidx.appcompat.app.AppCompatActivity;
 
 import com.matburt.mobileorg.Gui.Theme.DefaultTheme;
 import com.matburt.mobileorg.R;
 import com.matburt.mobileorg.util.OrgUtils;
-import com.matburt.mobileorg.util.PreferenceUtils;
 
 import java.io.BufferedReader;
 import java.io.IOException;
@@ -24,7 +25,8 @@ public class HelpDetailActivity extends AppCompatActivity {
     public static final String EXTRA_ASSET_PATH = "asset_path";
 
     private WebView webView;
-    public boolean pageFinished; // 测试轮询用（测试在 test.Gui 包，须 public）
+    @VisibleForTesting // 测试轮询用（测试在 test.Gui 包，须 public）
+    public boolean pageFinished;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -49,7 +51,7 @@ public class HelpDetailActivity extends AppCompatActivity {
     private void loadAsset(String assetPath) {
         try {
             String html = readAsset(assetPath);
-            if (isDarkTheme())
+            if (OrgUtils.isDarkTheme())
                 html = html.replace("<html", "<html class=\"dark\"");
             webView.loadDataWithBaseURL(
                     "file:///android_asset/help/", html, "text/html", "UTF-8", null);
@@ -60,23 +62,25 @@ public class HelpDetailActivity extends AppCompatActivity {
 
     private String readAsset(String path) throws IOException {
         InputStream in = getAssets().open(path);
-        BufferedReader reader = new BufferedReader(new InputStreamReader(in, "UTF-8"));
-        StringBuilder sb = new StringBuilder();
-        String line;
-        while ((line = reader.readLine()) != null) {
-            sb.append(line).append('\n');
+        try {
+            BufferedReader reader = new BufferedReader(new InputStreamReader(in, "UTF-8"));
+            StringBuilder sb = new StringBuilder();
+            String line;
+            while ((line = reader.readLine()) != null) {
+                sb.append(line).append('\n');
+            }
+            return sb.toString();
+        } finally {
+            in.close();
         }
-        in.close();
-        return sb.toString();
-    }
-
-    private boolean isDarkTheme() {
-        return !"Light".equals(PreferenceUtils.getThemeName());
     }
 
     private void displayError() {
+        String background = String.format("#%06X",
+                0xFFFFFF & DefaultTheme.getTheme(this).defaultBackground);
+        String foreground = OrgUtils.isDarkTheme() ? "#ccc" : "#333";
         webView.loadDataWithBaseURL(null,
-                "<html><body style='background:#101010;color:#ccc'>"
+                "<html><body style='background:" + background + ";color:" + foreground + "'>"
                         + getString(R.string.help_detail_error)
                         + "</body></html>",
                 "text/html", "UTF-8", null);
@@ -90,6 +94,8 @@ public class HelpDetailActivity extends AppCompatActivity {
             try {
                 startActivity(new Intent(Intent.ACTION_VIEW, Uri.parse(url)));
             } catch (ActivityNotFoundException e) {
+                Toast.makeText(HelpDetailActivity.this,
+                        R.string.help_link_no_handler, Toast.LENGTH_SHORT).show();
             }
             return true;
         }

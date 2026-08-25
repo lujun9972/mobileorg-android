@@ -154,6 +154,15 @@ public class OrgUtils {
     		activity.setTheme(R.style.Theme_MobileOrg_Light);
     }
 
+	/**
+	 * 与 {@link #setTheme(Activity)} 的分支语义对齐：Dark 与 Monochrome 为深色，
+	 * 其余（含未知值，setTheme 落入 Light）为浅色。
+	 */
+	public static boolean isDarkTheme() {
+		String themeName = PreferenceUtils.getThemeName();
+		return themeName.equals("Dark") || themeName.equals("Monochrome");
+	}
+
 	public static String lookUpValueFromArray(Context context, int keyID, int valID, String value) {
 		String[] keys = context.getResources().getStringArray(keyID);
 		String[] values = context.getResources().getStringArray(valID);

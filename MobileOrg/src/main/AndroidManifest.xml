@@ -228,8 +228,14 @@
             android:name=".Gui.Statistics.StatisticsActivity"
             android:parentActivityName=".Gui.Outline.OutlineActivity" />
 
-        <activity android:name=".Gui.Help.HelpActivity" />
-        <activity android:name=".Gui.Help.HelpDetailActivity" />
+        <activity
+            android:name=".Gui.Help.HelpActivity"
+            android:label="@string/help_title"
+            android:parentActivityName=".Gui.Outline.OutlineActivity" />
+        <activity
+            android:name=".Gui.Help.HelpDetailActivity"
+            android:label="@string/help_title"
+            android:parentActivityName=".Gui.Outline.OutlineActivity" />
 
         <receiver android:name=".Gui.Widget.CaptureWidgetProvider"
             android:exported="true"

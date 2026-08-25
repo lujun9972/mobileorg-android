@@ -25,6 +25,7 @@ This fork brings the original project (API 17) up to modern Android standards �
 - **DEADLINE/SCHEDULED reminders**: Exact-time notifications for upcoming deadlines and scheduled items
 - **Daily overview**: Morning summary notification of today's scheduled items and upcoming deadlines
 - **Undo**: Undo the most recent edit batch (LIFO) from the outline menu — field edits, TODO changes, body/logbook edits, and voice-recording attachments each form one batch
+- **Share node**: Share a node's entire subtree as org-format plain text (normalized heading levels) via the Android share sheet — from the outline long-press menu or the node view menu; works on any node including agenda entries and whole files
 - **Sync config backup**: Export/import sync settings via system file picker (SAF), survives app reinstall; the first-run wizard also offers direct import from a config file
 - **Homescreen widgets**: Agenda widget and capture shortcut widget
 - **Theme support**: Light and dark themes with theme-aware UI colors
@@ -74,6 +75,10 @@ MobileOrg/src/main/java/com/matburt/mobileorg/
 [GNU General Public License v2.0](LICENSE.txt)
 
 ## Changelog
+
+### v2.10.0
+
+- **Share node**: Share a node's entire subtree as org-format text via the Android share sheet (`ACTION_SEND`, text/plain). Heading levels are normalized to start at `*` regardless of source depth; payload (SCHEDULED/DEADLINE/clock log) kept verbatim. Entry points: outline long-press menu (nodes and files, editable or not) and the node view overflow menu. Oversized subtrees are truncated at 400,000 chars to stay under the Binder transaction limit.
 
 ### v2.9.0
 

@@ -8,5 +8,34 @@
 </head>
 <body>
 <h1>Outline 基本操作</h1>
+<h2>主界面</h2>
+<p>主界面显示 org 文件列表。列表顶部有 <strong>TODO</strong> 和 <strong>Agenda</strong> 两个固定项，点开后可分别查看任务汇总和日程安排。文件列表按层级显示，点击节点可进入子树查看子节点，使用返回键回到上一级。界面支持按标签过滤内容，顶部会显示可用标签供选择。</p>
+
+<h2>长按菜单</h2>
+<p>长按任意节点会弹出上下文菜单，菜单内容根据节点类型自动调整：</p>
+<ul>
+<li><strong>可编辑节点</strong>：提供编辑、添加子节点、删除、Clock In（计时）、番茄钟、录音、归档、分享等选项</li>
+<li><strong>只读节点</strong>：仅提供查看和分享功能</li>
+<li><strong>文件节点</strong>：支持编辑、添加子节点、删除文件、恢复、分享，还可添加 Clock In、番茄钟、录音功能</li>
+<li><strong>Agenda 文件节点</strong>：提供查看、编辑、删除文件、恢复、分享选项，与普通文件节点的区别是没有 Clock In、番茄钟、录音等功能项</li>
+</ul>
+
+<h2>记录想法（Capture）</h2>
+<p>通过主菜单的 <strong>"Capture"</strong> 选项或快速建条目功能，可快速记录想法。系统会打开编辑器，创建新条目并可选择将其添加为当前节点的子节点。Capture 功能适合在移动场景下快速捕捉灵感，稍后再整理到正式的 org 文件中。</p>
+
+<h2>编辑器</h2>
+<p>编辑器采用分页设计，各部分功能如下：</p>
+<ul>
+<li><strong>Heading（标题）</strong>：编辑节点标题、TODO 状态、优先级</li>
+<li><strong>Dates（日期）</strong>：设置 DEADLINE（截止日期）和 SCHEDULED（计划时间）</li>
+<li><strong>Tags（标签）</strong>：为节点添加或修改标签</li>
+<li><strong>Payload（正文）</strong>：编辑节点详细内容，支持 org 语法，包括列表、checkbox、链接等格式</li>
+</ul>
+
+<h2>Agenda 与搜索</h2>
+<p><strong>Agenda</strong> 项提供自定义查询功能，可在设置中配置 agenda 规则，按日期、TODO 状态等条件筛选任务。<strong>搜索</strong> 功能通过主菜单的放大镜图标启动，支持在所有 org 文件中全文搜索。</p>
+
+<h2>桌面小部件</h2>
+<p>应用提供两种桌面小部件：<strong>Outline Widget</strong> 显示日程概览，点击可快速新建条目（进入 capture 编辑器）；<strong>Capture Widget</strong> 专注于快速记录，点击即可直接进入 capture 编辑器，无需打开主界面。小部件支持自定义显示内容，方便在桌面直接查看或记录信息。</p>
 </body>
 </html>

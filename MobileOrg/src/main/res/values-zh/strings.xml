@@ -161,4 +161,16 @@
   <string name="edit_date_date">日期</string>
   <string name="wizard_import_config_button">从配置文件导入</string>
   <string name="wizard_import_config_success">同步配置导入成功</string>
+  <string name="help_title">帮助</string>
+  <string name="help_topic_quick_start">快速上手</string>
+  <string name="help_topic_sync">同步配置</string>
+  <string name="help_topic_outline">Outline 基本操作</string>
+  <string name="help_topic_pomodoro">番茄钟与计时</string>
+  <string name="help_topic_statistics">统计</string>
+  <string name="help_topic_reminders">提醒系统</string>
+  <string name="help_topic_extras">更多功能</string>
+  <string name="help_about_version">版本：%1$s</string>
+  <string name="help_about_repo">Fork：https://github.com/lujun9972/mobileorg-android</string>
+  <string name="help_about_license">基于 Apache 2.0 协议发布</string>
+  <string name="help_detail_error">帮助文档加载失败。</string>
 </resources>

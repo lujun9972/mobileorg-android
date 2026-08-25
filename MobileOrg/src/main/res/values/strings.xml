@@ -335,4 +335,18 @@
 <string name="undo_menu">Undo</string>
 <string name="undo_node_missing">Node was deleted; cannot undo</string>
 
+<!-- help center -->
+<string name="help_title">Help</string>
+<string name="help_topic_quick_start">Quick Start</string>
+<string name="help_topic_sync">Synchronization</string>
+<string name="help_topic_outline">Outline Basics</string>
+<string name="help_topic_pomodoro">Pomodoro &amp; Timeclock</string>
+<string name="help_topic_statistics">Statistics</string>
+<string name="help_topic_reminders">Reminders</string>
+<string name="help_topic_extras">More Features</string>
+<string name="help_about_version">Version: %1$s</string>
+<string name="help_about_repo">Fork: https://github.com/lujun9972/mobileorg-android</string>
+<string name="help_about_license">Licensed under Apache License 2.0</string>
+<string name="help_detail_error">Help document failed to load.</string>
+
 </resources>

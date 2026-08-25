@@ -8,5 +8,45 @@
 </head>
 <body>
 <h1>同步配置</h1>
+
+<h2>同步方式</h2>
+<p>MobileOrg 支持三种同步方式：</p>
+
+<table>
+<tr><th>方式</th><th>所需配置</th><th>适用场景</th></tr>
+<tr><td><strong>WebDAV</strong></td><td>URL、用户名、密码</td><td>支持 WebDAV 的云存储（如 Nextcloud、ownCloud）或 HTTP 服务器</td></tr>
+<tr><td><strong>SSH</strong></td><td>主机、端口、用户名、密码或密钥、远程路径</td><td>通过 SSH/SFTP 访问的远程服务器（如 VPS、NAS）</td></tr>
+<tr><td><strong>SD 卡</strong></td><td>本地目录路径</td><td>在同一设备上通过其他 app 或文件管理器管理 org 文件</td></tr>
+</table>
+
+<h2>配置向导</h2>
+<p>首次配置请进入 <strong>设置 → Actions → Setup Wizard</strong>。选择同步方式后填写各字段：</p>
+
+<ul>
+<li><strong>WebDAV</strong>：URL 需包含完整的 index.org 路径（如 <code>https://cloud.example.com/mobileorg/index.org</code>），向导会自动提取目录路径用于其他文件</li>
+<li><strong>SSH</strong>：远程路径也需指向 index.org（如 <code>/home/user/org/index.org</code>）；端口默认 22；可用密码或 SSH 私钥认证（点击按钮选择密钥文件）</li>
+<li><strong>SD 卡</strong>：浏览本地存储，选择 org 文件所在目录（需包含 index.org）</li>
+</ul>
+
+<p>配置完成后点击"测试连接"验证，再点击"完成"自动执行首次同步。</p>
+
+<h2>同步的工作原理</h2>
+<p>MobileOrg 采用双向同步机制：</p>
+
+<ol>
+<li><strong>拉取</strong>：下载服务器的 <code>index.org</code> 和 <code>checksums.dat</code>，对比本地与远端校验和，仅下载变更文件。从服务器 index.org 移除的文件会在本地同步后删除。</li>
+<li><strong>解析</strong>：下载的 org 文件由 OrgFileParser 解析入库，节点可通过 ContentProvider 访问。</li>
+<li><strong>推送</strong>：本地 capture 和编辑进入 Edits 队列，下次同步时合并到 <code>mobileorg.org</code> 并上传到服务器。上传后本地队列清空。</li>
+</ol>
+
+<h2>配置导入导出</h2>
+<p>进入 <strong>设置 → Actions → Export Sync Configuration</strong> 可将当前同步配置导出为 JSON 文件，通过系统文件选择器保存到任意位置（推荐云盘）。重装 app 后使用 <strong>Import Sync Configuration</strong> 选择该文件即可恢复配置，无需重新填写。</p>
+
+<h2>常见问题</h2>
+<ul>
+<li><strong>自签名证书提示</strong>：使用 HTTPS 且服务器自签名证书变更时，同步会弹出 CertificateConflict 界面，显示新旧证书哈希。选择"接受"更新证书存储，"拒绝"则中止同步。</li>
+<li><strong>同步失败</strong>：检查通知栏的错误信息。常见原因包括 URL/路径错误、用户名密码错误、网络未连接或服务器权限问题。</li>
+</ul>
+
 </body>
 </html>

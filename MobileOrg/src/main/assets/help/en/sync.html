@@ -8,5 +8,45 @@
 </head>
 <body>
 <h1>Synchronization</h1>
+
+<h2>Sync Methods</h2>
+<p>MobileOrg supports three synchronization methods:</p>
+
+<table>
+<tr><th>Method</th><th>Configuration Required</th><th>Use Case</th></tr>
+<tr><td><strong>WebDAV</strong></td><td>URL, username, password</td><td>WebDAV-enabled cloud storage (e.g. Nextcloud, ownCloud) or HTTP server</td></tr>
+<tr><td><strong>SSH</strong></td><td>Host, port, username, password or key, remote path</td><td>Remote server accessible via SSH/SFTP (e.g. VPS, NAS)</td></tr>
+<tr><td><strong>SD Card</strong></td><td>Local directory path</td><td>Manage org files on the same device through other apps or file manager</td></tr>
+</table>
+
+<h2>Setup Wizard</h2>
+<p>To configure sync for the first time, go to <strong>Settings → Actions → Setup Wizard</strong>. After choosing a sync method, fill in the required fields:</p>
+
+<ul>
+<li><strong>WebDAV</strong>: URL must include the full path to index.org (e.g. <code>https://cloud.example.com/mobileorg/index.org</code>). The wizard automatically extracts the directory path for other files.</li>
+<li><strong>SSH</strong>: Remote path should also point to index.org (e.g. <code>/home/user/org/index.org</code>). Default port is 22. Authentication can use password or SSH private key (click button to select key file).</li>
+<li><strong>SD Card</strong>: Browse local storage and select the directory containing org files (must include index.org).</li>
+</ul>
+
+<p>After configuration, click "Test Connection" to verify, then click "Done" to perform the first sync automatically.</p>
+
+<h2>How Sync Works</h2>
+<p>MobileOrg uses a bidirectional sync mechanism:</p>
+
+<ol>
+<li><strong>Pull</strong>: Download <code>index.org</code> and <code>checksums.dat</code> from the server, compare checksums with local files, and only download changed files. Files removed from the server's index.org are deleted locally after sync.</li>
+<li><strong>Parse</strong>: Downloaded org files are parsed by OrgFileParser into the local database, accessible via ContentProvider.</li>
+<li><strong>Push</strong>: Local captures and edits enter the Edits queue. During next sync, they are merged into <code>mobileorg.org</code> and uploaded to the server. The local queue is cleared after upload.</li>
+</ol>
+
+<h2>Config Import/Export</h2>
+<p>Go to <strong>Settings → Actions → Export Sync Configuration</strong> to save your current sync configuration as a JSON file using the system file picker (cloud storage recommended). After reinstalling the app, use <strong>Import Sync Configuration</strong> to select the file and restore all settings without re-entering them.</p>
+
+<h2>Troubleshooting</h2>
+<ul>
+<li><strong>Self-signed Certificate Warning</strong>: When using HTTPS and the server's self-signed certificate changes, sync displays the CertificateConflict screen showing old and new certificate hashes. Choose "Accept" to update the stored certificate, or "Deny" to abort sync.</li>
+<li><strong>Sync Failure</strong>: Check the error message in the notification. Common causes include incorrect URL/path, wrong credentials, no network connection, or server permission issues.</li>
+</ul>
+
 </body>
 </html>

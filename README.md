@@ -27,6 +27,7 @@ This fork brings the original project (API 17) up to modern Android standards �
 - **Undo**: Undo the most recent edit batch (LIFO) from the outline menu — field edits, TODO changes, body/logbook edits, and voice-recording attachments each form one batch
 - **Share node**: Share a node's entire subtree as org-format plain text (normalized heading levels) via the Android share sheet — from the outline long-press menu or the node view menu; works on any node including agenda entries and whole files
 - **Sync config backup**: Export/import sync settings via system file picker (SAF), survives app reinstall; the first-run wizard also offers direct import from a config file
+- **In-app help center**: Built-in documentation (Chinese/English, follows app locale) with quick start, sync setup, outline usage, pomodoro, statistics, reminders, and extras topics — dark-theme aware, with in-page navigation and external link handling; accessible from the outline menu
 - **Homescreen widgets**: Agenda widget and capture shortcut widget
 - **Theme support**: Light and dark themes with theme-aware UI colors
 
@@ -75,6 +76,11 @@ MobileOrg/src/main/java/com/matburt/mobileorg/
 [GNU General Public License v2.0](LICENSE.txt)
 
 ## Changelog
+
+### v2.11.0
+
+- **In-app help center**: New Help entry in the outline menu opens a built-in documentation hub — 7 topics (quick start, sync, outline, pomodoro, statistics, reminders, extras) rendered in a WebView, in Chinese or English following the app locale. Dark theme applies automatically; in-page links navigate within the help section, external links open via the system handler.
+- **Fix**: Help page internal links were silently broken — `loadDataWithBaseURL` baseUrl lacked the locale subdirectory, so relative links resolved to nonexistent asset paths (images worked because they live in a shared root directory). baseUrl is now derived from the asset path, and internal navigation is intercepted to preserve dark-theme injection.
 
 ### v2.10.0
 

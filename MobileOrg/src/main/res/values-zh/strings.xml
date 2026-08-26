@@ -174,4 +174,162 @@
   <string name="help_about_license">基于 Apache 2.0 协议发布</string>
   <string name="help_detail_error">帮助文档加载失败。</string>
   <string name="help_link_no_handler">没有应用可以打开此链接</string>
+
+<!-- sync config import/export -->
+<string name="preference_export_sync_config">导出同步配置</string>
+<string name="preference_export_sync_config_summary">将同步设置导出到文件</string>
+<string name="preference_import_sync_config">导入同步配置</string>
+<string name="preference_import_sync_config_summary">从文件恢复同步设置</string>
+<string name="sync_config_export_success">同步配置导出成功</string>
+<string name="sync_config_export_failed">导出失败:\n%s</string>
+<string name="sync_config_import_success">同步配置导入成功，请重新进入设置页确认</string>
+<string name="sync_config_import_failed">导入失败:\n%s</string>
+<string name="sync_config_no_data">没有可导出的同步配置</string>
+
+<!-- reminder settings -->
+<string name="preference_reminder">任务提醒</string>
+<string name="preference_reminder_enabled">启用提醒</string>
+<string name="preference_reminder_enabled_summary">DEADLINE 和 SCHEDULED 到期时发送通知</string>
+<string name="preference_reminder_deadline_advance">DEADLINE 提前提醒</string>
+<string name="preference_reminder_scheduled_advance">SCHEDULED 提前提醒</string>
+<string name="preference_reminder_daily_overview_time">每日概览时间</string>
+
+<!-- reminder notifications -->
+<string name="reminder_notification_channel">任务提醒</string>
+<string name="reminder_notification_channel_desc">DEADLINE 和 SCHEDULED 任务到期提醒</string>
+<string name="reminder_daily_overview_title">今日待办</string>
+<string name="reminder_daily_overview_empty">今日无待办</string>
+<string name="reminder_scheduled_today">今日 SCHEDULED</string>
+<string name="reminder_deadline_upcoming">即将到期 DEADLINE</string>
+<string name="reminder_days_later">%d 天后</string>
+<string name="reminder_tomorrow">明天</string>
+
+<!-- pomodoro settings -->
+<string name="preference_pomodoro_duration">番茄钟时长</string>
+<string name="preference_pomodoro_duration_summary">默认倒计时时长（分钟）</string>
+<string name="pomodoro_duration_picker_title">设置番茄钟时长（分钟）</string>
+<string name="preference_pomodoro_count_default">默认连续番茄数</string>
+<string name="preference_pomodoro_count_default_summary">启动连续番茄时的默认数量</string>
+<string name="preference_pomodoro_short_break">短休息时长</string>
+<string name="preference_pomodoro_short_break_summary">番茄之间的休息时长（分钟）</string>
+<string name="preference_pomodoro_long_break">长休息时长</string>
+<string name="preference_pomodoro_long_break_summary">每 N 个番茄后的长休息时长（分钟）</string>
+<string name="preference_pomodoro_long_break_interval">长休息间隔</string>
+<string name="preference_pomodoro_long_break_interval_summary">每完成多少个番茄后触发长休息</string>
+<string name="pomodoro_picker_title">设置番茄钟</string>
+<string name="pomodoro_count_picker_title">连续番茄数</string>
+<string name="pomodoro_active_toast">番茄钟正在进行中</string>
+
+<!-- statistics -->
+<string name="menu_statistics">番茄统计</string>
+<string name="statistics_title">番茄统计</string>
+<string name="statistics_tab_overview">概览</string>
+<string name="statistics_tab_trend">趋势</string>
+<string name="statistics_streak_format">🔥 连续 %d 天</string>
+<string name="statistics_streak_empty">开始你的第一个番茄吧！</string>
+<string name="statistics_streak_subtitle">每天至少完成 1 个番茄</string>
+<string name="statistics_summary_day_format">今天: %1$d 个 | %2$s</string>
+<string name="statistics_summary_week_format">本周: %1$d 个 | %2$s | 日均 %3$.1f</string>
+<string name="statistics_summary_month_format">本月: %1$d 个 | %2$s | 日均 %3$.1f</string>
+<string name="statistics_no_data">暂无数据</string>
+<string name="preference_week_start_day">一周起始日</string>
+<string name="preference_week_start_day_summary">选择统计页面的一周起始日</string>
+<string name="monday">周一</string>
+<string name="sunday">周日</string>
+<string name="duration_minutes_format">%d 分钟</string>
+
+<!-- menus & actions -->
+<string name="menu_save">保存</string>
+<string name="menu_advanced">高级</string>
+<string name="menu_agenda">日程</string>
+<string name="menu_archive">归档</string>
+<string name="menu_archive_tosibling">归档到同级</string>
+<string name="menu_capture_simple">快速捕获</string>
+<string name="menu_clockin">开始计时</string>
+<string name="menu_delete">删除</string>
+<string name="menu_delete_file">删除文件</string>
+<string name="menu_pomodoro">番茄钟</string>
+<string name="menu_pomodoro_stop">停止 🍅</string>
+<string name="menu_record">录音</string>
+<string name="menu_recover">恢复</string>
+<string name="menu_share">分享节点</string>
+<string name="menu_view">查看</string>
+<string name="node_not_found">未找到节点</string>
+<string name="search_results_for">搜索结果：</string>
+<string name="share_node_not_found">未找到节点</string>
+<string name="share_truncated">内容过长，已截断至 400000 字符</string>
+
+<!-- preferences -->
+<string name="preferences">设置</string>
+<string name="preference_app_language">语言</string>
+<string name="app_language_system">跟随系统</string>
+<string name="app_language_chinese">中文</string>
+<string name="app_language_english">English</string>
+<string name="preference_actions">操作</string>
+<string name="preference_advanced">高级</string>
+<string name="preference_edit">编辑</string>
+<string name="preference_interface">界面</string>
+<string name="preference_general">常规</string>
+<string name="preference_fontsize">字体大小</string>
+<string name="preference_fontsize_summary">大纲中使用的字体大小。</string>
+<string name="preference_theme">主题</string>
+<string name="preference_setup_wizard">配置向导</string>
+<string name="preference_sync_wifi_only">仅在 Wi-Fi 下同步</string>
+<string name="preference_sync_wifi_only_summary">仅在无线网络可用时同步</string>
+<string name="preference_capture_advanced">高级捕获</string>
+<string name="preference_capture_advanced_summary">高级捕获机制，允许将内容捕获到任意标题之下。</string>
+<string name="preference_exclude_tags">标签继承排除</string>
+<string name="preference_exclude_tags_summary">用 \":\" 分隔的标签列表，这些标签不参与继承。</string>
+<string name="preference_selected_todos">快速 TODO 关键词</string>
+<string name="preference_selected_todos_summary">选择大纲中可快速切换的 TODO 关键词，用空格分隔。</string>
+<string name="preference_view_on_click">点击时查看</string>
+<string name="preference_view_on_click_summary">将大纲条目的默认操作从编辑改为查看</string>
+<string name="preference_view_apply_formatting">视图应用格式化</string>
+<string name="preference_view_apply_formatting_summary">查看节点时应用 orgmode 的粗体、下划线、删除线等强调格式。</string>
+<string name="preference_properties_drawer">属性抽屉</string>
+<string name="preference_view_node_properties_enabled">显示节点属性</string>
+<string name="preference_view_node_properties_enabled_summary">显示节点属性抽屉的内容。</string>
+<string name="preference_properties_drawer_fields">字段</string>
+<string name="preference_properties_drawer_fields_summary">限制显示特定字段。字段列表用空格分隔，留空表示不限制。</string>
+<string name="preference_properties_drawer_files">文件</string>
+<string name="preference_properties_drawer_files_summary">限制显示特定文件。文件名列表用 \";\" 分隔，留空表示不限制。</string>
+<string name="preference_pomodoro">番茄钟</string>
+
+<!-- calendar -->
+<string name="preference_calendar_display">显示</string>
+<string name="preference_calendar_show_past">显示过去事件</string>
+<string name="preference_calendar_show_past_summary">在日历中显示已过去的条目</string>
+<string name="preference_calendar_pull">吸收日历条目</string>
+<string name="preference_calendar_pull_summary">吸收非 MobileOrg 写入的日历条目并加入捕获文件。实验性功能！</string>
+<string name="preference_calendar_pull_delete">吸收时删除</string>
+<string name="preference_calendar_pull_delete_summary">删除已从日历吸收的条目</string>
+
+<!-- prompts -->
+<string name="prompt_delete_file">您确定要删除此文件吗？</string>
+<string name="prompt_node_archive">您确定要归档此节点吗？</string>
+
+<!-- recording -->
+<string name="recording_notification_channel">MobileOrg 录音</string>
+<string name="recording_notification_title">录音中：%s</string>
+<string name="recording_stop">停止</string>
+<string name="recording_pause">暂停</string>
+<string name="recording_resume">继续</string>
+
+<!-- synchronizer settings -->
+<string name="configure_synchronizer_settings">同步设置</string>
+<string name="storage_location">存储位置</string>
+<string name="storage_card">存储卡</string>
+<string name="internal">内部存储</string>
+<string name="title_scp_host">主机</string>
+<string name="title_scp_port">端口</string>
+<string name="title_scp_path">路径</string>
+<string name="summary_scp_path">服务器上 index.org 的完整路径</string>
+<string name="title_index_file_path">index.org 的本地完整路径</string>
+<string name="summary_web_url">您的 index.org 文件的完整 URL</string>
+<string name="ssh_inform_choose_pub_file">或者选择包含*私钥*的文件（需要已安装文件管理器）</string>
+<string name="ssh_choose_file_button">选择您的*私钥*文件</string>
+
+<!-- edit -->
+<string name="edit_create_new_entry">新建条目</string>
+<string name="edit_create_new_entry_body">输入要创建的文件名</string>
 </resources>

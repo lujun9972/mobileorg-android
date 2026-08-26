@@ -1,0 +1,88 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string-array name="fileSources">
+        <item>WebDAV</item>
+        <item>存储卡</item>
+        <item>SSH/SCP</item>
+        <item>仅捕获</item>
+    </string-array>
+    <string-array name="syncIntervals">
+        <item>5 分钟</item>
+        <item>10 分钟</item>
+        <item>15 分钟</item>
+        <item>30 分钟</item>
+        <item>45 分钟</item>
+        <item>1 小时</item>
+        <item>3 小时</item>
+        <item>6 小时</item>
+        <item>12 小时</item>
+    </string-array>
+    <string-array name="viewRecursionLevels">
+        <item>仅当前节点</item>
+        <item>节点及其直接子节点</item>
+        <item>节点、子节点及孙节点</item>
+        <item>3 层嵌套</item>
+        <item>4 层嵌套</item>
+    </string-array>
+    <string-array name="themesEntries">
+        <item>浅色</item>
+        <item>深色</item>
+        <item>暖纸护眼</item>
+    </string-array>
+    <string-array name="agendaQueryTypes">
+        <item>全部条目</item>
+        <item>日程</item>
+    </string-array>
+    <string-array name="agendaSpanValues">
+        <item>日</item>
+        <item>周</item>
+        <item>月</item>
+        <item>年</item>
+        <item>自定义</item>
+    </string-array>
+    <string-array name="reminder_advance_labels">
+        <item>当天</item>
+        <item>1 小时前</item>
+        <item>3 小时前</item>
+        <item>1 天前</item>
+        <item>3 天前</item>
+    </string-array>
+    <string-array name="pomodoro_duration_entries">
+        <item>15 分钟</item>
+        <item>20 分钟</item>
+        <item>25 分钟</item>
+        <item>30 分钟</item>
+        <item>45 分钟</item>
+        <item>60 分钟</item>
+    </string-array>
+    <string-array name="pomodoro_count_entries">
+        <item>1 个</item>
+        <item>2 个</item>
+        <item>3 个</item>
+        <item>4 个</item>
+        <item>5 个</item>
+        <item>6 个</item>
+        <item>7 个</item>
+        <item>8 个</item>
+        <item>9 个</item>
+        <item>10 个</item>
+    </string-array>
+    <string-array name="pomodoro_break_entries">
+        <item>0 分钟（无倒计时）</item>
+        <item>3 分钟</item>
+        <item>5 分钟</item>
+        <item>10 分钟</item>
+        <item>15 分钟</item>
+        <item>20 分钟</item>
+        <item>30 分钟</item>
+    </string-array>
+    <string-array name="pomodoro_interval_entries">
+        <item>每 3 个</item>
+        <item>每 4 个</item>
+        <item>每 5 个</item>
+        <item>每 6 个</item>
+        <item>每 8 个</item>
+        <item>每 10 个</item>
+        <item>每 12 个</item>
+    </string-array>
+</resources>

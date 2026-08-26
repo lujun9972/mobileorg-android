@@ -17,6 +17,7 @@
     <application
         android:name=".OrgData.MobileOrgApplication"
         android:icon="@drawable/icon"
+        android:localeConfig="@xml/locales_config"
         android:label="MobileOrg"
         android:requestLegacyExternalStorage="true"
         android:theme="@style/Theme.MobileOrg.Dark" >

@@ -11,6 +11,6 @@
         android:id="@+id/agenda_entry_save"
         android:icon="@drawable/ic_menu_save"
         app:showAsAction="always"
-        android:title="Save"/>
+        android:title="@string/menu_save"/>
 
 </menu>

@@ -9,6 +9,7 @@ import android.net.Uri;
 import android.content.pm.PackageItemInfo;
 import android.content.pm.PackageManager;
 import android.content.pm.ResolveInfo;
+import android.os.Build;
 import android.os.Bundle;
 import android.preference.ListPreference;
 import android.preference.Preference;
@@ -16,8 +17,10 @@ import android.text.TextUtils;
 import android.widget.Toast;
 
 import android.preference.PreferenceActivity;
+import androidx.appcompat.app.AppCompatDelegate;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
+import androidx.core.os.LocaleListCompat;
 
 import com.matburt.mobileorg.OrgData.OrgNodeRepository;
 import com.matburt.mobileorg.OrgData.OrgFileRepository;
@@ -38,6 +41,7 @@ import java.util.List;
 public class SettingsActivity extends PreferenceActivity implements
 		SharedPreferences.OnSharedPreferenceChangeListener {
 	public static final String KEY_SYNC_SOURCE = "syncSource";
+	public static final String KEY_APP_LANGUAGE = "app_language";
 
 	private String KEY_AUTO_SYNC_INTERVAL;
 	private String KEY_VIEW_RECURSION_MAX;
@@ -59,6 +63,7 @@ public class SettingsActivity extends PreferenceActivity implements
 		addPreferencesFromResource(R.xml.preferences);
 
 		init();
+		syncLanguagePreference();
 		populateSyncSources();
 		populateTodoKeywords();
 		populateCalendarNames();
@@ -99,6 +104,10 @@ public class SettingsActivity extends PreferenceActivity implements
 	@Override
 	public void onSharedPreferenceChanged(SharedPreferences sharedPreferences,
 			String key) {
+		if (key.equals(KEY_APP_LANGUAGE)) {
+			applyAppLanguage(appSettings.getString(key, "system"));
+			return; // 语言切换触发 recreate，无需更新 summary
+		}
 		updatePreferenceSummary(key);
 	}
 
@@ -112,6 +121,41 @@ public class SettingsActivity extends PreferenceActivity implements
 	public void onPause() {
 		this.appSettings.unregisterOnSharedPreferenceChangeListener(this);
 		super.onPause();
+	}
+
+	private void syncLanguagePreference() {
+		ListPreference langPref = (ListPreference) findPreference(KEY_APP_LANGUAGE);
+		if (langPref == null) return;
+		LocaleListCompat current = AppCompatDelegate.getApplicationLocales();
+		String value = "system";
+		if (!current.isEmpty()) {
+			String tag = current.toLanguageTags();
+			if (tag.startsWith("zh")) value = "zh";
+			else if (tag.startsWith("en")) value = "en";
+		}
+		langPref.setValue(value);
+	}
+
+	private void applyAppLanguage(String value) {
+		LocaleListCompat locales;
+		if ("zh".equals(value))
+			locales = LocaleListCompat.forLanguageTags("zh");
+		else if ("en".equals(value))
+			locales = LocaleListCompat.forLanguageTags("en");
+		else
+			locales = LocaleListCompat.getEmptyLocaleList();
+		AppCompatDelegate.setApplicationLocales(locales);
+		// AppCompat only auto-recreates AppCompatActivity; this activity is a
+		// framework PreferenceActivity, so recreate it ourselves on API < 33.
+		// On API 33+ the framework recreates every activity and our manual
+		// call is a harmless no-op after that.
+		if (Build.VERSION.SDK_INT < Build.VERSION_CODES.TIRAMISU)
+			recreate();
+	}
+
+	@Override
+	protected void attachBaseContext(Context newBase) {
+		super.attachBaseContext(OrgUtils.wrapForAppLocales(newBase));
 	}
 
 
@@ -145,7 +189,9 @@ public class SettingsActivity extends PreferenceActivity implements
 		} else if (key.equals(KEY_CALENDAR_REMINDER_INTERVAL)) {
 			summary = appSettings.getString(key, "");
 		} else if (key.equals(KEY_THEME)) {
-			summary = appSettings.getString(key, "");
+			String value = appSettings.getString(key, "");
+			summary = OrgUtils.lookUpValueFromArray(this, R.array.themesEntries,
+					R.array.themes, value);
 		} else if (key.equals(KEY_FONT_SIZE)) {
 			summary = appSettings.getString(key, "");
 		} else if (key.equals(KEY_QUICK_TODOS)) {

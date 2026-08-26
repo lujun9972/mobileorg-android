@@ -13,10 +13,14 @@ import java.util.regex.Pattern;
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
+import android.content.res.Configuration;
 import android.text.TextUtils;
 import android.widget.ArrayAdapter;
 import android.widget.Spinner;
 import android.widget.Toast;
+
+import androidx.appcompat.app.AppCompatDelegate;
+import androidx.core.os.LocaleListCompat;
 
 import com.matburt.mobileorg.R;
 import com.matburt.mobileorg.OrgData.OrgNode;
@@ -242,5 +246,21 @@ public class OrgUtils {
 				break;
 		}
 		return n;
+	}
+
+	/**
+	 * Wrap base context with the per-app locale chosen via AppCompatDelegate.
+	 * Needed by Activities that do not extend AppCompatActivity (framework
+	 * PreferenceActivity / Activity): on API < 33 AppCompat only applies
+	 * app locales in its own delegates, so these activities must read the
+	 * same state here. No-op when no app locale is set (follow system).
+	 */
+	public static Context wrapForAppLocales(Context base) {
+		LocaleListCompat locales = AppCompatDelegate.getApplicationLocales();
+		if (locales.isEmpty())
+			return base;
+		Configuration config = new Configuration(base.getResources().getConfiguration());
+		config.setLocale(locales.get(0));
+		return base.createConfigurationContext(config);
 	}
 }

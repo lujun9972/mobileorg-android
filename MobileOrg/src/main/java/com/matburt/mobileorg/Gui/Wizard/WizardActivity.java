@@ -32,6 +32,11 @@ public class WizardActivity extends Activity implements RadioGroup.OnCheckedChan
 	private static final int REQUEST_IMPORT_CONFIG = 2003;
 
 	@Override
+	protected void attachBaseContext(Context newBase) {
+		super.attachBaseContext(OrgUtils.wrapForAppLocales(newBase));
+	}
+
+	@Override
 	public void onCreate(Bundle savedInstanceState) {
 		OrgUtils.setTheme(this);
 		super.onCreate(savedInstanceState);

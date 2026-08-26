@@ -1,5 +1,6 @@
 package com.matburt.mobileorg.Settings.Synchronizers;
 
+import android.content.Context;
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.OnSharedPreferenceChangeListener;
 import android.os.Bundle;
@@ -8,6 +9,7 @@ import android.preference.PreferenceActivity;
 import android.preference.PreferenceManager;
 
 import com.matburt.mobileorg.R;
+import com.matburt.mobileorg.util.OrgUtils;
 
 public class ScpSettingsActivity extends PreferenceActivity implements OnSharedPreferenceChangeListener
 {
@@ -15,6 +17,11 @@ public class ScpSettingsActivity extends PreferenceActivity implements OnSharedP
 	public static final String KEY_SCP_PORT = "scpPort";
 	public static final String KEY_SCP_USER = "scpUser";
 	public static final String KEY_SCP_HOST = "scpHost";
+	@Override
+	protected void attachBaseContext(Context newBase) {
+		super.attachBaseContext(OrgUtils.wrapForAppLocales(newBase));
+	}
+
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		super.onCreate(savedInstanceState);

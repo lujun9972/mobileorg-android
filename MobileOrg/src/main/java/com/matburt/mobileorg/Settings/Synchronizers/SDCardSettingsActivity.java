@@ -1,5 +1,6 @@
 package com.matburt.mobileorg.Settings.Synchronizers;
 
+import android.content.Context;
 import android.content.SharedPreferences;
 import android.content.SharedPreferences.OnSharedPreferenceChangeListener;
 import android.os.Bundle;
@@ -8,11 +9,17 @@ import android.preference.PreferenceActivity;
 import android.preference.PreferenceManager;
 
 import com.matburt.mobileorg.R;
+import com.matburt.mobileorg.util.OrgUtils;
 
 public class SDCardSettingsActivity extends PreferenceActivity implements OnSharedPreferenceChangeListener
 {
 	public static final String KEY_INDEX_FILE_PATH = "indexFilePath";
 	
+    @Override
+    protected void attachBaseContext(Context newBase) {
+        super.attachBaseContext(OrgUtils.wrapForAppLocales(newBase));
+    }
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);

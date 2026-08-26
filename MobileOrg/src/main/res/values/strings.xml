@@ -264,76 +264,83 @@
     <string name="summary_agenda_title">Enables use of custom agenda titles. Needs resync of agenda file to take effect</string>
 
     <!-- sync config import/export -->
-    <string name="preference_export_sync_config">导出同步配置</string>
-    <string name="preference_export_sync_config_summary">将同步设置导出到文件</string>
-    <string name="preference_import_sync_config">导入同步配置</string>
-    <string name="preference_import_sync_config_summary">从文件恢复同步设置</string>
-    <string name="sync_config_export_success">同步配置导出成功</string>
-    <string name="sync_config_export_failed">导出失败:\n%s</string>
-    <string name="sync_config_import_success">同步配置导入成功，请重新进入设置页确认</string>
-    <string name="sync_config_import_failed">导入失败:\n%s</string>
-    <string name="sync_config_no_data">没有可导出的同步配置</string>
+    <string name="preference_export_sync_config">Export sync config</string>
+    <string name="preference_export_sync_config_summary">Export sync settings to a file</string>
+    <string name="preference_import_sync_config">Import sync config</string>
+    <string name="preference_import_sync_config_summary">Restore sync settings from a file</string>
+    <string name="sync_config_export_success">Sync config exported</string>
+    <string name="sync_config_export_failed">Export failed:\n%s</string>
+    <string name="sync_config_import_success">Sync config imported; re-enter settings to verify</string>
+    <string name="sync_config_import_failed">Import failed:\n%s</string>
+    <string name="sync_config_no_data">No sync config to export</string>
     <string name="wizard_import_config_button">Import from config file</string>
     <string name="wizard_import_config_success">Sync config imported</string>
 
     <!-- Reminder settings -->
-<string name="preference_reminder">任务提醒</string>
-<string name="preference_reminder_enabled">启用提醒</string>
-<string name="preference_reminder_enabled_summary">DEADLINE 和 SCHEDULED 到期时发送通知</string>
-<string name="preference_reminder_deadline_advance">DEADLINE 提前提醒</string>
-<string name="preference_reminder_scheduled_advance">SCHEDULED 提前提醒</string>
-<string name="preference_reminder_daily_overview_time">每日概览时间</string>
+<string name="preference_reminder">Reminders</string>
+<string name="preference_reminder_enabled">Enable reminders</string>
+<string name="preference_reminder_enabled_summary">Notify when DEADLINE and SCHEDULED items are due</string>
+<string name="preference_reminder_deadline_advance">DEADLINE advance</string>
+<string name="preference_reminder_scheduled_advance">SCHEDULED advance</string>
+<string name="preference_reminder_daily_overview_time">Daily overview time</string>
 
 <!-- Reminder notifications -->
-<string name="reminder_notification_channel">任务提醒</string>
-<string name="reminder_notification_channel_desc">DEADLINE 和 SCHEDULED 任务到期提醒</string>
-<string name="reminder_daily_overview_title">今日待办</string>
-<string name="reminder_daily_overview_empty">今日无待办</string>
-<string name="reminder_scheduled_today">今日 SCHEDULED</string>
-<string name="reminder_deadline_upcoming">即将到期 DEADLINE</string>
-<string name="reminder_days_later">%d 天后</string>
-<string name="reminder_tomorrow">明天</string>
+<string name="reminder_notification_channel">Task reminders</string>
+<string name="reminder_notification_channel_desc">DEADLINE and SCHEDULED due reminders</string>
+<string name="reminder_daily_overview_title">Today\'s tasks</string>
+<string name="reminder_daily_overview_empty">Nothing scheduled today</string>
+<string name="reminder_scheduled_today">Scheduled today</string>
+<string name="reminder_deadline_upcoming">Upcoming deadlines</string>
+<string name="reminder_days_later">In %d days</string>
+<string name="reminder_tomorrow">Tomorrow</string>
 
 <!-- Pomodoro -->
 <string name="menu_pomodoro">Pomodoro</string>
     <string name="menu_pomodoro_stop">Stop 🍅</string>
 <string name="preference_pomodoro">Pomodoro</string>
-<string name="preference_pomodoro_duration">番茄钟时长</string>
-<string name="preference_pomodoro_duration_summary">默认倒计时时长（分钟）</string>
-<string name="pomodoro_duration_picker_title">设置番茄钟时长（分钟）</string>
-<string name="preference_pomodoro_count_default">默认连续番茄数</string>
-<string name="preference_pomodoro_count_default_summary">启动连续番茄时的默认数量</string>
-<string name="preference_pomodoro_short_break">短休息时长</string>
-<string name="preference_pomodoro_short_break_summary">番茄之间的休息时长（分钟）</string>
-<string name="preference_pomodoro_long_break">长休息时长</string>
-<string name="preference_pomodoro_long_break_summary">每 N 个番茄后的长休息时长（分钟）</string>
-<string name="preference_pomodoro_long_break_interval">长休息间隔</string>
-<string name="preference_pomodoro_long_break_interval_summary">每完成多少个番茄后触发长休息</string>
-<string name="pomodoro_picker_title">设置番茄钟</string>
-<string name="pomodoro_count_picker_title">连续番茄数</string>
-<string name="pomodoro_active_toast">番茄钟正在进行中</string>
+<string name="preference_pomodoro_duration">Pomodoro duration</string>
+<string name="preference_pomodoro_duration_summary">Default countdown duration in minutes</string>
+<string name="pomodoro_duration_picker_title">Set pomodoro duration (minutes)</string>
+<string name="preference_pomodoro_count_default">Default consecutive pomodoros</string>
+<string name="preference_pomodoro_count_default_summary">Default count when starting consecutive mode</string>
+<string name="preference_pomodoro_short_break">Short break duration</string>
+<string name="preference_pomodoro_short_break_summary">Break between pomodoros in minutes</string>
+<string name="preference_pomodoro_long_break">Long break duration</string>
+<string name="preference_pomodoro_long_break_summary">Long break after every N pomodoros, in minutes</string>
+<string name="preference_pomodoro_long_break_interval">Long break interval</string>
+<string name="preference_pomodoro_long_break_interval_summary">Number of pomodoros before a long break</string>
+<string name="pomodoro_picker_title">Set pomodoro</string>
+<string name="pomodoro_count_picker_title">Consecutive pomodoros</string>
+<string name="pomodoro_active_toast">A pomodoro is already running</string>
 
 <!-- Pomodoro Statistics -->
-<string name="menu_statistics">番茄统计</string>
-<string name="statistics_title">番茄统计</string>
-<string name="statistics_tab_overview">概览</string>
-<string name="statistics_tab_trend">趋势</string>
-<string name="statistics_streak_format">🔥 连续 %d 天</string>
-<string name="statistics_streak_empty">开始你的第一个番茄吧！</string>
-<string name="statistics_streak_subtitle">每天至少完成 1 个番茄</string>
-<string name="statistics_summary_day_format">今天: %d 个 | %s</string>
-<string name="statistics_summary_week_format">本周: %1$d 个 | %2$s | 日均 %3$.1f</string>
-<string name="statistics_summary_month_format">本月: %1$d 个 | %2$s | 日均 %3$.1f</string>
-<string name="statistics_no_data">暂无数据</string>
-<string name="preference_week_start_day">一周起始日</string>
-<string name="preference_week_start_day_summary">选择统计页面的一周起始日</string>
-<string name="monday">周一</string>
-<string name="sunday">周日</string>
-<string name="duration_minutes_format">%d 分钟</string>
+<string name="menu_statistics">Pomodoro statistics</string>
+<string name="statistics_title">Pomodoro statistics</string>
+<string name="statistics_tab_overview">Overview</string>
+<string name="statistics_tab_trend">Trend</string>
+<string name="statistics_streak_format">🔥 %d-day streak</string>
+<string name="statistics_streak_empty">Start your first pomodoro!</string>
+<string name="statistics_streak_subtitle">At least 1 pomodoro per day</string>
+<string name="statistics_summary_day_format">Today: %1$d | %2$s</string>
+<string name="statistics_summary_week_format">Week: %1$d | %2$s | %3$.1f/day</string>
+<string name="statistics_summary_month_format">Month: %1$d | %2$s | %3$.1f/day</string>
+<string name="statistics_no_data">No data yet</string>
+<string name="preference_week_start_day">Week starts on</string>
+<string name="preference_week_start_day_summary">First day of week on the statistics screen</string>
+<string name="monday">Monday</string>
+<string name="sunday">Sunday</string>
+<string name="duration_minutes_format">%d min</string>
 
 <!-- others -->
+<string name="menu_save">Save</string>
 <string name="undo_menu">Undo</string>
 <string name="undo_node_missing">Node was deleted; cannot undo</string>
+
+<!-- in-app language switch -->
+<string name="preference_app_language">Language</string>
+<string name="app_language_system">Follow system</string>
+<string name="app_language_chinese">Chinese</string>
+<string name="app_language_english">English</string>
 
 <!-- help center -->
 <string name="help_title">Help</string>

@@ -79,11 +79,11 @@
 
 <!-- Reminder advance time options (milliseconds) -->
 <string-array name="reminder_advance_labels">
-    <item>当天</item>
-    <item>1 小时前</item>
-    <item>3 小时前</item>
-    <item>1 天前</item>
-    <item>3 天前</item>
+    <item>Same day</item>
+    <item>1 hour ahead</item>
+    <item>3 hours ahead</item>
+    <item>1 day ahead</item>
+    <item>3 days ahead</item>
 </string-array>
 <string-array name="reminder_advance_values">
     <item>0</item>
@@ -110,12 +110,12 @@
 </string-array>
 
 <string-array name="pomodoro_duration_entries">
-    <item>15 分钟</item>
-    <item>20 分钟</item>
-    <item>25 分钟</item>
-    <item>30 分钟</item>
-    <item>45 分钟</item>
-    <item>60 分钟</item>
+    <item>15 min</item>
+    <item>20 min</item>
+    <item>25 min</item>
+    <item>30 min</item>
+    <item>45 min</item>
+    <item>60 min</item>
 </string-array>
 <string-array name="pomodoro_duration_values">
     <item>15</item>
@@ -127,16 +127,16 @@
 </string-array>
 
 <string-array name="pomodoro_count_entries">
-    <item>1 个</item>
-    <item>2 个</item>
-    <item>3 个</item>
-    <item>4 个</item>
-    <item>5 个</item>
-    <item>6 个</item>
-    <item>7 个</item>
-    <item>8 个</item>
-    <item>9 个</item>
-    <item>10 个</item>
+    <item>1</item>
+    <item>2</item>
+    <item>3</item>
+    <item>4</item>
+    <item>5</item>
+    <item>6</item>
+    <item>7</item>
+    <item>8</item>
+    <item>9</item>
+    <item>10</item>
 </string-array>
 <string-array name="pomodoro_count_values">
     <item>1</item>
@@ -152,13 +152,13 @@
 </string-array>
 
 <string-array name="pomodoro_break_entries">
-    <item>0 分钟（无倒计时）</item>
-    <item>3 分钟</item>
-    <item>5 分钟</item>
-    <item>10 分钟</item>
-    <item>15 分钟</item>
-    <item>20 分钟</item>
-    <item>30 分钟</item>
+    <item>0 min (no countdown)</item>
+    <item>3 min</item>
+    <item>5 min</item>
+    <item>10 min</item>
+    <item>15 min</item>
+    <item>20 min</item>
+    <item>30 min</item>
 </string-array>
 <string-array name="pomodoro_break_values">
     <item>0</item>
@@ -171,13 +171,13 @@
 </string-array>
 
 <string-array name="pomodoro_interval_entries">
-    <item>每 3 个</item>
-    <item>每 4 个</item>
-    <item>每 5 个</item>
-    <item>每 6 个</item>
-    <item>每 8 个</item>
-    <item>每 10 个</item>
-    <item>每 12 个</item>
+    <item>Every 3</item>
+    <item>Every 4</item>
+    <item>Every 5</item>
+    <item>Every 6</item>
+    <item>Every 8</item>
+    <item>Every 10</item>
+    <item>Every 12</item>
 </string-array>
 <string-array name="pomodoro_interval_values">
     <item>3</item>
@@ -196,6 +196,25 @@
 <string-array name="week_start_values">
     <item>monday</item>
     <item>sunday</item>
+</string-array>
+
+<!-- Display-only copy of themes; entryValues must stay @array/themes (stored values) -->
+<string-array name="themesEntries">
+    <item>Light</item>
+    <item>Dark</item>
+    <item>Monochrome</item>
+</string-array>
+
+<!-- In-app language switch; entries resolve @string so values-zh only translates the 3 strings -->
+<string-array name="app_language_entries">
+    <item>@string/app_language_system</item>
+    <item>@string/app_language_chinese</item>
+    <item>@string/app_language_english</item>
+</string-array>
+<string-array name="app_language_values">
+    <item>system</item>
+    <item>zh</item>
+    <item>en</item>
 </string-array>
 
 </resources>

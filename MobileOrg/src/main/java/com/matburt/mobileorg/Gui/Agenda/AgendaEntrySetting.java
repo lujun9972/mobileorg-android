@@ -91,7 +91,7 @@ public class AgendaEntrySetting extends AppCompatActivity {
 				                           long id) {
 					String selected =
 						parentView.getItemAtPosition(position).toString();
-					if (selected.equalsIgnoreCase("Custom")) {
+					if (position == parentView.getAdapter().getCount() - 1) {
 						spanCustomView.setVisibility(View.VISIBLE);
 					} else {
 						spanCustomView.setVisibility(View.INVISIBLE);

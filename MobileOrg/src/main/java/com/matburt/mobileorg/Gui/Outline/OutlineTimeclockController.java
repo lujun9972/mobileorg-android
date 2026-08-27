@@ -121,7 +121,7 @@ public class OutlineTimeclockController {
         layout.addView(minutePicker);
 
         TextView minLabel = new TextView(activity);
-        minLabel.setText(" min × ");
+        minLabel.setText(activity.getString(R.string.pomodoro_minute_picker_label));
         minLabel.setTextSize(18);
         minLabel.setGravity(Gravity.CENTER);
         layout.addView(minLabel);
@@ -135,7 +135,7 @@ public class OutlineTimeclockController {
         layout.addView(countPicker);
 
         TextView countLabel = new TextView(activity);
-        countLabel.setText(" 个");
+        countLabel.setText(activity.getString(R.string.pomodoro_count_picker_suffix));
         countLabel.setTextSize(18);
         countLabel.setGravity(Gravity.CENTER);
         layout.addView(countLabel);

@@ -100,6 +100,12 @@
     <string name="menu_archive">Archive</string>
     <string name="menu_archive_tosibling">Archive to sibling</string>
 
+    <!-- outline empty view dashboard buttons -->
+    <string name="outline_synchronize">Synchronize</string>
+    <string name="outline_website">Website</string>
+    <string name="no_matching_nodes">No matching nodes</string>
+    <string name="outline_logo_cd">MobileOrg logo</string>
+
     <!-- setup wizard strings -->
     <string name="up_one_level">Up one level</string>
     <string name="please_wait">Please wait…</string>
@@ -132,6 +138,7 @@
     <string name="url">URL</string>
     <string name="wizard_dropbox_email_hint">user@host.com</string>
     <string name="wizard_ubuntu_email_hint">user@host.com</string>
+    <string name="wizard_done">Done</string>
 
     <!-- preference strings -->
     <string name="preferences">Preferences</string>
@@ -312,6 +319,33 @@
 <string name="pomodoro_picker_title">Set pomodoro</string>
 <string name="pomodoro_count_picker_title">Consecutive pomodoros</string>
 <string name="pomodoro_active_toast">A pomodoro is already running</string>
+<string name="pomodoro_count_picker_suffix">" items"</string>
+<string name="pomodoro_rest_next_text">Ready for the next pomodoro</string>
+<string name="pomodoro_waiting_next_title">▶ Ready for next | %s done</string>
+<string name="pomodoro_start_next_action">Start next</string>
+<string name="pomodoro_waiting_next_text">Ready for next</string>
+<!-- Timeclock / pomodoro notifications -->
+<string name="notification_channel_timeclock">MobileOrg Timeclock</string>
+<string name="notification_channel_pomodoro_alarm">Pomodoro Timer Alert</string>
+<string name="notification_channel_pomodoro_alarm_desc">Alerts when the pomodoro timer completes</string>
+<string name="notification_channel_pomodoro_rest">Pomodoro Rest Alert</string>
+<string name="notification_channel_pomodoro_rest_desc">Alerts when the pomodoro rest period ends</string>
+<string name="pomodoro_timeout_title">🍅 Time\'s up!</string>
+<string name="pomodoro_timeout_text">%d-minute pomodoro completed</string>
+<string name="pomodoro_dismiss_alarm_action">Dismiss alarm</string>
+<string name="pomodoro_rest_ended_title">☕ Rest over</string>
+<string name="pomodoro_rest_title">☕ Rest %1$s | %2$s done</string>
+<string name="pomodoro_done_suffix">" done"</string>
+<string name="pomodoro_rest_done_text">☕ Rest %s done</string>
+<string name="pomodoro_finish_action">Finish</string>
+<string name="pomodoro_skip_rest_action">Skip rest</string>
+<string name="pomodoro_all_done_title">🎉 %1$d/%2$d done!</string>
+<string name="pomodoro_all_done_text">Total %d minutes</string>
+<string name="timeclock_default_title">Timeclock</string>
+<string name="timeclock_unknown_node">(unknown)</string>
+<string name="timeclock_node_elapsed">%1$s @ %2$s</string>
+<string name="timeclock_edit_duration_title">Edit Duration (hours : minutes)</string>
+<string name="pomodoro_minute_picker_label">" min × "</string>
 
 <!-- Pomodoro Statistics -->
 <string name="menu_statistics">Pomodoro statistics</string>

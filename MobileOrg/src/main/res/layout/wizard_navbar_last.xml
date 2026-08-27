@@ -23,7 +23,7 @@
        android:id="@+id/wizard_done_button"
        android:layout_width="wrap_content"
        android:layout_height="wrap_content"
-       android:text="Done"
+       android:text="@string/wizard_done"
        android:textSize="20dp"/>
   </LinearLayout>
 </RelativeLayout>

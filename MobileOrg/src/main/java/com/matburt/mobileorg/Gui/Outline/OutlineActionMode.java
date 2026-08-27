@@ -290,7 +290,7 @@ public class OutlineActionMode implements ActionMode.Callback {
 		layout.addView(minutePicker);
 
 		TextView minLabel = new TextView(context);
-		minLabel.setText(" min × ");
+		minLabel.setText(context.getString(R.string.pomodoro_minute_picker_label));
 		minLabel.setTextSize(18);
 		minLabel.setGravity(Gravity.CENTER);
 		layout.addView(minLabel);
@@ -304,7 +304,7 @@ public class OutlineActionMode implements ActionMode.Callback {
 		layout.addView(countPicker);
 
 		TextView countLabel = new TextView(context);
-		countLabel.setText(" 个");
+		countLabel.setText(context.getString(R.string.pomodoro_count_picker_suffix));
 		countLabel.setTextSize(18);
 		countLabel.setGravity(Gravity.CENTER);
 		layout.addView(countLabel);

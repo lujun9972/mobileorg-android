@@ -100,7 +100,7 @@
   <string name="null_sync_description">这只是个捕获同步。它不会与任何源进行同步。</string>
   <string name="url">URL</string>
   <string name="wizard_dropbox_email_hint">uri@frankandrobot.com</string>
-  
+  <string name="wizard_done">完成</string>  
     <!-- preference strings -->
   <string name="preference_capture_with_timestamp">用时间戳捕获</string>
   <string name="preference_capture_with_timestamp_summary">捕获节点会添加一个时间戳</string>
@@ -219,6 +219,33 @@
 <string name="pomodoro_picker_title">设置番茄钟</string>
 <string name="pomodoro_count_picker_title">连续番茄数</string>
 <string name="pomodoro_active_toast">番茄钟正在进行中</string>
+<string name="pomodoro_count_picker_suffix">" 个"</string>
+<string name="pomodoro_rest_next_text">准备开始下一个番茄钟</string>
+<string name="pomodoro_waiting_next_title">▶ 准备下一个 | %s 完成</string>
+<string name="pomodoro_start_next_action">开始下一个</string>
+<string name="pomodoro_waiting_next_text">准备下一个</string>
+<string name="pomodoro_minute_picker_label">" 分钟 × "</string>
+<!-- Timeclock / pomodoro notifications -->
+<string name="notification_channel_timeclock">MobileOrg 计时器</string>
+<string name="notification_channel_pomodoro_alarm">番茄钟计时结束提醒</string>
+<string name="notification_channel_pomodoro_alarm_desc">番茄钟倒计时结束时发出提醒</string>
+<string name="notification_channel_pomodoro_rest">番茄钟休息结束提醒</string>
+<string name="notification_channel_pomodoro_rest_desc">番茄钟休息结束时发出提醒</string>
+<string name="pomodoro_timeout_title">🍅 番茄钟时间到！</string>
+<string name="pomodoro_timeout_text">%d 分钟番茄钟已完成</string>
+<string name="pomodoro_dismiss_alarm_action">关闭闹铃</string>
+<string name="pomodoro_rest_ended_title">☕ 休息结束</string>
+<string name="pomodoro_rest_title">☕ 休息 %1$s | %2$s 完成</string>
+<string name="pomodoro_done_suffix">" 完成"</string>
+<string name="pomodoro_rest_done_text">☕ 休息 %s 完成</string>
+<string name="pomodoro_finish_action">结束</string>
+<string name="pomodoro_skip_rest_action">跳过休息</string>
+<string name="pomodoro_all_done_title">🎉 %1$d/%2$d 完成！</string>
+<string name="pomodoro_all_done_text">总计 %d 分钟</string>
+<string name="timeclock_default_title">计时器</string>
+<string name="timeclock_unknown_node">（未知）</string>
+<string name="timeclock_node_elapsed">%1$s @ %2$s</string>
+<string name="timeclock_edit_duration_title">编辑时长（小时 : 分钟）</string>
 
 <!-- statistics -->
 <string name="menu_statistics">番茄统计</string>
@@ -258,6 +285,12 @@
 <string name="search_results_for">搜索结果：</string>
 <string name="share_node_not_found">未找到节点</string>
 <string name="share_truncated">内容过长，已截断至 400000 字符</string>
+
+<!-- outline empty view dashboard buttons -->
+<string name="outline_synchronize">同步</string>
+<string name="outline_website">网站</string>
+<string name="no_matching_nodes">没有匹配的节点</string>
+<string name="outline_logo_cd">MobileOrg 标志</string>
 
 <!-- preferences -->
 <string name="preferences">设置</string>

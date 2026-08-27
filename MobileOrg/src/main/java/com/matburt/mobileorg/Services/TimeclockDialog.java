@@ -59,7 +59,7 @@ public class TimeclockDialog extends FragmentActivity {
 		TimeclockService service = TimeclockService.getInstance();
 		Log.d("MobileOrg", "[TimeclockDialog] onStart: service=" + (service != null ? "alive" : "NULL"));
 
-		setTitle("MobileOrg Timeclock");
+		setTitle(getString(R.string.timeclock_default_title));
 
 		// Clock section (resolved early for pomodoro stop button check)
 		LinearLayout clockSection = findViewById(R.id.clock_section);
@@ -77,11 +77,11 @@ public class TimeclockDialog extends FragmentActivity {
 			clockSection.setVisibility(View.VISIBLE);
 			OrgNode clockNode = service.getClockNode();
 			this.node = clockNode;
-			String name = (clockNode != null) ? clockNode.name : "(unknown)";
+			String name = (clockNode != null) ? clockNode.name : getString(R.string.timeclock_unknown_node);
 			String elapsed = service.getClockElapsedString();
 			parseElapsedTime(elapsed);
 			TextView textView = findViewById(R.id.timeclock_text);
-			textView.setText(name + " @ " + elapsed);
+			textView.setText(getString(R.string.timeclock_node_elapsed, name, elapsed));
 		} else {
 			clockSection.setVisibility(View.GONE);
 		}
@@ -113,13 +113,14 @@ public class TimeclockDialog extends FragmentActivity {
 		String progressSuffix = progress.isEmpty() ? "" : " | " + progress;
 
 		if (state == PomodoroTimer.PomodoroState.WORK) {
+			// Shared with the notification title (TimeclockService.buildWorkTitle):
+			// emoji + countdown + round progress, "done" suffix appended on timeout.
+			pomoTime.setText(service.buildWorkTitle());
 			if (service.isPomodoroTimedOut()) {
 				// WORK timedOut: show completion + Finish button
-				String remaining = service.getPomodoroRemainingString();
-				pomoTime.setText("\uD83C\uDF45 " + remaining + progressSuffix + " 完成");
 				pomoTime.setTextColor(Color.RED);
 				Button stopBtn = findViewById(R.id.pomodoro_stop_button);
-				stopBtn.setText("Finish");
+				stopBtn.setText(getString(R.string.pomodoro_finish_action));
 				stopBtn.setOnClickListener(v -> {
 					sendServiceAction(TimeclockService.ACTION_POMODORO_FINISH);
 					pomoSection.setVisibility(View.GONE);
@@ -140,11 +141,9 @@ public class TimeclockDialog extends FragmentActivity {
 				});
 			} else {
 				// WORK countdown: show remaining + Cancel button
-				String remaining = service.getPomodoroRemainingString();
-				pomoTime.setText("\uD83C\uDF45 " + remaining + progressSuffix);
 				pomoTime.setTextColor(Color.BLACK);
 				Button stopBtn = findViewById(R.id.pomodoro_stop_button);
-				stopBtn.setText("Cancel");
+				stopBtn.setText(getString(R.string.cancel));
 				stopBtn.setOnClickListener(v -> {
 					sendServiceAction(TimeclockService.ACTION_POMODORO_STOP);
 					pomoSection.setVisibility(View.GONE);
@@ -154,22 +153,33 @@ public class TimeclockDialog extends FragmentActivity {
 				});
 			}
 		} else if (state == PomodoroTimer.PomodoroState.REST) {
-			// REST: show rest countdown + Skip Rest + Cancel
+			// REST: show rest countdown + Skip Rest + Cancel.
+			// Multi-round reuses the notification title key; the single-round
+			// variant keeps an empty "| %s" out of the display.
 			String restRemaining = service.getPomodoroRestRemainingString();
-			pomoTime.setText("\u2615 休息 " + restRemaining + progressSuffix + " 完成");
+			if (progressSuffix.isEmpty()) {
+				pomoTime.setText(getString(R.string.pomodoro_rest_done_text, restRemaining));
+			} else {
+				pomoTime.setText(getString(R.string.pomodoro_rest_title, restRemaining, progress));
+			}
 			pomoTime.setTextColor(Color.BLACK);
 			Button stopBtn = findViewById(R.id.pomodoro_stop_button);
-			stopBtn.setText("跳过休息");
+			stopBtn.setText(getString(R.string.pomodoro_skip_rest_action));
 			stopBtn.setOnClickListener(v -> {
 				sendServiceAction(TimeclockService.ACTION_POMODORO_SKIP_REST);
 				// Don't finish — next round starts immediately
 			});
 		} else if (state == PomodoroTimer.PomodoroState.WAITING_NEXT) {
-			// WAITING_NEXT: show "start next" + Cancel
-			pomoTime.setText("\u25B6 准备下一个" + progressSuffix + " 完成");
+			// WAITING_NEXT: show "start next" + Cancel.
+			// Reuses the Service's title key; falls back to the plain text when
+			// single-round (empty progress) keeps "| %s" out of the display.
+			String waitingNextText = progressSuffix.isEmpty()
+					? getString(R.string.pomodoro_waiting_next_text)
+					: getString(R.string.pomodoro_waiting_next_title, progress);
+			pomoTime.setText(waitingNextText);
 			pomoTime.setTextColor(Color.BLACK);
 			Button stopBtn = findViewById(R.id.pomodoro_stop_button);
-			stopBtn.setText("开始下一个");
+			stopBtn.setText(getString(R.string.pomodoro_start_next_action));
 			stopBtn.setOnClickListener(v -> {
 				sendServiceAction(TimeclockService.ACTION_POMODORO_NEXT);
 				// Don't finish — next round starts
@@ -199,10 +209,10 @@ public class TimeclockDialog extends FragmentActivity {
 	void updateDuration(int h, int m) {
 		this.hour = h;
 		this.minute = m;
-		String name = (node != null) ? node.name : "(unknown)";
+		String name = (node != null) ? node.name : getString(R.string.timeclock_unknown_node);
 		String elapsed = String.format("%d:%02d", h, m);
 		TextView textView = findViewById(R.id.timeclock_text);
-		textView.setText(name + " @ " + elapsed);
+		textView.setText(getString(R.string.timeclock_node_elapsed, name, elapsed));
 	}
 
 	private View.OnClickListener cancelListener = new View.OnClickListener() {
@@ -291,9 +301,9 @@ public class TimeclockDialog extends FragmentActivity {
 			layout.addView(minutePicker);
 
 			return new AlertDialog.Builder(getActivity())
-					.setTitle("Edit Duration (hours : minutes)")
+					.setTitle(getString(R.string.timeclock_edit_duration_title))
 					.setView(layout)
-					.setPositiveButton("OK", (dialog, which) -> {
+					.setPositiveButton(getString(R.string.ok), (dialog, which) -> {
 						// Must clear focus to commit scrolled value before reading
 						hourPicker.clearFocus();
 						minutePicker.clearFocus();
@@ -302,7 +312,7 @@ public class TimeclockDialog extends FragmentActivity {
 						Log.d("MobileOrg", "[TimeclockDialog] DurationPicker OK: picked hour=" + h + ", minute=" + m);
 						activity.updateDuration(h, m);
 					})
-					.setNegativeButton("Cancel", null)
+					.setNegativeButton(getString(R.string.cancel), null)
 					.create();
 		}
 	}
@@ -337,11 +347,11 @@ public class TimeclockDialog extends FragmentActivity {
 			clockSection.setVisibility(View.VISIBLE);
 			OrgNode clockNode = service.getClockNode();
 			this.node = clockNode;
-			String name = (clockNode != null) ? clockNode.name : "(unknown)";
+			String name = (clockNode != null) ? clockNode.name : getString(R.string.timeclock_unknown_node);
 			String elapsed = service.getClockElapsedString();
 			parseElapsedTime(elapsed);
 			TextView textView = findViewById(R.id.timeclock_text);
-			textView.setText(name + " @ " + elapsed);
+			textView.setText(getString(R.string.timeclock_node_elapsed, name, elapsed));
 		} else {
 			clockSection.setVisibility(View.GONE);
 		}

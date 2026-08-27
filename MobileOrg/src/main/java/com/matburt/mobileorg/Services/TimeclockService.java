@@ -254,8 +254,8 @@ public class TimeclockService extends Service {
 		// Show timeout alert notification (same as before)
 		if (Compat.isAtLeastO()) {
 			NotificationChannel timeoutChannel = new NotificationChannel(
-					TIMEOUT_CHANNEL_ID, "Pomodoro Timer Alert", NotificationManager.IMPORTANCE_HIGH);
-			timeoutChannel.setDescription("Alerts when pomodoro timer completes");
+					TIMEOUT_CHANNEL_ID, getString(R.string.notification_channel_pomodoro_alarm), NotificationManager.IMPORTANCE_HIGH);
+			timeoutChannel.setDescription(getString(R.string.notification_channel_pomodoro_alarm_desc));
 			timeoutChannel.setSound(null, null);
 			timeoutChannel.enableVibration(true);
 			mNM.createNotificationChannel(timeoutChannel);
@@ -266,8 +266,8 @@ public class TimeclockService extends Service {
 
 		NotificationCompat.Builder timeoutBuilder = new NotificationCompat.Builder(this, TIMEOUT_CHANNEL_ID)
 				.setSmallIcon(R.drawable.timeclock_icon)
-				.setContentTitle("\uD83C\uDF45 番茄钟时间到！")
-				.setContentText(pomodoroTimer.getDurationMinutes() + " 分钟番茄钟已完成")
+				.setContentTitle(getString(R.string.pomodoro_timeout_title))
+				.setContentText(getString(R.string.pomodoro_timeout_text, pomodoroTimer.getDurationMinutes()))
 				.setPriority(NotificationCompat.PRIORITY_HIGH)
 				.setCategory(NotificationCompat.CATEGORY_ALARM)
 				.setAutoCancel(false)
@@ -278,7 +278,7 @@ public class TimeclockService extends Service {
 		PendingIntent dismissPI = PendingIntent.getService(this, 4, dismissIntent, Compat.FLAG_IMMUTABLE);
 		timeoutBuilder.setDeleteIntent(dismissPI);
 		timeoutBuilder.addAction(new NotificationCompat.Action.Builder(
-				R.drawable.ic_media_stop, "关闭闹铃", dismissPI).build());
+				R.drawable.ic_media_stop, getString(R.string.pomodoro_dismiss_alarm_action), dismissPI).build());
 
 		mNM.notify(TIMEOUT_NOTIFICATION_ID, timeoutBuilder.build());
 
@@ -351,8 +351,8 @@ public class TimeclockService extends Service {
 		// which uses setSound(null,null) for MediaPlayer-based alarm)
 		if (Compat.isAtLeastO()) {
 			NotificationChannel restChannel = new NotificationChannel(
-					REST_CHANNEL_ID, "Pomodoro Rest Alert", NotificationManager.IMPORTANCE_HIGH);
-			restChannel.setDescription("Alerts when pomodoro rest period ends");
+					REST_CHANNEL_ID, getString(R.string.notification_channel_pomodoro_rest), NotificationManager.IMPORTANCE_HIGH);
+			restChannel.setDescription(getString(R.string.notification_channel_pomodoro_rest_desc));
 			restChannel.enableVibration(true);
 			mNM.createNotificationChannel(restChannel);
 		}
@@ -362,8 +362,8 @@ public class TimeclockService extends Service {
 
 		NotificationCompat.Builder restBuilder = new NotificationCompat.Builder(this, REST_CHANNEL_ID)
 				.setSmallIcon(R.drawable.timeclock_icon)
-				.setContentTitle("\u2615 休息结束")
-				.setContentText("准备开始下一个番茄钟")
+				.setContentTitle(getString(R.string.pomodoro_rest_ended_title))
+				.setContentText(getString(R.string.pomodoro_rest_next_text))
 				.setPriority(NotificationCompat.PRIORITY_HIGH)
 				.setAutoCancel(true)
 				.setContentIntent(contentIntent)
@@ -440,8 +440,8 @@ public class TimeclockService extends Service {
 
 		NotificationCompat.Builder doneBuilder = new NotificationCompat.Builder(this, TIMEOUT_CHANNEL_ID)
 				.setSmallIcon(R.drawable.timeclock_icon)
-				.setContentTitle("\uD83C\uDF89 " + totalCount + "/" + totalCount + " 完成！")
-				.setContentText("总计 " + totalMinutes + " 分钟")
+				.setContentTitle(getString(R.string.pomodoro_all_done_title, totalCount, totalCount))
+				.setContentText(getString(R.string.pomodoro_all_done_text, totalMinutes))
 				.setPriority(NotificationCompat.PRIORITY_HIGH)
 				.setAutoCancel(true)
 				.setContentIntent(contentIntent);
@@ -532,7 +532,7 @@ public class TimeclockService extends Service {
 	// ========== Notification ==========
 
 	private void showOrRefreshNotification() {
-		Compat.createNotificationChannel(this, CHANNEL_ID, "MobileOrg Timeclock");
+		Compat.createNotificationChannel(this, CHANNEL_ID, getString(R.string.notification_channel_timeclock));
 
 		PendingIntent contentIntent = PendingIntent.getActivity(this, 1,
 				new Intent(this, TimeclockDialog.class), Compat.FLAG_IMMUTABLE);
@@ -560,7 +560,7 @@ public class TimeclockService extends Service {
 		} else if (clockRunning && clockNode != null) {
 			title = clockNode.name;
 		} else {
-			title = "Timeclock";
+			title = getString(R.string.timeclock_default_title);
 		}
 		builder.setContentTitle(title);
 
@@ -600,7 +600,8 @@ public class TimeclockService extends Service {
 		}
 	}
 
-	private String buildWorkTitle() {
+	/** Public so TimeclockDialog can share the exact localized title text. */
+	public String buildWorkTitle() {
 		String timeStr = pomodoroTimer.getRemainingString();
 		String progress = pomodoroTimer.getRoundProgress();
 		StringBuilder sb = new StringBuilder("\uD83C\uDF45 ");
@@ -609,7 +610,7 @@ public class TimeclockService extends Service {
 			sb.append(" | ").append(progress);
 		}
 		if (pomodoroTimer.isTimedOut()) {
-			sb.append(" 完成");
+			sb.append(getString(R.string.pomodoro_done_suffix));
 		}
 		return sb.toString();
 	}
@@ -617,12 +618,12 @@ public class TimeclockService extends Service {
 	private String buildRestTitle() {
 		String restTime = pomodoroTimer.getRestRemainingString();
 		String progress = pomodoroTimer.getRoundProgress();
-		return "\u2615 休息 " + restTime + " | " + progress + " 完成";
+		return getString(R.string.pomodoro_rest_title, restTime, progress);
 	}
 
 	private String buildWaitingTitle() {
 		String progress = pomodoroTimer.getRoundProgress();
-		return "\u25B6 准备下一个 | " + progress + " 完成";
+		return getString(R.string.pomodoro_waiting_next_title, progress);
 	}
 
 	private void addCancelAction(Builder builder) {
@@ -630,7 +631,7 @@ public class TimeclockService extends Service {
 		cancelIntent.setAction(ACTION_POMODORO_STOP);
 		PendingIntent cancelPI = PendingIntent.getService(this, 3, cancelIntent, Compat.FLAG_IMMUTABLE);
 		builder.addAction(new NotificationCompat.Action.Builder(
-				R.drawable.ic_media_stop, "Cancel", cancelPI).build());
+				R.drawable.ic_media_stop, getString(R.string.cancel), cancelPI).build());
 	}
 
 	private void addFinishAction(Builder builder) {
@@ -638,7 +639,7 @@ public class TimeclockService extends Service {
 		finishIntent.setAction(ACTION_POMODORO_FINISH);
 		PendingIntent finishPI = PendingIntent.getService(this, 5, finishIntent, Compat.FLAG_IMMUTABLE);
 		builder.addAction(new NotificationCompat.Action.Builder(
-				R.drawable.ic_menu_pomodoro, "Finish", finishPI).build());
+				R.drawable.ic_menu_pomodoro, getString(R.string.pomodoro_finish_action), finishPI).build());
 	}
 
 	private void addSkipRestAction(Builder builder) {
@@ -646,7 +647,7 @@ public class TimeclockService extends Service {
 		skipIntent.setAction(ACTION_POMODORO_SKIP_REST);
 		PendingIntent skipPI = PendingIntent.getService(this, 6, skipIntent, Compat.FLAG_IMMUTABLE);
 		builder.addAction(new NotificationCompat.Action.Builder(
-				R.drawable.ic_media_stop, "跳过休息", skipPI).build());
+				R.drawable.ic_media_stop, getString(R.string.pomodoro_skip_rest_action), skipPI).build());
 	}
 
 	private void addStartNextAction(Builder builder) {
@@ -654,7 +655,7 @@ public class TimeclockService extends Service {
 		nextIntent.setAction(ACTION_POMODORO_NEXT);
 		PendingIntent nextPI = PendingIntent.getService(this, 7, nextIntent, Compat.FLAG_IMMUTABLE);
 		builder.addAction(new NotificationCompat.Action.Builder(
-				R.drawable.ic_menu_pomodoro, "开始下一个", nextPI).build());
+				R.drawable.ic_menu_pomodoro, getString(R.string.pomodoro_start_next_action), nextPI).build());
 	}
 
 	private void updateTime() {
@@ -681,13 +682,13 @@ public class TimeclockService extends Service {
 			itemText = new SpannableStringBuilder(pomodoroTimer.getRestRemainingString());
 		} else if (pomoState == PomodoroTimer.PomodoroState.WAITING_NEXT) {
 			titleText = buildWaitingTitle();
-			itemText = new SpannableStringBuilder("准备下一个");
+			itemText = new SpannableStringBuilder(getString(R.string.pomodoro_waiting_next_text));
 		} else if (clockRunning) {
 			itemText = new SpannableStringBuilder(clockTimer.getElapsedString());
-			titleText = (clockNode != null) ? clockNode.name : "Timeclock";
+			titleText = (clockNode != null) ? clockNode.name : getString(R.string.timeclock_default_title);
 		} else {
 			itemText = new SpannableStringBuilder("");
-			titleText = "Timeclock";
+			titleText = getString(R.string.timeclock_default_title);
 		}
 
 		notification.contentView.setTextViewText(

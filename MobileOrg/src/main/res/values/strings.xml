@@ -379,8 +379,10 @@
 <!-- help center -->
 <string name="help_title">Help</string>
 <string name="help_topic_quick_start">Quick Start</string>
+<string name="help_topic_how_it_works">How It Works</string>
 <string name="help_topic_sync">Synchronization</string>
 <string name="help_topic_outline">Outline Basics</string>
+<string name="help_topic_search">Search</string>
 <string name="help_topic_pomodoro">Pomodoro &amp; Timeclock</string>
 <string name="help_topic_statistics">Statistics</string>
 <string name="help_topic_reminders">Reminders</string>

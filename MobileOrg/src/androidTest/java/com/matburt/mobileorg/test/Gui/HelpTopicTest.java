@@ -24,12 +24,12 @@ public class HelpTopicTest {
 
     @Test
     public void topicsCoverSevenDocuments() {
-        assertEquals(7, HelpTopic.TOPICS.length);
+        assertEquals(9, HelpTopic.TOPICS.length);
     }
 
     @Test
     public void fileNamesAreUnique() {
-        assertEquals(7, java.util.Arrays.stream(HelpTopic.TOPICS)
+        assertEquals(9, java.util.Arrays.stream(HelpTopic.TOPICS)
                 .map(t -> t.fileName).distinct().count());
     }
 

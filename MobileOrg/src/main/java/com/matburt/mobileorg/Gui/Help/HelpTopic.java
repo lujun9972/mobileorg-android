@@ -15,8 +15,10 @@ public class HelpTopic {
 
     public static final HelpTopic[] TOPICS = {
             new HelpTopic(R.string.help_topic_quick_start, "quick-start.html"),
+            new HelpTopic(R.string.help_topic_how_it_works, "how-it-works.html"),
             new HelpTopic(R.string.help_topic_sync, "sync.html"),
             new HelpTopic(R.string.help_topic_outline, "outline.html"),
+            new HelpTopic(R.string.help_topic_search, "search.html"),
             new HelpTopic(R.string.help_topic_pomodoro, "pomodoro.html"),
             new HelpTopic(R.string.help_topic_statistics, "statistics.html"),
             new HelpTopic(R.string.help_topic_reminders, "reminders.html"),

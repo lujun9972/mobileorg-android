@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>How It Works</title>
+<link rel="stylesheet" href="../help.css">
+</head>
+<body>
+<h1>How It Works</h1>
+
+<h2>Local Copy Model</h2>
+<p>MobileOrg never touches your org files on the server directly. During synchronization the app pulls the org files from the server, parses them, and stores them in a local database; all browsing and editing afterwards happens fully offline with no network requests. Edits are not uploaded in real time either — they enter a local queue and are only uploaded at the next synchronization. Without a network connection the app works as usual; your changes simply stay local.</p>
+
+<h2>The Three Convention Files on the Server</h2>
+<p>The sync directory holds three files MobileOrg relies on by convention:</p>
+
+<ul>
+<li><strong><code>index.org</code></strong>: the file list and global configuration. A minimal example:</li>
+</ul>
+
+<pre><code>#+TODO: TODO DOING | DONE CANCELED
+#+TAGS: work home learning
+* 文件清单
+[[file:home.org][Home]]
+[[file:work.org][Work]]</code></pre>
+
+<p>Links of the form <code>[[file:filename][alias]]</code> list the files that take part in synchronization; the <code>#+TODO:</code> line defines the keywords available in the app (states before <code>|</code> are not-done, after it are done); the <code>#+TAGS:</code> line defines the available tags.</p>
+
+<ul>
+<li><strong><code>checksums.dat</code></strong>: one <code>&lt;checksum&gt;␣␣&lt;filename&gt;</code> per line (separated by two spaces, checksum first). The app compares local and remote checksums to decide which files need re-downloading.</li>
+<li><strong><code>mobileorg.org</code></strong>: the channel for uploading local edits (see below).</li>
+</ul>
+
+<h2>Uploading Edits</h2>
+<p>Local edits <strong>never modify</strong> the remote org files directly. At synchronization time, all pending edits and captures are serialized as org entries and <strong>appended</strong> to the end of the remote <code>mobileorg.org</code> (alias "Captures"), which is then uploaded; afterwards the local queue is emptied. On the Emacs side, run <code>org-mobile-pull</code> to digest these changes and merge them back into the original files.</p>
+
+<h2>When Synchronization Runs</h2>
+<ul>
+<li>The manual sync button on the main screen</li>
+<li>The automatic sync interval configured in settings</li>
+<li>Device boot</li>
+</ul>
+
+<h2>Cleanup of Remote Deletions</h2>
+<p>Files removed from <code>index.org</code> are deleted from the local database after the next synchronization; <code>mobileorg.org</code> (Captures) is not affected.</p>
+
+<p>For setting up the server side, see <a href="sync.html">Sync Configuration</a>.</p>
+
+</body>
+</html>

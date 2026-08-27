@@ -1,0 +1,51 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>工作原理</title>
+<link rel="stylesheet" href="../help.css">
+</head>
+<body>
+<h1>工作原理</h1>
+
+<h2>本地副本模型</h2>
+<p>MobileOrg 不直接操作服务器上的 org 文件。同步时，app 从服务器拉取 org 文件，解析后存入本地数据库；此后所有浏览与编辑都完全离线进行，不产生任何网络请求。编辑也不会实时回传——它们先进入本地队列，在下一次同步时才上传。没有网络时 app 一切照常可用，只是改动暂存在本地。</p>
+
+<h2>远端三个约定文件</h2>
+<p>同步目录下有三个 MobileOrg 约定的文件，各有分工：</p>
+
+<ul>
+<li><strong><code>index.org</code></strong>：文件清单与全局配置。最小示例：</li>
+</ul>
+
+<pre><code>#+TODO: TODO DOING | DONE CANCELED
+#+TAGS: work home learning
+* 文件清单
+[[file:home.org][Home]]
+[[file:work.org][Work]]</code></pre>
+
+<p><code>[[file:文件名][别名]]</code> 形式的链接列出参与同步的文件；<code>#+TODO:</code> 行定义 app 内可用的关键字（<code>|</code> 之前是未完成态、之后是完成态）；<code>#+TAGS:</code> 行定义可选标签。</p>
+
+<ul>
+<li><strong><code>checksums.dat</code></strong>：每行一个 <code>&lt;校验和&gt;␣␣&lt;文件名&gt;</code>（两个空格分隔，校验和在前）。app 对比本地与远端校验和，据此判断哪些文件需要重新下载。</li>
+<li><strong><code>mobileorg.org</code></strong>：本地修改的回传通道（见下节）。</li>
+</ul>
+
+<h2>编辑如何回传</h2>
+<p>本地编辑<strong>不直接修改</strong>远端 org 文件。同步时，所有待上传的编辑与 capture 被序列化为 org 条目，<strong>追加</strong>到远端 <code>mobileorg.org</code>（别名 "Captures"）末尾并上传，随后本地队列清空。在 Emacs 端执行 <code>org-mobile-pull</code> 即可消化这些修改并合入原文件。</p>
+
+<h2>同步触发时机</h2>
+<ul>
+<li>主界面的手动同步按钮</li>
+<li>设置中配置的自动同步间隔</li>
+<li>设备开机</li>
+</ul>
+
+<h2>远端删除清理</h2>
+<p>从 <code>index.org</code> 移除的文件，在下次同步后会从本地数据库中删除；<code>mobileorg.org</code>（Captures）不受影响。</p>
+
+<p>配置服务端的方法见<a href="sync.html">同步配置</a>。</p>
+
+</body>
+</html>

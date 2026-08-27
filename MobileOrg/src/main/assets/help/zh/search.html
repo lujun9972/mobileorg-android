@@ -1,0 +1,31 @@
+<!DOCTYPE html>
+<html lang="zh">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>搜索</title>
+<link rel="stylesheet" href="../help.css">
+</head>
+<body>
+<h1>搜索</h1>
+
+<h2>入口</h2>
+<p>通过主菜单的放大镜图标进入搜索，输入关键词即可查询。</p>
+
+<h2>匹配规则</h2>
+<ul>
+<li>只搜索节点<strong>标题</strong>（heading 文本）；正文（payload）、标签、文件名均不参与搜索</li>
+<li>子串匹配：标题任意位置包含关键词即命中，例如输入 <code>会议</code> 可命中 <code>周会会议纪要</code></li>
+<li>英文关键词大小写不敏感：<code>todo</code> 与 <code>TODO</code> 等价</li>
+<li>没有运算符、正则或前缀语法——输入什么就按字面子串匹配</li>
+</ul>
+
+<h2>结果交互</h2>
+<p>搜索结果以列表形式展示，点击任一结果进入对应节点。无结果时标题栏会显示无结果提示。</p>
+
+<h2>相关功能</h2>
+<p>按标签筛选内容请使用主界面的标签过滤（支持 AND/OR 组合）；按日期查看事项请使用 <strong>Agenda</strong>。</p>
+
+<p>节点的基本浏览与操作见 <a href="outline.html">Outline 基本操作</a>。</p>
+</body>
+</html>

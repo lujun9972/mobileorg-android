@@ -76,11 +76,11 @@
 
 - [ ] **步骤 3：验证结构并 commit**
 
-验证：两文件均以 `<!DOCTYPE html>` 开头、`</html>` 结尾，`<h2>` 数量一致（6）。
+验证：两文件均以 `<!DOCTYPE html>` 开头、`</html>` 结尾，`<h2>` 数量一致（5）。
 
 ```bash
 grep -c '<h2>' MobileOrg/src/main/assets/help/zh/how-it-works.html MobileOrg/src/main/assets/help/en/how-it-works.html
-# 预期：两文件均输出 6
+# 预期：两文件均输出 5
 git add MobileOrg/src/main/assets/help/zh/how-it-works.html MobileOrg/src/main/assets/help/en/how-it-works.html
 git commit -m "feat(help): 新增「工作原理」主题（本地副本模型/远端文件协议/编辑回传）"
 ```
@@ -160,7 +160,7 @@ git commit -m "feat(help): 新增「搜索」主题（如实描述标题子串�
 
 ```bash
 grep -c '<h2>' MobileOrg/src/main/assets/help/zh/sync.html MobileOrg/src/main/assets/help/en/sync.html
-# 预期：两文件均输出 7（原 6 节 + 新增 1 节）
+# 预期：两文件均输出 6（原 5 节 + 新增 1 节）
 git add MobileOrg/src/main/assets/help/zh/sync.html MobileOrg/src/main/assets/help/en/sync.html
 git commit -m "feat(help): sync 主题补「服务端准备」节并内链工作原理篇"
 ```

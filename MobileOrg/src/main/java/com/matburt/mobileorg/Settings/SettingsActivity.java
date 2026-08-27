@@ -217,14 +217,28 @@ public class SettingsActivity extends PreferenceActivity implements
 	private static final int REQUEST_CALENDAR_PERMISSION = 1001;
 
 	private void populateCalendarNames() {
+		// Only touch calendar lists when the user actually enabled calendar
+		// sync — never prompt the whole settings page for an unused feature.
+		if (!appSettings.getBoolean("calendarEnabled", false))
+			return;
 		// Check calendar permission first
 		if (ContextCompat.checkSelfPermission(this, "android.permission.READ_CALENDAR")
 				!= PackageManager.PERMISSION_GRANTED) {
+			// Ask at most once per install. Without this memory every settings
+			// rebuild (re-entry, language-switch recreate) would re-prompt a
+			// user who already declined.
+			if (appSettings.getBoolean("calendarPermissionPromptShown", false))
+				return;
+			appSettings.edit().putBoolean("calendarPermissionPromptShown", true).apply();
 			ActivityCompat.requestPermissions(this,
 					new String[]{"android.permission.READ_CALENDAR", "android.permission.WRITE_CALENDAR"},
 					REQUEST_CALENDAR_PERMISSION);
 			return;
 		}
+		// Permission already granted — forget the "prompt shown" memory, so
+		// that if the permission is ever revoked later, asking again is
+		// legitimate instead of silently suppressed by the stale flag.
+		appSettings.edit().remove("calendarPermissionPromptShown").apply();
 		try {
 			ListPreference calendarName = (ListPreference) findPreference(KEY_CALENDAR_NAME);
 			if (calendarName == null) return;

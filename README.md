@@ -30,6 +30,7 @@ This fork brings the original project (API 17) up to modern Android standards �
 - **In-app help center**: Built-in documentation (Chinese/English, follows app locale) with quick start, sync setup, outline usage, pomodoro, statistics, reminders, and extras topics — dark-theme aware, with in-page navigation and external link handling; accessible from the outline menu
 - **Homescreen widgets**: Agenda widget and capture shortcut widget
 - **Theme support**: Light and dark themes with theme-aware UI colors
+- **Bilingual UI**: Full Chinese/English interface with in-app language switching (follow system / Chinese / English)
 
 ## Tech Stack
 
@@ -76,6 +77,12 @@ MobileOrg/src/main/java/com/matburt/mobileorg/
 [GNU General Public License v2.0](LICENSE.txt)
 
 ## Changelog
+
+### v2.12.0
+
+- **In-app language switching**: New "Language" setting (Follow system / 中文 / English) at the top of Settings, built on AppCompat per-app language APIs. Works on Android 8+ (persists across restarts, framework activities included) and integrates with the system per-app language panel on Android 13+.
+- **Complete Chinese translation**: ~150 missing UI strings and 11 preference arrays translated; 53 Chinese-hardcoded default strings converted to proper English defaults with zh translations; hardcoded text in pomodoro/timeclock notifications and dialogs, the setup wizard, and the outline dashboard extracted to localized resources.
+- **Fix**: Help center ActionBar title now follows the selected language on Android < 13.
 
 ### v2.11.0
 

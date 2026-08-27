@@ -19,6 +19,27 @@
 <tr><td><strong>SD Card</strong></td><td>Local directory path</td><td>Manage org files on the same device through other apps or file manager</td></tr>
 </table>
 
+<h2>Preparing the Server Side</h2>
+<p>The server side only needs a readable and writable directory containing: <code>index.org</code> (required), the org files to sync, and <code>checksums.dat</code> (for incremental comparison).</p>
+
+<p><strong>Emacs Workflow (standard)</strong>: Point <code>org-mobile-directory</code> to this directory and run <code>org-mobile-push</code>, which generates index.org and checksums.dat automatically.</p>
+
+<p><strong>Hand-written minimal index.org</strong>: Without Emacs, just write it by hand:</p>
+
+<pre><code>#+TODO: TODO DOING | DONE CANCELED
+* 文件清单
+[[file:home.org][Home]]
+[[file:work.org][Work]]
+</code></pre>
+
+<p>Server-side requirements per sync method:</p>
+
+<ul>
+<li><strong>WebDAV</strong>: any WebDAV service with read/write (GET/PUT) support (Nextcloud, ownCloud, or self-hosted)</li>
+<li><strong>SSH</strong>: a server with writable SFTP access (password or key authentication)</li>
+<li><strong>SD Card</strong>: any local directory (files placed by other apps or a file manager)</li>
+</ul>
+
 <h2>Setup Wizard</h2>
 <p>To configure sync for the first time, go to <strong>Settings → Actions → Setup Wizard</strong>. After choosing a sync method, fill in the required fields:</p>
 
@@ -38,6 +59,8 @@
 <li><strong>Parse</strong>: Downloaded org files are parsed by OrgFileParser into the local database, accessible via ContentProvider.</li>
 <li><strong>Push</strong>: Local captures and edits enter the Edits queue. During next sync, they are merged into <code>mobileorg.org</code> and uploaded to the server. The local queue is cleared after upload.</li>
 </ol>
+
+<p>See <a href="how-it-works.html">How It Works</a> for the complete mechanism and file formats.</p>
 
 <h2>Config Import/Export</h2>
 <p>Go to <strong>Settings → Actions → Export Sync Configuration</strong> to save your current sync configuration as a JSON file using the system file picker (cloud storage recommended). After reinstalling the app, use <strong>Import Sync Configuration</strong> to select the file and restore all settings without re-entering them.</p>

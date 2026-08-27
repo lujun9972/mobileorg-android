@@ -19,6 +19,27 @@
 <tr><td><strong>SD 卡</strong></td><td>本地目录路径</td><td>在同一设备上通过其他 app 或文件管理器管理 org 文件</td></tr>
 </table>
 
+<h2>服务端准备</h2>
+<p>服务端只需一个可读写的目录，内含：<code>index.org</code>（必需）、参与同步的 org 文件、<code>checksums.dat</code>（增量比对用）。</p>
+
+<p><strong>Emacs 工作流（标准）</strong>：将 <code>org-mobile-directory</code> 指向该目录，执行 <code>org-mobile-push</code> 自动生成 index.org 与 checksums.dat。</p>
+
+<p><strong>手写最小 index.org</strong>：无 Emacs 时手写即可：</p>
+
+<pre><code>#+TODO: TODO DOING | DONE CANCELED
+* 文件清单
+[[file:home.org][Home]]
+[[file:work.org][Work]]
+</code></pre>
+
+<p>三种同步方式的服务端要点：</p>
+
+<ul>
+<li><strong>WebDAV</strong>：任何支持读写（GET/PUT）的 WebDAV 服务（Nextcloud、ownCloud 或自建）</li>
+<li><strong>SSH</strong>：服务器开启 SFTP 可读写即可（密码或密钥认证）</li>
+<li><strong>SD 卡</strong>：本地目录即可（其他 app 或文件管理器放入文件）</li>
+</ul>
+
 <h2>配置向导</h2>
 <p>首次配置请进入 <strong>设置 → Actions → Setup Wizard</strong>。选择同步方式后填写各字段：</p>
 
@@ -38,6 +59,8 @@
 <li><strong>解析</strong>：下载的 org 文件由 OrgFileParser 解析入库，节点可通过 ContentProvider 访问。</li>
 <li><strong>推送</strong>：本地 capture 和编辑进入 Edits 队列，下次同步时合并到 <code>mobileorg.org</code> 并上传到服务器。上传后本地队列清空。</li>
 </ol>
+
+<p>完整机制与文件格式详见 <a href="how-it-works.html">工作原理</a>。</p>
 
 <h2>配置导入导出</h2>
 <p>进入 <strong>设置 → Actions → Export Sync Configuration</strong> 可将当前同步配置导出为 JSON 文件，通过系统文件选择器保存到任意位置（推荐云盘）。重装 app 后使用 <strong>Import Sync Configuration</strong> 选择该文件即可恢复配置，无需重新填写。</p>

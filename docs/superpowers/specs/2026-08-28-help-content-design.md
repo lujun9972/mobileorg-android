@@ -78,7 +78,7 @@ quick-start → how-it-works → sync → outline → search → pomodoro → st
 
 1. **服务端目录必备** — 一个可读写目录，内含：`index.org`（必需）、各 org 文件；`checksums.dat`（增量同步比对用）。
 2. **两种准备方式** —
-   - Emacs 工作流（标准）：`org-mobile-directory` 指向该目录，`org-mobile-push` 自动生成 index.org 与 checksums.dat。
+   - Emacs 工作流（标准）：完整配置说明（2026-08-28 用户验收反馈补充）——elisp 三变量示例（`org-mobile-directory`/`org-mobile-files`（缺省 `org-agenda-files`）/`org-mobile-inbox-for-pull`（必设，pull 时手机端修改先并入此 inbox））+ `org-mobile-directory` 三种方式的填法（WebDAV 直填 URL（Emacs 内置 DAV 读写）；SSH Emacs 不直接支持，push 到本地暂存目录后 rsync/scp 上传；SD 卡填设备挂载路径）+ `M-x org-mobile-push`（复制文件并生成 index.org 与 checksums.dat）/`M-x org-mobile-pull`（消化手机端修改）命令说明。
    - 手写最小 index.org：给出可运行的几行示例（同工作原理篇），适合无 Emacs 场景。
 3. **三种同步方式的服务端要点** — WebDAV：任何支持读写（GET/PUT）的 WebDAV 服务（Nextcloud/ownCloud 或自建）；SSH：可 SFTP 读写即可（密钥或密码）；SDCard：本地目录即可（其他 app 放入文件）。
 4. 首次同步行为衔接：配置完成后点同步 → 下载 index.org + 变更文件 → 列表出现。

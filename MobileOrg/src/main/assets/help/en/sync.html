@@ -22,7 +22,20 @@
 <h2>Preparing the Server Side</h2>
 <p>The server side only needs a readable and writable directory containing: <code>index.org</code> (required), the org files to sync, and <code>checksums.dat</code> (for incremental comparison).</p>
 
-<p><strong>Emacs Workflow (standard)</strong>: Point <code>org-mobile-directory</code> to this directory and run <code>org-mobile-push</code>, which generates index.org and checksums.dat automatically.</p>
+<p><strong>Emacs Workflow (standard)</strong>: Use <code>org-mobile</code> (built into Emacs) to manage the server-side directory. Basic configuration:</p>
+
+<pre><code>(setq org-mobile-directory "~/mobileorg/")
+(setq org-mobile-files '("~/org/home.org" "~/org/work.org"))
+(setq org-mobile-inbox-for-pull "~/org/from-mobile.org")
+</code></pre>
+
+<ul>
+<li><code>org-mobile-directory</code>: the server-side directory described above. For WebDAV, set it directly to the URL (e.g. <code>https://dav.example.com/mobileorg/</code>; Emacs has built-in DAV support for reading and writing). For SSH, Emacs does not support it directly — usually push to a local staging directory and then upload it to the server with <code>rsync</code>/<code>scp</code>. For SD Card, just use the directory path exposed on the device.</li>
+<li><code>org-mobile-files</code>: the list of org files to sync; defaults to <code>org-agenda-files</code>.</li>
+<li><code>org-mobile-inbox-for-pull</code>: required. When running <code>org-mobile-pull</code>, edits uploaded from the phone are first merged into this inbox file and then applied; without it pull does not work.</li>
+</ul>
+
+<p>Commands: <code>M-x org-mobile-push</code> copies org-mobile-files to the server-side directory and generates index.org and checksums.dat; after syncing on the phone, run <code>M-x org-mobile-pull</code> to consume the edits from the phone.</p>
 
 <p><strong>Hand-written minimal index.org</strong>: Without Emacs, just write it by hand:</p>
 

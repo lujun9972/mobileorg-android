@@ -28,7 +28,7 @@
 <li>English keywords are case-insensitive: <code>todo</code> and <code>TODO</code> are equivalent</li>
 <li>There are no operators, regular expressions, or prefix syntax — whatever you type is matched as a literal substring</li>
 <li>Leading and trailing spaces are stripped automatically: typing <code> meeting </code> searches for <code>meeting</code></li>
-<li><code>%</code> and <code>_</code> act as wildcards: typing <code>100%</code> effectively searches for <code>100</code>; typing <code>%</code> alone matches every node; there is no way to escape these two characters literally</li>
+<li><code>%</code> and <code>_</code> match literally: typing <code>100%</code> searches for the literal <code>100%</code>, and <code>a_b</code> for the literal <code>a_b</code> — they are not treated as wildcards</li>
 </ul>
 
 <h2>Interacting with Results</h2>

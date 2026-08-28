@@ -242,8 +242,27 @@ public class OrgFileRepository {
 
     public Cursor search(String query) {
         return resolver.query(OrgData.CONTENT_URI, OrgData.DEFAULT_COLUMNS,
-                OrgData.NAME + " LIKE ?", new String[] { query },
+                OrgData.NAME + " LIKE ? ESCAPE '\\'", new String[] { query },
                 OrgData.DEFAULT_SORT);
+    }
+
+    /**
+     * Builds a LIKE pattern matching keyword as a literal substring,
+     * escaping '%', '_' and '\' so they match themselves (search() uses ESCAPE '\').
+     */
+    public static String likePattern(String keyword) {
+        String trimmed = keyword.trim();
+        StringBuilder pattern = new StringBuilder(trimmed.length() + 2);
+        pattern.append('%');
+        for (int i = 0; i < trimmed.length(); i++) {
+            char c = trimmed.charAt(i);
+            if (c == '%' || c == '_' || c == '\\') {
+                pattern.append('\\');
+            }
+            pattern.append(c);
+        }
+        pattern.append('%');
+        return pattern.toString();
     }
 
     public int getChangesCount() {

@@ -223,4 +223,73 @@ public class OrgFileTest extends ProviderTestCase2<OrgProvider> {
 		assertEquals(fileNode.fileId, node.fileId);
 		assertEquals(fileNode.parentId, node.parentId);
 	}
+
+	private OrgNode addNodeToFile(OrgFile file, String name) {
+		OrgNode node = new OrgNode();
+		node.name = name;
+		node.parentId = file.nodeId;
+		node.fileId = file.id;
+		repo.write(node);
+		return node;
+	}
+
+	@Test
+	public void testSearchLiteralPercent() {
+		OrgFile file = new OrgFileRepository(resolver).getOrCreateFile("test file", "file name");
+		addNodeToFile(file, "进度 100%");
+		addNodeToFile(file, "进度 100");
+
+		Cursor result = new OrgFileRepository(resolver).search(
+				OrgFileRepository.likePattern("100%"));
+
+		assertEquals(1, result.getCount());
+		result.moveToFirst();
+		assertEquals("进度 100%", result.getString(result.getColumnIndex(OrgData.NAME)));
+		result.close();
+	}
+
+	@Test
+	public void testSearchLonePercentNotWildcard() {
+		OrgFile file = new OrgFileRepository(resolver).getOrCreateFile("test file", "file name");
+		addNodeToFile(file, "普通标题");
+		addNodeToFile(file, "50% off");
+
+		Cursor result = new OrgFileRepository(resolver).search(
+				OrgFileRepository.likePattern("%"));
+
+		assertEquals(1, result.getCount());
+		result.moveToFirst();
+		assertEquals("50% off", result.getString(result.getColumnIndex(OrgData.NAME)));
+		result.close();
+	}
+
+	@Test
+	public void testSearchLiteralUnderscore() {
+		OrgFile file = new OrgFileRepository(resolver).getOrCreateFile("test file", "file name");
+		addNodeToFile(file, "foo_bar");
+		addNodeToFile(file, "foobar");
+
+		Cursor result = new OrgFileRepository(resolver).search(
+				OrgFileRepository.likePattern("foo_bar"));
+
+		assertEquals(1, result.getCount());
+		result.moveToFirst();
+		assertEquals("foo_bar", result.getString(result.getColumnIndex(OrgData.NAME)));
+		result.close();
+	}
+
+	@Test
+	public void testSearchLiteralBackslash() {
+		OrgFile file = new OrgFileRepository(resolver).getOrCreateFile("test file", "file name");
+		addNodeToFile(file, "path\\to\\node");
+		addNodeToFile(file, "pathXtoXnode");
+
+		Cursor result = new OrgFileRepository(resolver).search(
+				OrgFileRepository.likePattern("path\\to"));
+
+		assertEquals(1, result.getCount());
+		result.moveToFirst();
+		assertEquals("path\\to\\node", result.getString(result.getColumnIndex(OrgData.NAME)));
+		result.close();
+	}
 }

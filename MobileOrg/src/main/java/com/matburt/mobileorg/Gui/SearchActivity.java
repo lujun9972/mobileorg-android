@@ -51,7 +51,7 @@ public class SearchActivity extends AppCompatActivity {
 
 	private void doSearch(String query) {
 		Cursor result = new OrgFileRepository(getContentResolver()).search(
-				"%" + query.trim() + "%");
+				OrgFileRepository.likePattern(query));
 		ArrayList<OrgNode> data = new OrgFileRepository(
 				getContentResolver()).orgDataCursorToArrayList(result);
 

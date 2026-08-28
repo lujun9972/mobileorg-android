@@ -16,5 +16,10 @@
 
 <h2>Android 12+ Exact Alarm Restrictions</h2>
 <p>Since Android 12 (API 31), exact alarm permission is a special permission—you must manually grant it in system settings. If not granted, reminders fall back to inexact mode (10-minute window) and may fire several minutes late. When first using, we recommend granting SCHEDULE_EXACT_ALARM permission in system settings.</p>
+
+<h2>Syncing to the System Calendar</h2>
+<p>Beyond in-app notifications, nodes with DEADLINE or SCHEDULED dates can be written to the Android system calendar for unified viewing in your calendar app or widgets. Enable "Synchronize with calendar" under <strong>Settings → Calendar</strong> and choose a target calendar; the first enable requests calendar read/write permissions. Optional settings: add reminders to calendar entries (with advance minutes), show done entries, show past events, and show habits.</p>
+<p>Calendar entries update automatically after each sync, and refresh once after device boot. To force a full refresh after changing calendar settings, use <strong>Settings → Actions → Clear Database</strong> and synchronize again.</p>
+<p>The advanced option "Assimilate calendar entries" (experimental) pulls calendar entries not created by MobileOrg into the capture file, optionally deleting the originals.</p>
 </body>
 </html>

@@ -23,7 +23,7 @@ public class HelpTopicTest {
     }
 
     @Test
-    public void topicsCoverSevenDocuments() {
+    public void topicsCountMatchesDocuments() {
         assertEquals(9, HelpTopic.TOPICS.length);
     }
 

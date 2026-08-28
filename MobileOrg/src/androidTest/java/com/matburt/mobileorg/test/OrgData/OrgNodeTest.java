@@ -425,4 +425,44 @@ public class OrgNodeTest extends ProviderTestCase2<OrgProvider> {
 		} catch (OrgNodeNotFoundException e) {}
 	}
 
+	private OrgNode addNodeWithPayload(OrgFile file, String name, String payload) {
+		OrgNode node = new OrgNode();
+		node.name = name;
+		node.parentId = file.nodeId;
+		node.fileId = file.id;
+		node.setPayload(payload);
+		repo.write(node);
+		return node;
+	}
+
+	@Test
+	public void testUpdateAllNodesLiteralIdPercent() throws OrgNodeNotFoundException {
+		OrgFileRepository fileRepo = new OrgFileRepository(resolver);
+		OrgFile file = fileRepo.getOrCreateFile("test file", "file name");
+		OrgNode nodeA = addNodeWithPayload(file, "节点A", ":ID: abc%\n");
+		OrgNode nodeB = addNodeWithPayload(file, "节点B", ":ID: abc\n");
+
+		nodeA.name = "节点A已改";
+		repo.updateAllNodes(nodeA);
+
+		assertEquals("节点A已改", repo.getById(nodeA.id).name);
+		assertEquals("节点B", repo.getById(nodeB.id).name);
+	}
+
+	@Test
+	public void testFindOriginalNodeLiteralIdWithQuoteAndPercent() throws OrgNodeNotFoundException {
+		OrgFileRepository fileRepo = new OrgFileRepository(resolver);
+		OrgFile agendaFile = fileRepo.getOrCreateFile(OrgFile.AGENDA_FILE,
+				OrgFile.AGENDA_FILE_ALIAS);
+		OrgFile sourceFile = fileRepo.getOrCreateFile("test file", "file name");
+		OrgNode source = addNodeWithPayload(sourceFile, "源节点",
+				":ID: bob's 100%\n");
+		OrgNode agendaNode = addNodeWithPayload(agendaFile, "agenda 副本",
+				":ID: bob's 100%\n");
+
+		OrgNode found = repo.findOriginalNode(agendaNode);
+
+		assertEquals(source.id, found.id);
+	}
+
 }

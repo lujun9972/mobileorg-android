@@ -57,4 +57,28 @@ public class AgendaTests {
 		assertEquals(blockAgenda.queries.size(), readBlockAgenda.queries.size());
 		assertEquals(blockAgenda.queries.get(0).title, readBlockAgenda.queries.get(0).title);
 	}
+
+	@Test
+	public void testQueryPayloadFilterParameterizedAndEscaped() {
+		OrgQueryBuilder builder = new OrgQueryBuilder("test");
+		builder.payloads.add("100%");
+		builder.payloads.add("it's");
+
+		com.matburt.mobileorg.util.SelectionBuilder selection =
+				builder.getQuery(context);
+
+		String where = selection.getSelection();
+		String[] args = selection.getSelectionArgs();
+
+		org.junit.Assert.assertFalse(
+				"filter values must not be concatenated into selection", where.contains("100%"));
+		org.junit.Assert.assertFalse(where.contains("it's"));
+		org.junit.Assert.assertTrue("LIKE clauses must declare ESCAPE",
+				where.contains("ESCAPE '\\'"));
+		// args[0] is the default agenda-file exclusion added by getFileSelection
+		java.util.List<String> argList = java.util.Arrays.asList(args);
+		assertEquals(3, args.length);
+		org.junit.Assert.assertTrue(argList.contains("%100\\%%"));
+		org.junit.Assert.assertTrue(argList.contains("%it's%"));
+	}
 }

@@ -232,15 +232,21 @@ public class OrgQueryBuilder implements Serializable {
 		if(todos != null && todos.size() > 0)
 			builder.where(getSelection(todos, OrgData.TODO));
 		
-		if(tags != null && tags.size() > 0)
-			builder.where(getLikeSelection(tags, OrgData.TAGS) + " OR "
-					+ getLikeSelection(tags, OrgData.TAGS_INHERITED));
-		
+		if(tags != null && tags.size() > 0) {
+			ArrayList<String> tagArgs = new ArrayList<String>();
+			builder.where(getLikeSelection(tags, OrgData.TAGS, tagArgs) + " OR "
+					+ getLikeSelection(tags, OrgData.TAGS_INHERITED, tagArgs),
+					tagArgs.toArray(new String[0]));
+		}
+
 		if(priorities != null && priorities.size() > 0)
-			builder.where(getSelection(priorities, OrgData.PRIORITY));		
-		
-		if(payloads != null && payloads.size() > 0)
-			builder.where(getLikeSelection(payloads, OrgData.PAYLOAD));
+			builder.where(getSelection(priorities, OrgData.PRIORITY));
+
+		if(payloads != null && payloads.size() > 0) {
+			ArrayList<String> payloadArgs = new ArrayList<String>();
+			builder.where(getLikeSelection(payloads, OrgData.PAYLOAD, payloadArgs),
+					payloadArgs.toArray(new String[0]));
+		}
 		
 		if(filterHabits)
 			builder.where("NOT " + OrgData.PAYLOAD + " LIKE ?", "%:STYLE: habit%");
@@ -248,16 +254,18 @@ public class OrgQueryBuilder implements Serializable {
 		return builder;
 	}
 	
-	private String getLikeSelection(ArrayList<String> values, String column) {
+	private String getLikeSelection(ArrayList<String> values, String column,
+			ArrayList<String> outArgs) {
 		StringBuilder builder = new StringBuilder();
-		
+
 		if(values == null)
 			return "";
-		
+
 		for (String value: values) {
-			builder.append(column + " LIKE '%" + value + "%'").append(" OR ");
+			builder.append(column + " LIKE ? ESCAPE '\\' OR ");
+			outArgs.add(OrgFileRepository.likePattern(value));
 		}
-		
+
 		builder.delete(builder.length() - " OR ".length(), builder.length() - 1);
 		return builder.toString();
 	}

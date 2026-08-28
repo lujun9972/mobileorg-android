@@ -80,9 +80,9 @@ public class OrgNodeRepository {
         if (nodeId == null || nodeId.isEmpty())
             return;
         if (!nodeId.startsWith("olp:")) {
-            String nodeIdQuery = "%" + nodeId + "%";
             resolver.update(OrgData.CONTENT_URI, getSimpleContentValues(node),
-                    OrgData.PAYLOAD + " LIKE ?", new String[]{nodeIdQuery});
+                    OrgData.PAYLOAD + " LIKE ? ESCAPE '\\'",
+                    new String[]{OrgFileRepository.likePattern(nodeId)});
         }
     }
 
@@ -251,16 +251,20 @@ public class OrgNodeRepository {
 
         String nodeIdStr = getNodeId(node);
         if (nodeIdStr != null && !nodeIdStr.isEmpty() && !nodeIdStr.startsWith("olp:")) {
-            String nodeIdQuery = OrgData.PAYLOAD + " LIKE '%" + nodeIdStr + "%'";
+            String selection = OrgData.PAYLOAD + " LIKE ? ESCAPE '\\'";
+            ArrayList<String> args = new ArrayList<String>();
+            args.add(OrgFileRepository.likePattern(nodeIdStr));
             try {
                 OrgFile agendaFile = fileRepo.getByFilename(OrgFile.AGENDA_FILE);
-                if (agendaFile != null)
-                    nodeIdQuery += " AND NOT " + OrgData.FILE_ID + "=" + agendaFile.nodeId;
+                if (agendaFile != null) {
+                    selection += " AND NOT " + OrgData.FILE_ID + "=?";
+                    args.add(Long.toString(agendaFile.nodeId));
+                }
             } catch (OrgFileNotFoundException e) {
             }
 
             Cursor query = resolver.query(OrgData.CONTENT_URI,
-                    OrgData.DEFAULT_COLUMNS, nodeIdQuery, null, null);
+                    OrgData.DEFAULT_COLUMNS, selection, args.toArray(new String[0]), null);
             try {
                 OrgNode found = new OrgNode(query);
                 query.close();

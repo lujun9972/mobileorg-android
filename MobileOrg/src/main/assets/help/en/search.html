@@ -10,21 +10,29 @@
 <h1>Search</h1>
 
 <h2>Entry</h2>
-<p>Open search via the magnifying-glass icon in the main menu, then type a keyword to query.</p>
+<p>Open search via the magnifying-glass icon in the main menu, then type a keyword to query. The search covers node headings across <strong>all synced org files</strong>.</p>
 
-<h2>Matching Rules</h2>
+<h2>Usage Examples</h2>
+<ul>
+<li><strong>Type a fragment when you don't remember the full heading</strong>: want to find <code>2026 Annual Budget Review</code> but only remember "budget"? Type <code>budget</code> to hit every node whose heading contains "budget" — no need to type the full title.</li>
+<li><strong>Type a keyword directly</strong>: enter <code>meeting</code> to hit <code>Weekly meeting notes</code>, <code>Project kickoff meeting</code>, and every other node whose heading contains the keyword; tap one to open it.</li>
+<li><strong>English keywords are case-insensitive</strong>: typing <code>email</code> matches <code>Email</code> and <code>EmailServer</code>.</li>
+<li><strong>Trying to find all pending tasks (common misconception)</strong>: typing <code>todo</code> matches nodes that <strong>contain the word TODO in the heading</strong>, not unfinished tasks. To see your TODOs, use the TODO category item at the top of the main screen, or use Agenda by state.</li>
+<li><strong>Cannot search body text or tags (common misconception)</strong>: search matches node headings only; body content and tags are not included. To find by tag, use the tag filter on the main screen (supports AND/OR combinations); to find by date, use Agenda.</li>
+</ul>
+
+<h2>Matching Rules &amp; Edge Cases</h2>
 <ul>
 <li>Only node <strong>headings</strong> (heading text) are searched; body text (payload), tags, and file names are not included</li>
 <li>Substring matching: a node matches if the keyword appears anywhere in the heading, e.g. entering <code>meeting</code> matches <code>Weekly meeting notes</code></li>
 <li>English keywords are case-insensitive: <code>todo</code> and <code>TODO</code> are equivalent</li>
 <li>There are no operators, regular expressions, or prefix syntax — whatever you type is matched as a literal substring</li>
+<li>Leading and trailing spaces are stripped automatically: typing <code> meeting </code> searches for <code>meeting</code></li>
+<li><code>%</code> and <code>_</code> act as wildcards: typing <code>100%</code> effectively searches for <code>100</code>; typing <code>%</code> alone matches every node; there is no way to escape these two characters literally</li>
 </ul>
 
 <h2>Interacting with Results</h2>
 <p>Results are shown as a list; tapping one opens the corresponding node. When nothing matches, the title bar shows a no-results notice.</p>
-
-<h2>Related Features</h2>
-<p>To filter by tags, use the tag filter on the main screen (supports AND/OR combinations); to view items by date, use <strong>Agenda</strong>.</p>
 
 <p>For basic browsing and node operations, see <a href="outline.html">Outline Basics</a>.</p>
 </body>

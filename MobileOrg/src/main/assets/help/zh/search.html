@@ -10,21 +10,29 @@
 <h1>搜索</h1>
 
 <h2>入口</h2>
-<p>通过主菜单的放大镜图标进入搜索，输入关键词即可查询。</p>
+<p>通过主菜单的放大镜图标进入搜索，输入关键词即可查询。搜索范围是<strong>所有已同步 org 文件</strong>的节点标题。</p>
 
-<h2>匹配规则</h2>
+<h2>场景案例</h2>
+<ul>
+<li><strong>记不清完整标题时输入片段</strong>：想找 <code>2026 年度预算评审</code> 但只记得「预算」？输入 <code>预算</code> 即可命中所有标题含「预算」的节点——不需要输入完整标题。</li>
+<li><strong>中文关键词直接搜</strong>：输入 <code>会议</code>，命中 <code>周会会议纪要</code>、<code>项目启动会议</code> 等所有标题含该关键词的节点，点选进入。</li>
+<li><strong>英文关键词不区分大小写</strong>：输入 <code>email</code> 可命中 <code>Email</code>、<code>EmailServer</code>。</li>
+<li><strong>想找所有待办任务（常见误解）</strong>：输入 <code>todo</code> 命中的是<strong>标题里含 TODO 字样</strong>的节点，不是未完成任务。查看待办请用主界面顶部的 TODO 分类项，或按状态用 Agenda。</li>
+<li><strong>搜不到正文/标签（常见误解）</strong>：搜索只匹配节点标题，正文内容与标签不参与。按标签找请用主界面标签过滤（支持 AND/OR 组合），按日期找请用 Agenda。</li>
+</ul>
+
+<h2>匹配规则与边界</h2>
 <ul>
 <li>只搜索节点<strong>标题</strong>（heading 文本）；正文（payload）、标签、文件名均不参与搜索</li>
 <li>子串匹配：标题任意位置包含关键词即命中，例如输入 <code>会议</code> 可命中 <code>周会会议纪要</code></li>
 <li>英文关键词大小写不敏感：<code>todo</code> 与 <code>TODO</code> 等价</li>
 <li>没有运算符、正则或前缀语法——输入什么就按字面子串匹配</li>
+<li>前后空格自动忽略：输入 <code> 会议 </code> 按 <code>会议</code> 搜索</li>
+<li><code>%</code> 与 <code>_</code> 被当作通配符：输入 <code>100%</code> 实际按 <code>100</code> 匹配；单独输入 <code>%</code> 会命中所有节点；无法转义按字面搜索这两个字符</li>
 </ul>
 
 <h2>结果交互</h2>
 <p>搜索结果以列表形式展示，点击任一结果进入对应节点。无结果时标题栏会显示无结果提示。</p>
-
-<h2>相关功能</h2>
-<p>按标签筛选内容请使用主界面的标签过滤（支持 AND/OR 组合）；按日期查看事项请使用 <strong>Agenda</strong>。</p>
 
 <p>节点的基本浏览与操作见 <a href="outline.html">Outline 基本操作</a>。</p>
 </body>

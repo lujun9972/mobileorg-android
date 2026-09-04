@@ -8,6 +8,7 @@ import android.database.Cursor;
 import android.database.SQLException;
 import android.net.Uri;
 import android.preference.PreferenceManager;
+import android.text.TextUtils;
 import android.text.format.Time;
 
 import com.matburt.mobileorg.R;
@@ -236,9 +237,20 @@ public class CalendarWrapper {
 						"Invalid calendar reminder interval");
 			this.reminderTime = Integer.valueOf(intervalString);
 		}
-		
+
 		this.calendarName = PreferenceManager.getDefaultSharedPreferences(
 				context).getString("calendarName", "");
 		this.calendarId = getCalendarID(calendarName);
+	}
+
+	/**
+	 * True only when the user has actually picked a calendar in settings and
+	 * that calendar still exists on the device. Enabling calendarEnabled
+	 * alone leaves calendarName at its "" default, and getCalendarID("")
+	 * can never match — callers must skip the push path in that state
+	 * instead of reaching insertEntry, which throws.
+	 */
+	public boolean isCalendarSelected() {
+		return !TextUtils.isEmpty(this.calendarName) && this.calendarId != -1;
 	}
 }

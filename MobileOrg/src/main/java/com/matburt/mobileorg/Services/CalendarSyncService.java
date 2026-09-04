@@ -127,6 +127,9 @@ public class CalendarSyncService extends Service implements
 	}
 
 	private void syncFiles() {
+		if (!calendarReady())
+			return;
+
 		ArrayList<String> files = new OrgFileRepository(resolver).getFilenames();
 		files.remove(OrgFile.AGENDA_FILE);
 		for (String filename : files)
@@ -134,11 +137,28 @@ public class CalendarSyncService extends Service implements
 	}
 
 	private void syncFiles(String[] files) {
+		if (!calendarReady())
+			return;
+
 		for (String filename : files) {
 			if (!filename.equals(OrgFile.AGENDA_FILE)) {
 				syncFile(filename);
 			}
 		}
+	}
+
+	/**
+	 * Pushing requires a selected calendar; enabling calendarEnabled alone
+	 * leaves the name empty and insertEntry would throw an uncaught
+	 * IllegalArgumentException that kills this service thread (and with it
+	 * the process). Reached from every push entry point: onStartCommand's
+	 * push branch and onSharedPreferenceChanged.
+	 */
+	private boolean calendarReady() {
+		if (calendarWrapper.isCalendarSelected())
+			return true;
+		Log.w("MobileOrg", "Calendar push skipped: no calendar selected");
+		return false;
 	}
 
 

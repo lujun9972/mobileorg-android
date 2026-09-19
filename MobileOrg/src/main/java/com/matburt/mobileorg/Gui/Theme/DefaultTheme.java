@@ -41,7 +41,9 @@ public class DefaultTheme {
 	
 	public static DefaultTheme getTheme(Context context) {
 		final String themeName = PreferenceUtils.getThemeName();
-		if(themeName.equals("Light"))
+		if(themeName.equals("Custom"))
+			return new CustomTheme();
+		else if(themeName.equals("Light"))
 				return new WhiteTheme();
 		else if(themeName.equals("Monochrome"))
 			return new MonoTheme();

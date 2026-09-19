@@ -7,6 +7,7 @@ import android.preference.PreferenceManager;
 import com.matburt.mobileorg.Gui.Statistics.ChartThemeConfig;
 import com.matburt.mobileorg.Gui.Theme.CustomThemeStore;
 import com.matburt.mobileorg.Gui.Theme.DefaultTheme;
+import com.matburt.mobileorg.Gui.Theme.HsvColorPickerView;
 import com.matburt.mobileorg.Gui.Theme.MonoTheme;
 import com.matburt.mobileorg.Gui.Theme.WhiteTheme;
 import com.matburt.mobileorg.util.OrgUtils;
@@ -148,5 +149,18 @@ public class CustomThemeTest {
 		String after = CustomThemeStore.getRevision();
 		assertEquals(false, after.equals(before));
 		assertEquals(false, after.isEmpty());
+	}
+
+	@Test
+	public void testPickerRoundTrip() throws Throwable {
+		final Context ctx = InstrumentationRegistry.getInstrumentation().getTargetContext();
+		final HsvColorPickerView[] holder = new HsvColorPickerView[1];
+		Runnable inflate = () -> {
+			HsvColorPickerView v = new HsvColorPickerView(ctx);
+			v.setColor(0xFF112233);
+			holder[0] = v;
+		};
+		InstrumentationRegistry.getInstrumentation().runOnMainSync(inflate);
+		assertEquals(0xFF112233, holder[0].getColor());
 	}
 }

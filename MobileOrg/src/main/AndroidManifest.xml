@@ -243,6 +243,10 @@
             android:parentActivityName=".Gui.Outline.OutlineActivity" />
 
         <activity
+            android:name=".Gui.Theme.ThemeEditorActivity"
+            android:label="@string/preference_theme_editor" />
+
+        <activity
             android:name=".Gui.Help.HelpActivity"
             android:label="@string/help_title"
             android:parentActivityName=".Gui.Outline.OutlineActivity" />

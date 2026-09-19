@@ -23,6 +23,7 @@ import androidx.appcompat.app.AppCompatDelegate;
 import androidx.core.os.LocaleListCompat;
 
 import com.matburt.mobileorg.R;
+import com.matburt.mobileorg.Gui.Theme.CustomThemeStore;
 import com.matburt.mobileorg.OrgData.OrgNode;
 import com.matburt.mobileorg.OrgData.OrgNodeRepository;
 
@@ -147,8 +148,14 @@ public class OrgUtils {
         }
     }
 
+	/** Resolve "Custom" to its base (Dark/Light/Monochrome); other names pass through. */
+	public static String getEffectiveThemeName() {
+		String name = PreferenceUtils.getThemeName();
+		return "Custom".equals(name) ? CustomThemeStore.getBase() : name;
+	}
+
     public static void setTheme(Activity activity) {
-    	String themeName = PreferenceUtils.getThemeName();
+    	String themeName = getEffectiveThemeName();
 
     	if(themeName.equals("Dark"))
     		activity.setTheme(R.style.Theme_MobileOrg_Dark);
@@ -163,7 +170,7 @@ public class OrgUtils {
 	 * 其余（含未知值，setTheme 落入 Light）为浅色。
 	 */
 	public static boolean isDarkTheme() {
-		String themeName = PreferenceUtils.getThemeName();
+		String themeName = getEffectiveThemeName();
 		return themeName.equals("Dark") || themeName.equals("Monochrome");
 	}
 

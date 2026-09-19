@@ -28,6 +28,7 @@
         <item>浅色</item>
         <item>深色</item>
         <item>暖纸护眼</item>
+        <item>自定义</item>
     </string-array>
     <string-array name="agendaQueryTypes">
         <item>全部条目</item>

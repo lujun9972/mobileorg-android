@@ -61,6 +61,7 @@
         <item>Light</item>
         <item>Dark</item>
         <item>Monochrome</item>
+        <item>Custom</item>
     </string-array>
     <string-array name="agendaQueryTypes">
         <item>All entries</item>
@@ -203,6 +204,7 @@
     <item>Light</item>
     <item>Dark</item>
     <item>Monochrome</item>
+    <item>Custom</item>
 </string-array>
 
 <!-- In-app language switch; entries resolve @string so values-zh only translates the 3 strings -->

@@ -1,6 +1,6 @@
 package com.matburt.mobileorg.Gui.Statistics;
 
-import com.matburt.mobileorg.util.PreferenceUtils;
+import com.matburt.mobileorg.util.OrgUtils;
 
 public class ChartThemeConfig {
     public final int barColor;
@@ -27,7 +27,7 @@ public class ChartThemeConfig {
     }
 
     public static ChartThemeConfig current() {
-        String theme = PreferenceUtils.getThemeName();
+        String theme = OrgUtils.getEffectiveThemeName();
         if ("Light".equals(theme)) return LIGHT;
         if ("Monochrome".equals(theme)) return MONO;
         return DARK;

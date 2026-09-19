@@ -29,6 +29,7 @@ public class StatisticsActivity extends AppCompatActivity {
         OrgUtils.setTheme(this);
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_statistics);
+        OrgUtils.applyCustomThemeWindow(this);
 
         if (getSupportActionBar() != null) {
             getSupportActionBar().setDisplayHomeAsUpEnabled(true);

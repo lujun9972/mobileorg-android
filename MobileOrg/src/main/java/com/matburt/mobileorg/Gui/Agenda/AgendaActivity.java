@@ -9,6 +9,7 @@ import android.os.Bundle;
 
 import androidx.appcompat.app.AppCompatActivity;
 import com.matburt.mobileorg.R;
+import com.matburt.mobileorg.util.OrgUtils;
 import com.matburt.mobileorg.Synchronizers.Synchronizer;
 
 public class AgendaActivity extends AppCompatActivity {
@@ -18,9 +19,11 @@ public class AgendaActivity extends AppCompatActivity {
 	
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
+		OrgUtils.setTheme(this);
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.agenda);
-		
+		OrgUtils.applyCustomThemeWindow(this);
+
 		position = getIntent().getIntExtra(POSITION, 0);
 		
 		syncReceiver = new SynchServiceReceiver();

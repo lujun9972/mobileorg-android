@@ -26,6 +26,7 @@ public class EditActivity extends AppCompatActivity implements EditHost,
 		OrgUtils.setTheme(this);
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.edit);
+		OrgUtils.applyCustomThemeWindow(this);
 		getSupportActionBar().setTitle(R.string.menu_capture);
 				
 		SyncService.stopAlarm(this); // Don't run background sync while editing node

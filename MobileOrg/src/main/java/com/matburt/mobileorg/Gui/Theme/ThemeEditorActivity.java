@@ -59,7 +59,7 @@ public class ThemeEditorActivity extends AppCompatActivity {
 		OrgUtils.setTheme(this);
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.activity_theme_editor);
-		// OrgUtils.applyCustomThemeWindow(this);  // wired in the window-overlay task
+		OrgUtils.applyCustomThemeWindow(this);
 		loadWorkingSet();
 		buildPreview();
 		buildBaseSelector();

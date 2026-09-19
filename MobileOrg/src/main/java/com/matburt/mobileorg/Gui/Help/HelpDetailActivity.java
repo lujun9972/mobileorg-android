@@ -37,6 +37,7 @@ public class HelpDetailActivity extends AppCompatActivity {
         OrgUtils.setTheme(this);
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_help_detail);
+        OrgUtils.applyCustomThemeWindow(this);
         // Manifest label 由框架 hoist、不经 AppCompat locale 解析；
         // 显式 setTitle 才能让 API<33 切换语言后 ActionBar 标题跟随。
         setTitle(R.string.help_title);

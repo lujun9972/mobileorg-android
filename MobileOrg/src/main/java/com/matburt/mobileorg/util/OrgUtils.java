@@ -14,7 +14,13 @@ import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.content.res.Configuration;
+import android.graphics.Color;
+import android.graphics.drawable.ColorDrawable;
+import android.os.Build;
+import android.text.SpannableString;
+import android.text.Spanned;
 import android.text.TextUtils;
+import android.text.style.ForegroundColorSpan;
 import android.widget.ArrayAdapter;
 import android.widget.Spinner;
 import android.widget.Toast;
@@ -24,6 +30,7 @@ import androidx.core.os.LocaleListCompat;
 
 import com.matburt.mobileorg.R;
 import com.matburt.mobileorg.Gui.Theme.CustomThemeStore;
+import com.matburt.mobileorg.Gui.Theme.DefaultTheme;
 import com.matburt.mobileorg.OrgData.OrgNode;
 import com.matburt.mobileorg.OrgData.OrgNodeRepository;
 
@@ -164,6 +171,39 @@ public class OrgUtils {
     	else
     		activity.setTheme(R.style.Theme_MobileOrg_Light);
     }
+
+	/** Overlay window/action-bar colors with the custom theme's tones. No-op unless Custom. */
+	public static void applyCustomThemeWindow(Activity activity) {
+		if (!"Custom".equals(PreferenceUtils.getThemeName()))
+			return;
+		DefaultTheme theme = DefaultTheme.getTheme(activity);
+		activity.getWindow().setBackgroundDrawable(
+				new ColorDrawable(theme.defaultBackground));
+		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.LOLLIPOP)
+			activity.getWindow().setStatusBarColor(
+					darken(theme.defaultBackground, 0.6f));
+		androidx.appcompat.app.ActionBar ab =
+				(activity instanceof androidx.appcompat.app.AppCompatActivity)
+						? ((androidx.appcompat.app.AppCompatActivity) activity)
+								.getSupportActionBar() : null;
+		if (ab != null) {
+			ab.setBackgroundDrawable(new ColorDrawable(
+					darken(theme.defaultBackground, 0.75f)));
+			CharSequence title = ab.getTitle();
+			if (title != null) {
+				SpannableString s = new SpannableString(title);
+				s.setSpan(new ForegroundColorSpan(theme.defaultForeground), 0,
+						s.length(), Spanned.SPAN_EXCLUSIVE_EXCLUSIVE);
+				ab.setTitle(s);
+			}
+		}
+	}
+
+	private static int darken(int color, float factor) {
+		return Color.rgb((int) (Color.red(color) * factor),
+				(int) (Color.green(color) * factor),
+				(int) (Color.blue(color) * factor));
+	}
 
 	/**
 	 * 与 {@link #setTheme(Activity)} 的分支语义对齐：Dark 与 Monochrome 为深色，

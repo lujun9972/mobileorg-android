@@ -23,6 +23,7 @@ public class CertificateConflictActivity extends Activity {
 		OrgUtils.setTheme(this);
         super.onCreate(savedInstanceState);
         setContentView(R.layout.certconflict);
+        OrgUtils.applyCustomThemeWindow(this);
 
         this.hash_details = (TextView) this.findViewById(R.id.cert_hash_details);
         this.cert_descr = (TextView) this.findViewById(R.id.cert_new_descr);

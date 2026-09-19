@@ -25,6 +25,7 @@ public class SearchActivity extends AppCompatActivity {
 		OrgUtils.setTheme(this);
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.search);
+		OrgUtils.applyCustomThemeWindow(this);
 		
 		this.listView = (OutlineListView) findViewById(R.id.search_list);
 		this.listAdapter = (OutlineAdapter) listView.getAdapter();

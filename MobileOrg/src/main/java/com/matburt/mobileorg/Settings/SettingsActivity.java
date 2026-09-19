@@ -61,6 +61,7 @@ public class SettingsActivity extends PreferenceActivity implements
 		super.onCreate(savedInstanceState);
 
 		addPreferencesFromResource(R.xml.preferences);
+		OrgUtils.applyCustomThemeWindow(this);
 
 		init();
 		syncLanguagePreference();

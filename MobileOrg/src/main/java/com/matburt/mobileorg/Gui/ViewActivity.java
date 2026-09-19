@@ -32,6 +32,7 @@ public class ViewActivity extends AppCompatActivity
 		super.onCreate(savedInstanceState);
 
 		setContentView(R.layout.view);
+		OrgUtils.applyCustomThemeWindow(this);
 		this.resolver = getContentResolver();
 
 		Intent intent = getIntent();

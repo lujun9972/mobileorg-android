@@ -41,6 +41,7 @@ public class WizardActivity extends Activity implements RadioGroup.OnCheckedChan
 		OrgUtils.setTheme(this);
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.wizard);
+		OrgUtils.applyCustomThemeWindow(this);
 		
 		wizardView = (WizardView) findViewById(R.id.wizard_parent);
 		// when wizard first starts can't go to next page

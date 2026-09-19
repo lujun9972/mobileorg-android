@@ -65,6 +65,7 @@ public class OutlineActivity extends AppCompatActivity {
 		OrgUtils.setTheme(this);
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.outline);
+		OrgUtils.applyCustomThemeWindow(this);
 
 		Intent intent = getIntent();
 		node_id = intent.getLongExtra(NODE_ID, -1);

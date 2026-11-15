@@ -32,3 +32,15 @@ out
 # Generic
 *~
 .swp
+
+# 本地工具产物（agent/扫描器/下载缓存），勿提交
+.omo/
+.scannerwork/
+.superpowers/
+.claude/worktrees/
+graphify-out/
+sonar-results-*/
+tmp/
+release/
+debug.sh
+deploy.log

@@ -33,9 +33,11 @@ public class SDCardSynchronizer implements SynchronizerInterface {
 
 	public void putRemoteFile(String filename, String contents) throws IOException {
 		String outfilePath = this.remotePath + filename;
-		
+
 		File file = new File(outfilePath);
-		BufferedWriter writer = new BufferedWriter(new FileWriter(file, true));
+		// 覆写（接口 javadoc 契约 "Replaces the file"）。调用方 pushCaptures 已前置
+		// 拼接远端内容，append 语义会造成 mobileorg.org 内容重复膨胀
+		BufferedWriter writer = new BufferedWriter(new FileWriter(file, false));
 		writer.write(contents);
 		writer.close();
 	}

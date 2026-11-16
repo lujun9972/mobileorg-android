@@ -19,6 +19,10 @@ import com.matburt.mobileorg.OrgData.OrgFile;
 import com.matburt.mobileorg.OrgData.OrgFileParser;
 import com.matburt.mobileorg.OrgData.OrgIndexParser;
 import com.matburt.mobileorg.OrgData.OrgFileRepository;
+import com.matburt.mobileorg.OrgData.OrgNodeRepository;
+import com.matburt.mobileorg.OrgData.PomodoroLogParser;
+import com.matburt.mobileorg.OrgData.PomodoroLogSerializer;
+import com.matburt.mobileorg.OrgData.PomodoroSession;
 import com.matburt.mobileorg.R;
 import com.matburt.mobileorg.util.FileUtils;
 import com.matburt.mobileorg.util.OrgFileNotFoundException;
@@ -58,6 +62,8 @@ public class Synchronizer {
 	public static final String SYNC_SHOW_TOAST = "showToast";
 
 	public static final String INDEX_FILE = "index.org";
+	/** 协议外魔法文件（ADR 0005）：app 全权管理，不进 index.org 白名单，不进大纲。 */
+	public static final String POMODORO_LOG_FILE = "pomodoros.org";
 
 	private Context context;
 	private ContentResolver resolver;
@@ -95,6 +101,7 @@ public class Synchronizer {
 			announceStartSync();
 			ArrayList<String> changedFiles = pull(parser);
 			pushCaptures();
+			syncPomodoroLog();
 			announceSyncDone();
 			String okMsg = "Sync OK: " + changedFiles.size() + " files updated\n" + syncDiag;
 			showToast(okMsg);
@@ -161,6 +168,48 @@ public class Synchronizer {
 
 		resolver.delete(Edits.CONTENT_URI, null, null);
 		resolver.delete(Files.buildFilenameUri(filename), null, null);
+	}
+
+	/**
+	 * 番茄钟日志同步（union 合并，只增不删，ADR 0005）：
+	 * pull 原始文本 → 按 started_at 判重合并进本地 → 本地全表投影覆写远端。
+	 * 独立 try-catch：失败仅记日志，不影响主同步结果与 SYNC_DONE 通知。
+	 */
+	private void syncPomodoroLog() {
+		try {
+			mergePomodoroLog();
+			pushPomodoroLog();
+		} catch (Exception e) {
+			Log.w("MobileOrg", "[PomodoroLog] sync failed: " + e);
+		}
+	}
+
+	private void mergePomodoroLog() throws IOException, CertificateException {
+		String remote;
+		BufferedReader reader = null;
+		try {
+			reader = syncher.getRemoteFile(POMODORO_LOG_FILE);
+			remote = FileUtils.read(reader);
+		} catch (IOException e) {
+			return;   // 远端尚无文件（首次 push 前的常态）；网络错误由 push 失败兜底暴露
+		} finally {
+			if (reader != null)
+				reader.close();
+		}
+		if (remote.startsWith("{\"error\":"))
+			return;
+
+		OrgNodeRepository nodeRepo = new OrgNodeRepository(resolver);
+		for (PomodoroSession session : PomodoroLogParser.parse(remote)) {
+			if (!nodeRepo.pomodoroSessionExists(session.startedAt))
+				nodeRepo.insertPomodoroSession(session);
+		}
+	}
+
+	private void pushPomodoroLog() throws IOException {
+		OrgNodeRepository nodeRepo = new OrgNodeRepository(resolver);
+		String text = PomodoroLogSerializer.serialize(nodeRepo.getPomodoroSessions());
+		syncher.putRemoteFile(POMODORO_LOG_FILE, text);
 	}
 
 	/**

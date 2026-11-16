@@ -171,7 +171,8 @@ public class OutlineTagFilterTest {
         filter.setAndMode(true);
         filter.clearAll();
         assertFalse(filter.isActive());
-        assertFalse(filter.isAndMode());
+        // andMode 是用户显式选择的过滤模式偏好（modeToggle 开关），不随清除标签重置
+        assertTrue(filter.isAndMode());
         assertEquals(0, filter.getSelectedTagsArray().length);
     }
 

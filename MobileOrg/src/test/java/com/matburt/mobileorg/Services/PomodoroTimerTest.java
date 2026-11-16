@@ -291,7 +291,8 @@ public class PomodoroTimerTest {
 
     @Test
     public void formatMillisAsTime_minutes() {
-        assertEquals("25:00", PomodoroTimer.formatMillisAsTime(25 * 60 * 1000));
+        // H:MM 语义（见 formatMillisAsTime javadoc 与 hoursAndMinutes 用例）：25 分钟 = 0 时 25 分
+        assertEquals("0:25", PomodoroTimer.formatMillisAsTime(25 * 60 * 1000));
     }
 
     @Test

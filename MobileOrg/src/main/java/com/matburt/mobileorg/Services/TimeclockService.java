@@ -302,7 +302,7 @@ public class TimeclockService extends Service {
 		}
 		// Record session BEFORE stop()/startRest() — stop() resets startTime,
 		// so we must capture it while still in WORK(timedOut) state.
-		repo.recordPomodoroSession(pomodoroTimer.getStartTime(), pomodoroTimer.getDurationMinutes());
+		repo.recordPomodoroSession(pomodoroTimer.getStartTime(), pomodoroTimer.getDurationMinutes(), null, null);
 		diagLog("recordPomodoroSession", "round=" + pomodoroTimer.getCurrentRound()
 				+ "/" + pomodoroTimer.getTotalCount()
 				+ " duration=" + pomodoroTimer.getDurationMinutes() + "min");

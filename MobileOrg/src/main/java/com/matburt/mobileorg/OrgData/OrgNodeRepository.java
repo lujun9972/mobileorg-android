@@ -717,12 +717,56 @@ public class OrgNodeRepository {
         throw new OrgNodeNotFoundException("Node with ID \"" + id + "\" not found");
     }
 
-    public void recordPomodoroSession(long startedAt, int durationMin) {
+    public void recordPomodoroSession(long startedAt, int durationMin, String nodeRef, String device) {
         ContentValues values = new ContentValues();
         values.put(OrgContract.PomodoroSessions.STARTED_AT, startedAt);
         values.put(OrgContract.PomodoroSessions.DURATION_MIN, durationMin);
         values.put(OrgContract.PomodoroSessions.COMPLETED_AT, System.currentTimeMillis());
+        if (nodeRef != null && !nodeRef.isEmpty())
+            values.put(OrgContract.PomodoroSessions.NODE_REF, nodeRef);
+        if (device != null && !device.isEmpty())
+            values.put(OrgContract.PomodoroSessions.DEVICE, device);
         resolver.insert(OrgContract.PomodoroSessions.CONTENT_URI, values);
+    }
+
+    /** 恢复/合并用：completedAt 来自远端 property，不取当前时间。 */
+    public void insertPomodoroSession(PomodoroSession session) {
+        ContentValues values = new ContentValues();
+        values.put(OrgContract.PomodoroSessions.STARTED_AT, session.startedAt);
+        values.put(OrgContract.PomodoroSessions.DURATION_MIN, session.durationMin);
+        values.put(OrgContract.PomodoroSessions.COMPLETED_AT, session.completedAt);
+        if (session.nodeRef != null && !session.nodeRef.isEmpty())
+            values.put(OrgContract.PomodoroSessions.NODE_REF, session.nodeRef);
+        if (session.device != null && !session.device.isEmpty())
+            values.put(OrgContract.PomodoroSessions.DEVICE, session.device);
+        resolver.insert(OrgContract.PomodoroSessions.CONTENT_URI, values);
+    }
+
+    public boolean pomodoroSessionExists(long startedAt) {
+        Cursor cursor = resolver.query(OrgContract.PomodoroSessions.CONTENT_URI,
+                new String[] { OrgContract.PomodoroSessions.ID },
+                OrgContract.PomodoroSessions.STARTED_AT + "=?",
+                new String[] { String.valueOf(startedAt) }, null);
+        boolean exists = cursor != null && cursor.moveToFirst();
+        if (cursor != null) cursor.close();
+        return exists;
+    }
+
+    /** 全表按 started_at 升序，供 pomodoros.org 投影生成。 */
+    public ArrayList<PomodoroSession> getPomodoroSessions() {
+        Cursor cursor = resolver.query(OrgContract.PomodoroSessions.CONTENT_URI,
+                OrgContract.PomodoroSessions.DEFAULT_COLUMNS, null, null,
+                OrgContract.PomodoroSessions.STARTED_AT + " ASC");
+        ArrayList<PomodoroSession> sessions = new ArrayList<>();
+        try {
+            while (cursor != null && cursor.moveToNext()) {
+                sessions.add(new PomodoroSession(cursor.getLong(1), cursor.getLong(3),
+                        cursor.getInt(2), cursor.getString(4), cursor.getString(5)));
+            }
+        } finally {
+            if (cursor != null) cursor.close();
+        }
+        return sessions;
     }
 
     /**

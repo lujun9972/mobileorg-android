@@ -16,6 +16,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import com.matburt.mobileorg.R;
 import com.matburt.mobileorg.Gui.Agenda.AgendasActivity;
 import com.matburt.mobileorg.Gui.Help.HelpActivity;
+import com.matburt.mobileorg.Gui.Theme.CustomThemeStore;
 import com.matburt.mobileorg.Gui.Statistics.StatisticsActivity;
 import com.matburt.mobileorg.Gui.Wizard.WizardActivity;
 import com.matburt.mobileorg.OrgData.MobileOrgApplication;
@@ -58,10 +59,12 @@ public class OutlineActivity extends AppCompatActivity {
 	private static final String STATE_FILTER_TAGS = "filter_tags";
 	private static final String STATE_FILTER_AND_MODE = "filter_and_mode";
 	private String currentThemeName;
+	private String currentThemeRev;
 
 	@Override
 	protected void onCreate(Bundle savedInstanceState) {
 		currentThemeName = PreferenceUtils.getThemeName();
+		currentThemeRev = CustomThemeStore.getRevision();
 		OrgUtils.setTheme(this);
 		super.onCreate(savedInstanceState);
 		setContentView(R.layout.outline);
@@ -108,8 +111,11 @@ public class OutlineActivity extends AppCompatActivity {
 		MobileOrgApplication.log("OutlineActivity.onResume()");
 		super.onResume();
 		String newTheme = PreferenceUtils.getThemeName();
-		if (newTheme != null && !newTheme.equals(currentThemeName)) {
+		String newRev = CustomThemeStore.getRevision();
+		if (newTheme != null && (!newTheme.equals(currentThemeName)
+				|| !newRev.equals(currentThemeRev))) {
 			currentThemeName = newTheme;
+			currentThemeRev = newRev;
 			recreate();
 			return;
 		}
@@ -403,7 +409,7 @@ public class OutlineActivity extends AppCompatActivity {
 				intent.setAction(TimeclockService.ACTION_POMODORO_STOP);
 				Compat.startService(this, intent);
 			} else {
-				timeclockController.showPomodoroDurationPicker();
+				timeclockController.showPomodoroDurationPicker(listView.getCheckedNodeId());
 			}
 			return true;
 		} else if (id == R.id.menu_statistics) {

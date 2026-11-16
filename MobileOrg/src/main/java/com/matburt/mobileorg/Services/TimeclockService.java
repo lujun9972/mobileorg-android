@@ -8,10 +8,12 @@ import android.app.Service;
 import android.content.Intent;
 import android.graphics.Color;
 import android.media.MediaPlayer;
+import android.os.Build;
 import android.os.Handler;
 import android.os.IBinder;
 import android.os.Looper;
 import android.os.SystemClock;
+import android.provider.Settings;
 import androidx.core.app.NotificationCompat;
 import androidx.core.app.NotificationCompat.Builder;
 import android.text.SpannableStringBuilder;
@@ -40,6 +42,8 @@ public class TimeclockService extends Service {
 	public static final String NODE_ID = "node_id";
 	public static final String POMODORO_DURATION = "pomodoro_duration";
 	public static final String POMODORO_COUNT = "pomodoro_count";
+	/** 可选：发起番茄的节点 id（长按菜单启动时携带），finish 时解析为 olp 快照落库。 */
+	public static final String POMODORO_NODE_ID = "pomodoro_node_id";
 	public static final String CLOCK_DURATION = "clock_duration";
 	public static final String ACTION_ALARM_DISMISS = "alarm_dismiss";
 	public static final String BROADCAST_STATE_CHANGED = "com.matburt.mobileorg.TIMECLOCK_STATE_CHANGED";
@@ -62,6 +66,8 @@ public class TimeclockService extends Service {
 	private final PomodoroTimer pomodoroTimer = new PomodoroTimer();
 	private final ClockTimer clockTimer = new ClockTimer();
 	private OrgNodeRepository repo;
+	// 发起番茄的节点 id；连续模式后续轮次沿用（advanceToNextWork 不重建 intent）
+	private long pomodoroNodeId = -1;
 
 	private final Handler timerHandler = new Handler(Looper.getMainLooper());
 	private Runnable updateRunnable;
@@ -186,6 +192,7 @@ public class TimeclockService extends Service {
 	private void handlePomodoroStart(Intent intent) {
 		int duration = intent.getIntExtra(POMODORO_DURATION, 25);
 		int count = intent.getIntExtra(POMODORO_COUNT, 1);
+		pomodoroNodeId = intent.getLongExtra(POMODORO_NODE_ID, -1);
 		pomodoroTimer.start(duration, count);
 		cancelTimers();
 
@@ -302,7 +309,8 @@ public class TimeclockService extends Service {
 		}
 		// Record session BEFORE stop()/startRest() — stop() resets startTime,
 		// so we must capture it while still in WORK(timedOut) state.
-		repo.recordPomodoroSession(pomodoroTimer.getStartTime(), pomodoroTimer.getDurationMinutes(), null, null);
+		repo.recordPomodoroSession(pomodoroTimer.getStartTime(), pomodoroTimer.getDurationMinutes(),
+				resolveNodeRef(), resolveDeviceName());
 		diagLog("recordPomodoroSession", "round=" + pomodoroTimer.getCurrentRound()
 				+ "/" + pomodoroTimer.getTotalCount()
 				+ " duration=" + pomodoroTimer.getDurationMinutes() + "min");
@@ -338,6 +346,28 @@ public class TimeclockService extends Service {
 			notifyStateChanged();
 			showOrRefreshNotification();
 		}
+	}
+
+	/** olp 历史快照，落库时刻解析；节点已删除则放弃归属（不阻塞记录本身）。 */
+	private String resolveNodeRef() {
+		if (pomodoroNodeId < 0) return null;
+		try {
+			return repo.getOlpId(repo.getById(pomodoroNodeId));
+		} catch (OrgNodeNotFoundException e) {
+			Log.w("MobileOrg", "[Pomodoro] node gone at finish: " + pomodoroNodeId);
+			return null;
+		}
+	}
+
+	/** API 25+ 读系统设备名，取不到回退 Build.MODEL。 */
+	private String resolveDeviceName() {
+		try {
+			String name = Settings.Global.getString(getContentResolver(), "device_name");
+			if (name != null && !name.isEmpty()) return name;
+		} catch (Exception ignored) {
+			// API < 25 或读取失败
+		}
+		return Build.MODEL;
 	}
 
 	private void handleRestTimeout() {

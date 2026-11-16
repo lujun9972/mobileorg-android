@@ -94,7 +94,7 @@ public class OutlineTimeclockController {
         }
     }
 
-    public void showPomodoroDurationPicker() {
+    public void showPomodoroDurationPicker(long nodeId) {
         // Prevent starting while consecutive mode is active
         TimeclockService service = TimeclockService.getInstance();
         if (service != null && service.isPomodoroActive()) {
@@ -152,6 +152,8 @@ public class OutlineTimeclockController {
                     intent.setAction(TimeclockService.ACTION_POMODORO_START);
                     intent.putExtra(TimeclockService.POMODORO_DURATION, duration);
                     intent.putExtra(TimeclockService.POMODORO_COUNT, count);
+                    if (nodeId >= 0)
+                        intent.putExtra(TimeclockService.POMODORO_NODE_ID, nodeId);
                     Compat.startService(activity, intent);
                 })
                 .setNegativeButton(android.R.string.cancel, null)

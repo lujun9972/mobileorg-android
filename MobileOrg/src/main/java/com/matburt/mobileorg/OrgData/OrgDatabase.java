@@ -1,6 +1,7 @@
 package com.matburt.mobileorg.OrgData;
 
 import android.content.Context;
+import android.database.Cursor;
 import android.database.DatabaseUtils.InsertHelper;
 import android.database.sqlite.SQLiteDatabase;
 import android.database.sqlite.SQLiteOpenHelper;
@@ -10,7 +11,7 @@ import com.matburt.mobileorg.OrgData.OrgContract.OrgData;
 
 public class OrgDatabase extends SQLiteOpenHelper {
 	private static final String DATABASE_NAME = "MobileOrg.db";
-	private static final int DATABASE_VERSION = 7;
+	private static final int DATABASE_VERSION = 8;
 
 	private int orgdata_nameColumn;
 	private int orgdata_todoColumn;
@@ -83,7 +84,9 @@ public class OrgDatabase extends SQLiteOpenHelper {
 				+ "_id INTEGER PRIMARY KEY AUTOINCREMENT,"
 				+ "started_at INTEGER NOT NULL,"
 				+ "duration_min INTEGER NOT NULL,"
-				+ "completed_at INTEGER NOT NULL)");
+				+ "completed_at INTEGER NOT NULL,"
+				+ "node_ref TEXT,"
+				+ "device TEXT)");
 		db.execSQL("CREATE INDEX IF NOT EXISTS idx_pomodoro_completed "
 				+ "ON pomodoro_sessions(completed_at)");
 	}
@@ -115,8 +118,37 @@ public class OrgDatabase extends SQLiteOpenHelper {
 			db.execSQL("alter table edits add batch_id integer");
 			db.execSQL("alter table edits add db_id integer");
 			break;
+
+		case 8:
+			// 跨级升级（如 v5 直接装 v8）时 switch(newVersion) 只跑本 case：
+			// 先按最终形态补建表，再幂等补列
+			db.execSQL("CREATE TABLE IF NOT EXISTS pomodoro_sessions("
+					+ "_id INTEGER PRIMARY KEY AUTOINCREMENT,"
+					+ "started_at INTEGER NOT NULL,"
+					+ "duration_min INTEGER NOT NULL,"
+					+ "completed_at INTEGER NOT NULL,"
+					+ "node_ref TEXT,"
+					+ "device TEXT)");
+			addColumnIfMissing(db, "pomodoro_sessions", "node_ref", "TEXT");
+			addColumnIfMissing(db, "pomodoro_sessions", "device", "TEXT");
+			break;
 		}
 		onCreate(db);
+	}
+
+	/** 幂等补列：跨级升级路径中表可能已带该列，PRAGMA 查名后再 ALTER。 */
+	private void addColumnIfMissing(SQLiteDatabase db, String table, String column, String type) {
+		Cursor cursor = db.rawQuery("PRAGMA table_info(" + table + ")", null);
+		try {
+			int nameIdx = cursor.getColumnIndex("name");
+			while (cursor.moveToNext()) {
+				if (column.equals(cursor.getString(nameIdx)))
+					return;
+			}
+		} finally {
+			cursor.close();
+		}
+		db.execSQL("ALTER TABLE " + table + " ADD COLUMN " + column + " " + type);
 	}
 
 	public long fastInsertNode(OrgNode node) {

@@ -59,6 +59,8 @@ public class OrgContract {
 		String STARTED_AT = "started_at";
 		String DURATION_MIN = "duration_min";
 		String COMPLETED_AT = "completed_at";
+		String NODE_REF = "node_ref";
+		String DEVICE = "device";
 	}
 
 	public static final String CONTENT_AUTHORITY = "com.matburt.mobileorg.OrgData.OrgProvider";
@@ -181,6 +183,6 @@ public class OrgContract {
 		public static final Uri CONTENT_URI =
 				BASE_CONTENT_URI.buildUpon().appendPath(PATH_POMODORO_SESSIONS).build();
 
-		public static final String[] DEFAULT_COLUMNS = { ID, STARTED_AT, DURATION_MIN, COMPLETED_AT };
+		public static final String[] DEFAULT_COLUMNS = { ID, STARTED_AT, DURATION_MIN, COMPLETED_AT, NODE_REF, DEVICE };
 	}
 }

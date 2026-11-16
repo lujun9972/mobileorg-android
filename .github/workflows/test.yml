@@ -25,6 +25,9 @@ jobs:
           sudo udevadm control --reload-rules
           sudo udevadm trigger --name-match=kvm
 
+      - name: Run JVM unit tests
+        run: ./gradlew testDebugUnitTest
+
       - name: Run instrumentation tests
         uses: reactivecircus/android-emulator-runner@v2
         with:

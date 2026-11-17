@@ -10,12 +10,12 @@ MobileOrg Android — Org-mode 的 Android 客户端。Fork 自不再维护的 [
 
 - 环境要求：JDK 17、Android SDK platform 34 + build-tools 34；工具链 Gradle 8.5 + AGP 8.2.2 + compileSdk/targetSdk 34。
 - `./gradlew assembleDebug`，APK 在 `MobileOrg/build/outputs/apk/debug/`。
-- **不在本地构建**：推送触发 GitHub Actions CI，用 `gh` 查结果。安装到设备用 `./deploy.sh`（下载 CI 最新 APK → `adb install -r`）。**绝不 `adb uninstall`**——本地未同步数据会永久丢失。
+- **不在本地构建**：推送触发 GitHub Actions CI，用 `./ci-watch.sh` 等两个 workflow 的结论（Build APK 不编译 test 源集，测试结论以 Instrumentation Tests 为准）。安装到设备用 `./deploy.sh`（下载 CI 最新 APK → `adb install -r`）。**绝不 `adb uninstall`**——本地未同步数据会永久丢失。
 - 版本名来自 `git describe --tags`；release keystore 及密码在 `build.gradle`。
 
 ## Remote / CI
 
-Remote `git.zhlh6.cn` 是 Gitea 代理，推送自动同步到 GitHub 并触发 CI。`gh` CLI 直连 GitHub：`gh run list -R lujun9972/mobileorg-android`。
+Remote `git.zhlh6.cn` 是 Gitea 代理，推送自动同步到 GitHub 并触发 CI。`gh` CLI 直连 GitHub：`gh run list -R lujun9972/mobileorg-android`。云端协议目录（手机 SSH 同步目标，`~/mobileorg/`）：`ssh -p 8022 lujun9972@tencent_cloud.lujun9972.win`（本机免密，或 `ssh tencent_cloud`）。
 
 ## 测试
 

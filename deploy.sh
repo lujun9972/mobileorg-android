@@ -31,7 +31,7 @@ fi
 
 if [ -z "$RUN_ID" ]; then
   RUN_ID=$(gh run list -R "$REPO" --workflow="$WORKFLOW" --limit 10 \
-    --json databaseId,status,conclusion,headSha,event \
+    --json databaseId,status,conclusion,headSha,headBranch,event \
     --jq '[.[] | select(.event=="push" and .headBranch=="main")][0].databaseId')
   [ -n "$RUN_ID" ] || { echo "main 分支没有 Build APK 记录"; exit 1; }
 fi

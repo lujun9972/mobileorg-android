@@ -116,6 +116,9 @@
 - **WebView 诊断三坑**（2026-08-26）：虚拟节点 uiautomator dump 中 x 可信 y 不可信（定位用截图像素分析）；`historyUrl=null` 时 `getUrl()` 恒 `about:blank`；`evaluateJavascript` 的合成 click 不触发 `shouldOverrideUrlLoading`，测试须直接驱动回调。
 - **loadDataWithBaseURL 的 baseUrl 决定相对链接解析**：页面内所有相对 URL 相对 baseUrl 解析，与实际读取路径无关。baseUrl 与资源目录不一致 → WebView 静默 ERR_FILE_NOT_FOUND、保留旧页面（"图片正常、链接没反应"）。baseUrl 从实际路径父目录推导；`shouldOverrideUrlLoading` 拦截 asset 前缀转回 `loadAsset()`（保留 dark class 注入）；共享资源用 `../` 上跳。
 - **测试 payload 构造坑**：`stripProperties()` 提取 `:ID:` 值要求行尾换行——写 `":ID: xxx\n"`，否则 getId() 返回 null 走 olp: 分支，测试伪通过。
+- **release 签名版不可 `run-as` 读 DB**（2026-11-17）：debug 版装过 app 后改用 CI release APK，`run-as` 报 "package not debuggable"。卸载前数据保全路径：`adb exec-out run-as … cat databases/MobileOrg.db > local.db`（趁还是 debug 版先拉）；装了 release 后只能靠远端投影反推（如 pomodoros.org 的 diff/md5/条目数）。设备无 sqlite3 二进制（非 root），本地 `sqlite3` 分析拉下来的副本。
+- **adb mDNS 自动重连造成 "more than one device/emulator"**（2026-11-17）：无线调试开启时 mDNS 会自动重连出 `adb-XXX._adb-tls-connect._tcp` 幽灵设备，即使手动 `adb disconnect` 过。所有 adb 命令带 `-s <ip>:<port>` 最稳；或每次 disconnect 幽灵条目。
+- **Build APK workflow 不编译 test 源集——TDD 红必须 watch Instrumentation Tests**（2026-11-17）：push 引用不存在符号的失败测试时，Build APK（`assembleRelease`）照常绿，只有 `testDebugUnitTest` 步骤会红。验证红要看对 workflow；失败原因用 `gh run view <id> --log-failed | grep error:` 确认是预期符号缺失而非测试自身语法错误。
 
 ## 9. 工程流程
 
@@ -126,6 +129,7 @@
 - **版本守卫统一 `Build.VERSION.SDK_INT >= Build.VERSION_CODES.O` 模式**。
 - **AndroidX + Jetifier**：本地 JAR 启用 Jetifier。
 - **限流恢复**：API 429 时用 `CronCreate` 在重置时间调度一次性任务恢复工作，不轮询不立即重试。
+- **`gh run list --json` 字段列表必须覆盖 jq 里引用的字段**（2026-11-17）：jq `select(.headBranch=="main")` 引用未请求的字段得到 null，条件恒 false、静默过滤成空（exit 0 无输出）。deploy.sh 曾因此误报「main 分支没有 Build APK 记录」。排查法：`--jq` 拆成单字段 `select` 逐个测试定位缺失字段。
 
 ## 10. 事故记录（根因分析详版）
 

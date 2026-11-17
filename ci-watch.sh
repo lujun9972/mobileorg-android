@@ -11,19 +11,21 @@ REPO=lujun9972/mobileorg-android
 if [ "${1:-}" = "--id" ]; then
   BUILD_ID=$2; TEST_ID=$3
 else
-  # Gitea 代理转发到 GitHub 有延迟，push 后 run 可能尚未创建——轮询等待
+  # Gitea 代理转发到 GitHub 有延迟，push 后 run 可能尚未创建——轮询等待；
+  # 按 origin/main 的 sha 过滤，避免查到上一次 push 的旧 run 就误判
   # 注意：jq 输出合并为单行（join(" ")）——`read A B` 只读第一行，两行输出会让 B 恒空
+  SHA=$(git rev-parse origin/main 2>/dev/null || git rev-parse HEAD)
   for _ in $(seq 1 20); do
     IDS=$(gh run list -R "$REPO" --limit 10 \
-      --json databaseId,name,headBranch,event \
-      --jq '[(.[] | select(.event=="push" and .headBranch=="main"))] |
-            [(map(select(.name=="Build APK")) | .[0].databaseId),
-             (map(select(.name=="Instrumentation Tests")) | .[0].databaseId)] | join(" ")')
+      --json databaseId,name,headSha,event \
+      --jq "[(.[] | select(.event==\"push\" and .headSha==\"$SHA\"))] |
+            [(map(select(.name==\"Build APK\")) | .[0].databaseId),
+             (map(select(.name==\"Instrumentation Tests\")) | .[0].databaseId)] | join(\" \")")
     read -r BUILD_ID TEST_ID <<< "${IDS:-}"
     [ -n "${BUILD_ID:-}" ] && [ -n "${TEST_ID:-}" ] && break
     sleep 15
   done
-  [ -n "${BUILD_ID:-}" ] && [ -n "${TEST_ID:-}" ] || { echo "5 分钟内没等到 main 的 CI run"; exit 1; }
+  [ -n "${BUILD_ID:-}" ] && [ -n "${TEST_ID:-}" ] || { echo "5 分钟内没等到当前 push 的 CI run (sha $SHA)"; exit 1; }
 fi
 
 echo "watching Build APK $BUILD_ID, Instrumentation Tests $TEST_ID"

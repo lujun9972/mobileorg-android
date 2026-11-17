@@ -11,12 +11,17 @@ REPO=lujun9972/mobileorg-android
 if [ "${1:-}" = "--id" ]; then
   BUILD_ID=$2; TEST_ID=$3
 else
-  read -r BUILD_ID TEST_ID < <(gh run list -R "$REPO" --limit 10 \
-    --json databaseId,name,headBranch,event \
-    --jq '[(.[] | select(.event=="push" and .headBranch=="main"))] |
-          (map(select(.name=="Build APK")) | .[0].databaseId),
-          (map(select(.name=="Instrumentation Tests")) | .[0].databaseId)')
-  [ -n "${BUILD_ID:-}" ] && [ -n "${TEST_ID:-}" ] || { echo "没找到 main 的 CI run"; exit 1; }
+  # Gitea 代理转发到 GitHub 有延迟，push 后 run 可能尚未创建——轮询等待
+  for _ in $(seq 1 20); do
+    read -r BUILD_ID TEST_ID < <(gh run list -R "$REPO" --limit 10 \
+      --json databaseId,name,headBranch,event \
+      --jq '[(.[] | select(.event=="push" and .headBranch=="main"))] |
+            (map(select(.name=="Build APK")) | .[0].databaseId),
+            (map(select(.name=="Instrumentation Tests")) | .[0].databaseId)')
+    [ -n "${BUILD_ID:-}" ] && [ -n "${TEST_ID:-}" ] && break
+    sleep 15
+  done
+  [ -n "${BUILD_ID:-}" ] && [ -n "${TEST_ID:-}" ] || { echo "5 分钟内没等到 main 的 CI run"; exit 1; }
 fi
 
 echo "watching Build APK $BUILD_ID, Instrumentation Tests $TEST_ID"

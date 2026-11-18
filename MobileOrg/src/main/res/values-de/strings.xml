@@ -20,6 +20,8 @@
   <string name="menu_advanced">Erweitert</string>
   <string name="menu_recover">Wiederherstellen</string>
   <string name="menu_clockin">Stechuhr drücken</string>
+  <string name="menu_clockout">Stechuhr beenden</string>
+  <string name="menu_clockswitch">Stechuhr wechseln</string>
   <string name="menu_archive">Archivieren</string>
   <string name="menu_archive_tosibling">zum Geschwister archivieren</string>
   <string name="sync_wait">Daten werden synchronisiert, bitte warten...</string>

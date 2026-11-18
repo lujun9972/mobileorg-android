@@ -275,6 +275,8 @@
 <string name="menu_archive_tosibling">归档到同级</string>
 <string name="menu_capture_simple">快速捕获</string>
 <string name="menu_clockin">开始计时</string>
+<string name="menu_clockout">结束计时</string>
+<string name="menu_clockswitch">切换到此节点计时</string>
 <string name="menu_delete">删除</string>
 <string name="menu_delete_file">删除文件</string>
 <string name="menu_pomodoro">番茄钟</string>

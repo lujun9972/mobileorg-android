@@ -91,6 +91,8 @@
     <string name="contextmenu_view">View node</string>
     <string name="menu_recover">Recover</string>
     <string name="menu_clockin">Clock in</string>
+    <string name="menu_clockout">Clock out</string>
+    <string name="menu_clockswitch">Clock in (stops current)</string>
     <string name="menu_record">Record</string>
     <string name="recording_notification_channel">MobileOrg Recording</string>
     <string name="recording_notification_title">Recording: %s</string>

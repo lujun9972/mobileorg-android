@@ -27,6 +27,7 @@ import com.matburt.mobileorg.OrgData.OrgNodeRepository;
 import com.matburt.mobileorg.OrgData.OrgFileRepository;
 import com.matburt.mobileorg.Services.CalendarSyncService;
 import com.matburt.mobileorg.Services.RecordingService;
+import com.matburt.mobileorg.Services.ClockMenu;
 import com.matburt.mobileorg.Services.TimeclockService;
 import com.matburt.mobileorg.util.OrgFileNotFoundException;
 import com.matburt.mobileorg.Synchronizers.Synchronizer;
@@ -94,7 +95,27 @@ public class OutlineActionMode implements ActionMode.Callback {
 			TimeclockService service = TimeclockService.getInstance();
 			pomoItem.setVisible(service == null || !service.isPomodoroRunning());
 		}
+		MenuItem clockItem = menu.findItem(R.id.menu_clockin);
+		if (clockItem != null && node != null) {
+			ClockMenu.State state = ClockMenu.decide(getClockedNodeId(), node.id);
+			clockItem.setTitle(clockMenuTitleRes(state));
+		}
 		return true;
+	}
+
+	/** clock 菜单项 title 随计时状态变化（见 ClockMenu）。 */
+	private static int clockMenuTitleRes(ClockMenu.State state) {
+		switch (state) {
+			case CLOCK_OUT: return R.string.menu_clockout;
+			case SWITCH:    return R.string.menu_clockswitch;
+			default:        return R.string.menu_clockin;
+		}
+	}
+
+	/** 当前计时节点 id；service 未运行或无计时返回 -1。 */
+	private static long getClockedNodeId() {
+		TimeclockService service = TimeclockService.getInstance();
+		return service == null ? -1 : service.getNodeID();
 	}
 
 	@Override
@@ -247,17 +268,24 @@ public class OutlineActionMode implements ActionMode.Callback {
 		Log.d("MobileOrg", "[ClockIn] OutlineActionMode.runTimeClockingService: node.id=" + node.id
 				+ ", name=" + node.name);
 
+		ClockMenu.State state = ClockMenu.decide(getClockedNodeId(), node.id);
 		Intent intent = new Intent(context, TimeclockService.class);
-		intent.setAction(TimeclockService.ACTION_CLOCK_IN);
-		intent.putExtra(TimeclockService.NODE_ID, node.id);
-		// 不杀已有 service，由 service 内部处理已 clock in 的情况
+		if (state == ClockMenu.State.CLOCK_OUT) {
+			// 本节点计时中：纯 clock out，写入 LOGBOOK，不重新开始
+			intent.setAction(TimeclockService.ACTION_CLOCK_OUT);
+		} else {
+			// CLOCK_IN / SWITCH：对该节点开始计时；SWITCH 时由 service 先 clock out 旧节点
+			intent.setAction(TimeclockService.ACTION_CLOCK_IN);
+			intent.putExtra(TimeclockService.NODE_ID, node.id);
+		}
 
 		if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {
 			context.startForegroundService(intent);
 		} else {
 			context.startService(intent);
 		}
-		Log.d("MobileOrg", "[ClockIn] startService intent sent for node_id=" + node.id);
+		Log.d("MobileOrg", "[ClockIn] startService intent sent: action=" + intent.getAction()
+				+ " node_id=" + node.id);
 	}
 
 	private void showPomodoroDurationPicker() {

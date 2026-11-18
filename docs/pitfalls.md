@@ -9,7 +9,7 @@
 | 通知 / PendingIntent | FLAG_IMMUTABLE、先建 Channel、Builder 传 CHANNEL_ID、前台服务类型声明、API 33+ POST_NOTIFICATIONS、超时/提醒类通知用独立 HIGH importance 渠道、周期更新的 RemoteViews 刷新**所有**文字字段 |
 | Service / 权限 | 提前 return 后 onDestroy 判空、API 26+ startForeground/startForegroundService、每个 UI 入口独立做危险权限检查并给用户反馈、构造函数不做网络 I/O |
 | 广播 / Intent | sendBroadcast 前 setPackage、`CONSTANT.equals(getAction())`、preference intent 用 targetPackage/targetClass、AlarmManager 的 receiver exported=true |
-| 菜单 / ActionMode | `app:showAsAction`（非 android:）、长按菜单审计 **4 套** XML（node/node_uneditable/file/file_uneditable）、invalidateOptionsMenu 只在 SYNC_DONE 后 |
+| 菜单 / ActionMode | `app:showAsAction`（非 android:）、长按菜单审计 **4 套** XML（node/node_uneditable/file/file_uneditable）、invalidateOptionsMenu 只在 SYNC_DONE 后、状态语义菜单项在 onPrepareActionMode 动态化 title/action |
 | UI / 主题 | MaterialComponents widget 显式 layout_width/height、双层主题（XML + Java）必须同步改、ListPreference 每个 entry 有代码分支、setTheme 只在 onCreate 生效（变更后 recreate）、Fragment 子类 public static、vector 用 xmlns:android |
 | 数据层 / SQL | LIKE 模式经 `likePattern()` 转义+ESCAPE、计算值拼 LIKE 前守卫空串（`'%%'` 匹配全表）、写节点显式设 parentId/fileId、复制构造复制全部字段、setPayload 后需要本地可见就 write(resolver)、cursor 在 throw/finally 路径关闭 |
 | 定时器 / 闹钟 | 一次性 Handler 定时必须有周期兜底、API 31+ 精确闹钟需 SCHEDULE_EXACT_ALARM（无则回退 setWindow）、闹钟声音用 USAGE_ALARM 流（渠道 setSound(null,null)）、NumberPicker getValue 前 clearFocus |
@@ -54,6 +54,7 @@
 
 - **菜单 XML 用 `app:showAsAction`**：AppCompat Toolbar 静默忽略 `android:showAsAction`，图标不显示且无报错。
 - **长按 ActionMode 菜单有 4 套**（2026-08-25）：`onCreateActionMode()` 按节点类型选 `outline_node` / `outline_node_uneditable` / `outline_file` / `outline_file_uneditable`。加菜单项必须审计 4 套——agenda 类节点走 `outline_file_uneditable` 分支，漏加无任何报错。
+- **菜单项语义随 Service 运行状态变化时必须在 `onPrepareActionMode()` 动态化 title/action**（2026-11-18 clock 菜单）：XML title 静态写死 + 点击 handler 恒发同一 action，toggle 语义对用户不可见——clock in 后菜单仍显示 "Clock in"，点击实为 service 内"结束旧时段+立即重开同节点"（计时起点静默重置）。修复模式：状态决策抽纯逻辑类 + JVM 测试（`ClockMenu.decide(clockedNodeId, nodeId)`，`getNodeID()` 无计时返回 -1 作哨兵），`onPrepareActionMode()` 设 title、点击按 state 分流 action（本节点→`ACTION_CLOCK_OUT`，其他→`ACTION_CLOCK_IN`，切换语义由 service 原有逻辑承担）；`findItem()` 判空自动适配无此项的 uneditable 菜单。同类遗留：`menu_record` 录制中仍显示（有 no-op 防护无害，低优先级）。
 - **主题系统两层独立体系**：(1) XML 主题（`themes.xml` + `OrgUtils.setTheme()`）控制 ActionBar/preference/对话框；(2) Java 主题（`Gui/Theme/`）控制 outline 渲染。新增主题选项必须同时更新两处 + `themes.xml` 定义匹配 style（parent 选对 dark/light 基底）。只改一层导致页面外观不一致。
 - **Preference 选项必须有实现分支**：`arrays.xml` 的每个 entry 都要有对应代码，否则静默落入默认（Monochrome 曾落 Light）。
 - **主题变更 resume 不生效**：`setTheme()` 必须在 `setContentView()` 前调用。从设置改主题返回只触发 `onResume()`——用字段跟踪主题名，变化则 `recreate()`。只有 OutlineActivity 受影响（其他 Activity 每次新建）。

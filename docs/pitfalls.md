@@ -6,7 +6,7 @@
 
 | 改动场景 | 必查项 |
 |---|---|
-| 通知 / PendingIntent | FLAG_IMMUTABLE、先建 Channel、Builder 传 CHANNEL_ID、前台服务类型声明、API 33+ POST_NOTIFICATIONS、超时/提醒类通知用独立 HIGH importance 渠道、周期更新的 RemoteViews 刷新**所有**文字字段 |
+| 通知 / PendingIntent | FLAG_IMMUTABLE、先建 Channel、Builder 传 CHANNEL_ID、前台服务类型声明、API 33+ POST_NOTIFICATIONS、超时/提醒类通知用独立 HIGH importance 渠道、周期更新的 RemoteViews 刷新**所有**文字字段、空闲自停只放终态（checkStopSelf 实为 stopSelf）、"结束+重启"复合链中间态跳过守卫 |
 | Service / 权限 | 提前 return 后 onDestroy 判空、API 26+ startForeground/startForegroundService、每个 UI 入口独立做危险权限检查并给用户反馈、构造函数不做网络 I/O |
 | 广播 / Intent | sendBroadcast 前 setPackage、`CONSTANT.equals(getAction())`、preference intent 用 targetPackage/targetClass、AlarmManager 的 receiver exported=true |
 | 菜单 / ActionMode | `app:showAsAction`（非 android:）、长按菜单审计 **4 套** XML（node/node_uneditable/file/file_uneditable）、invalidateOptionsMenu 只在 SYNC_DONE 后、状态语义菜单项在 onPrepareActionMode 动态化 title/action |
@@ -25,6 +25,7 @@
 - **前台服务**：API 26+ 调 `startForeground()`；启动用 `startForegroundService()`；manifest 声明前台服务类型（SyncService=`dataSync`、TimeclockService=`specialUse`，API 34+ 必须）。Alarm PendingIntent 在 API 26+ 用 `getForegroundService()`。
 - **API 33+ 同步前运行时申请 POST_NOTIFICATIONS**。
 - **提醒类通知（超时/REST 结束）必须用独立 IMPORTANCE_HIGH 渠道**：渠道 importance 优先于 `notification.defaults`，LOW 渠道静默屏蔽声音/振动/heads-up。不复用前台通知做提醒（很多设备不会为 ongoing 通知再次发声）。渠道 ID：`mobileorg_timeclock_timeout`（声音来自 MediaPlayer，渠道 `setSound(null,null)` 只振动）、`mobileorg_timeclock_rest`（渠道自带声音+振动）。开始下一轮时取消 REST 通知防陈旧。
+- **"结束+马上重启"的复合操作不能在中间态触发空闲自停**（2026-11-19 切换计时杀 service）：切换计时路径 `handleClockIn → doClockOut(旧节点) → checkStopSelf()` 在"旧已 out、新未 in"中间态命中空闲 → `cancelNotification()` **尾部藏着 `stopSelf()`** → onStartCommand 返回后 service 必死（onDestroy 撤通知 + 内存计时状态全丢），处理链后续的重新 clockIn 无法挽回——通知消失且新计时静默丢失。规则：(1) 空闲自停守卫只放**终态**操作（番茄全部完成/用户取消）之后，凡守卫与激活步骤之间有中间态的复合链一律跳过（`doClockOut(..., stopIfIdle=false)`）；(2) `checkStopSelf()` 名不副实——它委托 `cancelNotification()`，后者是 `stopForeground + stopSelf` 的完整停止，读它时按"可能杀死 service"对待。回归：`TimeclockServiceSwitchTest`（断言切换后 service 存活、指向新节点、通知仍在）。
 - **闹钟声音用 USAGE_ALARM 流**：通知渠道声音走通知流，静音模式被屏蔽；`MediaPlayer` + `AudioAttributes.USAGE_ALARM` 在闹钟流播放。MediaPlayer 生命周期作为 Service 字段管理，所有 stop/cancel/destroy 路径显式 release（曾因 OnCompletionListener 后双重 release 崩溃）。
 - **超时通知的"关闭闹铃"action**：`ACTION_ALARM_DISMISS` + `setAutoCancel(false)` + `deleteIntent`——解除按钮始终可用，滑掉通知也能停闹钟。只停声音不停会话。
 - **周期更新的通知必须刷新所有文字字段**：`updateTime()` 每 60s 刷新大号时间，但标题行只在创建时设置 → 标题陈旧。任何多字段 RemoteViews 周期更新时刷新全部时间字段。

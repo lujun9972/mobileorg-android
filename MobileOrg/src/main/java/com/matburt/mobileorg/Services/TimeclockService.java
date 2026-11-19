@@ -485,7 +485,11 @@ public class TimeclockService extends Service {
 		long newNodeId = intent.getLongExtra(NODE_ID, -1);
 		if (newNodeId < 0) return;
 		if (clockTimer.isClockedIn()) {
-			doClockOut(true, -1);
+			// 切换计时：结束旧时段但 stopIfIdle=false——此刻是"旧已 out、
+			// 新未 in"的中间态，checkStopSelf 会经 cancelNotification()
+			// 尾部的 stopSelf() 误杀 service（onDestroy 撤通知 + 内存
+			// 计时状态全丢），随后的重新 clockIn 也无法挽回
+			doClockOut(true, -1, false);
 		}
 		try {
 			clockTimer.clockIn(newNodeId);
@@ -499,6 +503,10 @@ public class TimeclockService extends Service {
 	}
 
 	public void doClockOut(boolean save, int editedDurationMinutes) {
+		doClockOut(save, editedDurationMinutes, true);
+	}
+
+	public void doClockOut(boolean save, int editedDurationMinutes, boolean stopIfIdle) {
 		ClockTimer.ClockOutResult result = clockTimer.clockOut(editedDurationMinutes);
 		if (result == null) return;
 		if (save && clockNode != null) {
@@ -506,7 +514,9 @@ public class TimeclockService extends Service {
 		}
 		this.clockNode = null;
 		notifyStateChanged();
-		checkStopSelf();
+		if (stopIfIdle) {
+			checkStopSelf();
+		}
 		showOrRefreshNotification();
 	}
 

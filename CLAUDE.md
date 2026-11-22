@@ -15,11 +15,11 @@ MobileOrg Android — Org-mode 的 Android 客户端。Fork 自不再维护的 [
 
 ## Remote / CI
 
-Remote `git.zhlh6.cn` 是 Gitea 代理，推送自动同步到 GitHub 并触发 CI。`gh` CLI 直连 GitHub：`gh run list -R lujun9972/mobileorg-android`。云端协议目录（手机 SSH 同步目标，`~/mobileorg/`）：`ssh -p 8022 lujun9972@tencent_cloud.lujun9972.win`（本机免密，或 `ssh tencent_cloud`）。
+Remote `origin` 直连 GitHub（`git@github.com:lujun9972/mobileorg-android.git`，2026-11 前曾走 git.zhlh6.cn Gitea 代理），push 触发 CI。`gh` CLI 查 run：`gh run list -R lujun9972/mobileorg-android`。云端协议目录（手机 SSH 同步目标，`~/mobileorg/`）：`ssh -p 8022 lujun9972@tencent_cloud.lujun9972.win`（本机免密，或 `ssh tencent_cloud`）。
 
 ## 测试
 
-- `MobileOrg/src/androidTest/`：94 个 instrumentation 测试（ProviderTestCase2 + AndroidJUnit4），`./gradlew connectedDebugAndroidTest` 需真机/模拟器，CI 在 API 30 模拟器跑。测试坑见 pitfalls.md §8。
+- `MobileOrg/src/androidTest/`：94 个 instrumentation 测试（ProviderTestCase2 + AndroidJUnit4），`./gradlew connectedDebugAndroidTest` 需真机/模拟器，CI 在 API 30 模拟器跑。**绝不连用户真机跑**——androidTest 的 setUp 清空三张表，等于清掉未同步数据（与"绝不 adb uninstall"同级）。测试坑见 pitfalls.md §8。
 - `MobileOrg/src/test/`：纯逻辑 JVM 测试，无需设备——纯逻辑修复优先落这里。
 - 本地设备：无线调试 `adb connect <ip>:<port>`（IP/端口易变，以设备显示为准）；拿不到就请用户插 USB。logcat 跟踪用 `./debug.sh`。
 
